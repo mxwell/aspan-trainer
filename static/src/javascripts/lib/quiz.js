@@ -13,6 +13,36 @@ class QuizItem {
     }
 }
 
+const PRESET_VERBS = [
+    "бару",
+    "оқу",
+    "жүзу",
+    "алу",
+    "ренжу",
+    "жасау",
+    "зерттеу",
+    "қуыру",
+    "ойнау",
+    "отыру",
+    "тігу",
+    "үйрену",
+    "көмектесу",
+    "демалу",
+    "еріну",
+    "жазу",
+]
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+export function getVerb(hint) {
+    if (hint.length > 0) {
+        return hint;
+    }
+    return PRESET_VERBS[getRandomInt(PRESET_VERBS.length)];
+}
+
 export function createVerbPresentTransitiveQuiz(verb) {
     var result = [];
     const verbBuilder = new VerbBuilder(verb);
@@ -26,6 +56,10 @@ export function createVerbPresentTransitiveQuiz(verb) {
         }
     }
     return result;
+}
+
+export function checkCustomVerb(verb) {
+    return verb.endsWith("у") || verb.endsWith("ю");
 }
 
 export class QuizState {
