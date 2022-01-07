@@ -1,0 +1,16 @@
+mixin a_page(title)
+    doctype html
+    html(lang="en")
+        head
+            meta(charset="utf8")
+            title= title
+            link(rel="icon", href="../images/favicon.png")
+        body
+            article
+                block
+            footer
+                span © 2022
+                span
+                    a(href="https://github.com/mxwell") Murat Khairulin
+            script(src="../javascripts/boot.jsx")
+            noscript() The web page requires Javascript enabled in the browser to work
