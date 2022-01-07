@@ -30,7 +30,7 @@ class QuizApp extends React.Component {
 
     onTryAgain(e) {
         e.preventDefault();
-        this.setState(this.initialState());        
+        this.setState(this.initialState());
     }
 
     getCurrentItem() {

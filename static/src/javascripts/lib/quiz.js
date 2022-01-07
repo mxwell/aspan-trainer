@@ -9,7 +9,7 @@ class QuizItem {
     constructor(hint, textHint, expected) {
         this.hint = hint;
         this.textHint = textHint;
-        this.expected = expected;        
+        this.expected = expected;
     }
 }
 
