@@ -124,7 +124,7 @@ class QuizApp extends React.Component {
 
     getCustomVerbMessage() {
         if (this.state.customVerbMessage) {
-            return <span>{this.state.customVerbMessage}</span>;
+            return <p class="text-red-500 text-xs italic">{this.state.customVerbMessage}</p>;
         }
         return "";
     }
@@ -143,19 +143,17 @@ class QuizApp extends React.Component {
 
     renderStartForm() {
         return (
-            <div>
-                <span>
-                    <form onSubmit={this.onRandomVerb}>
-                        <input type="submit" value="Random verb"/>
-                    </form>
-                </span>
-                <span>
-                    <form onSubmit={this.onCustomVerb}>
-                        <input type="text" value={this.state.customVerb} onChange={this.onCustomVerbChange}/>
-                        <input type="submit" value="Custom verb"/>
+            <div class="w-full max-w-xs flex-col items-center">
+                <form onSubmit={this.onRandomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4">
+                    <input type="submit" value="Random verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                </form>
+                <form onSubmit={this.onCustomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4">
+                    <input type="submit" value="Custom verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                    <div class="pt-4">
+                        <input type="text" value={this.state.customVerb} onChange={this.onCustomVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
                         {this.getCustomVerbMessage()}
-                    </form>
-                </span>
+                    </div>
+                </form>
             </div>
         )
     }

@@ -1,0 +1,60 @@
+/**
+ * We use:
+ * - CSS grid and flexbox
+ * - tailwindcss
+ * - rem for HTML element size (as opposed to px or em)
+ * - "-" to separate words in class names
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.page-grid {
+    display: grid;
+    grid-gap: 0.2rem;
+    height: 100vh;
+    margin: 0;
+}
+
+@media only screen and (min-width: 1025px) {
+    .page-grid {
+        grid-template-areas:
+            "header header header"
+            "article article article"
+            "footer footer footer";
+        grid-template-rows: 4rem 1fr 4rem;
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    .page-grid {
+        grid-template-areas:
+            "header"
+            "article"
+            "footer";
+        grid-template-rows: 4rem 0.01fr 1fr 4rem;
+        grid-template-columns: 1fr;
+    }
+}
+
+footer, article {
+    padding: 0.5rem;
+}
+
+header {
+    grid-area: header;
+}
+
+article {
+    grid-area: article;
+}
+
+footer {
+    grid-area: footer;
+}
+
+footer > span {
+    padding: 0rem 0.3rem;
+}

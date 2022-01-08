@@ -3,14 +3,21 @@ mixin a_page(title)
     html(lang="en")
         head
             meta(charset="utf8")
+            meta(property="og:title", content= title)
+            meta(property="og:description", content="Train basic Kazakh grammar skills with auto generated quizes")
+            meta(property="og:site_name", content="Kazakh grammar trainer")
             title= title
+            link(rel="stylesheet", href="../css/page.pcss")
             link(rel="icon", href="../images/favicon.png")
         body
-            article
-                block
-            footer
-                span © 2022
-                span
-                    a(href="https://github.com/mxwell") Murat Khairulin
+            div.page-grid
+                header(class="bg-blue-800 text-white p-2")
+                    h2(class="text-3xl text-bold mx-8") Kazakh grammar trainer
+                article
+                    block
+                footer(class="bg-blue-800 text-white")
+                    span © 2022
+                    span
+                        a(href="https://github.com/mxwell") Murat Khairulin
             script(src="../javascripts/boot.jsx")
             noscript() The web page requires Javascript enabled in the browser to work
