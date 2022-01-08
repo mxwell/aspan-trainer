@@ -102,15 +102,15 @@ class QuizApp extends React.Component {
     getCurrentResult() {
         if (this.state.display) {
             if (this.state.lastAccepted) {
-                return <span>Ok</span>;
+                return <p class="bg-teal-100 text-teal-900 py-4">Ok</p>;
             } else {
                 return (
-                    <span>
+                    <p class="bg-red-100 text-red-700 py-4">
                         Wrong! Correct answer:
-                        <strong>
+                        <span class="font-extrabold">
                             {this.getCurrentItem().expected}
-                        </strong>
-                    </span>
+                        </span>
+                    </p>
                 );
             }
         }
@@ -143,11 +143,11 @@ class QuizApp extends React.Component {
 
     renderStartForm() {
         return (
-            <div class="w-full max-w-xs flex-col items-center">
-                <form onSubmit={this.onRandomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4">
+            <div class="w-full max-w-xs flex-col">
+                <form onSubmit={this.onRandomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <input type="submit" value="Random verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
-                <form onSubmit={this.onCustomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4">
+                <form onSubmit={this.onCustomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <input type="submit" value="Custom verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                     <div class="pt-4">
                         <input type="text" value={this.state.customVerb} onChange={this.onCustomVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
@@ -160,19 +160,20 @@ class QuizApp extends React.Component {
 
     renderFinalForm() {
         return (
-            <div>
-                <p>
-                    Quiz is done!
-                    Correct responses:
-                    <strong>
+            <div class="py-6">
+                <p class="bg-teal-100 text-teal-900 text-xl py-6 px-4">
+                    <span class="px-2">
+                        Quiz is done! Correct responses:
+                    </span>
+                    <span class="inline-block bg-teal-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">
                         {this.state.quizState.correct} / {this.state.quizState.total}
-                    </strong>
+                    </span>
                 </p>
-                <form onSubmit={this.onTryAgain}>
-                    <input type="submit" value="Restart"/>
+                <form onSubmit={this.onTryAgain} class="py-4 flex flex-col">
+                    <input type="submit" value="Restart" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
-                <form onSubmit={this.onStartNew}>
-                    <input type="submit" value="Start new"/>
+                <form onSubmit={this.onStartNew} class="py-4 flex flex-col">
+                    <input type="submit" value="Start new" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
             </div>
         );
@@ -187,19 +188,20 @@ class QuizApp extends React.Component {
         if (position < total) {
             const item = this.getCurrentItem();
             return (
-                <div>
+                <div class="py-6">
                     <div>
-                        <strong>{position} / {total}</strong>
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">{this.state.verb}</span>
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
                     </div>
-                    <div>
-                        <i>{item.textHint}</i>
-                        <p>{item.hint}</p>
-                    </div>
-                    <form onSubmit={this.onSubmit}>
-                        <input type="text" size={item.expected.length} value={this.state.lastEntered} onChange={this.onChange}/>
-                        <input type="submit" value="Submit" enabled={!this.state.display}/>
-                        {this.getCurrentResult()}
+                    <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
+                    <p class="text-2xl text-gray-900">{item.hint}</p>
+                    <form onSubmit={this.onSubmit} class="py-2 flex flex-col">
+                        <div class="py-2">
+                            <input type="text" size={item.expected.length} value={this.state.lastEntered} onChange={this.onChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                        </div>
+                        <input type="submit" value="Submit" enabled={!this.state.display} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                     </form>
+                    {this.getCurrentResult()}
                 </div>
             )
         } else {
