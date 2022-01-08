@@ -27,6 +27,7 @@ class QuizApp extends React.Component {
         return {
             verb: "",
             items: [],
+            answers: [],
             quizState: null,
             lastEntered: "",
             lastAccepted: false,
@@ -94,7 +95,13 @@ class QuizApp extends React.Component {
         } else {
             console.log("Entered " + this.state.lastEntered + ", but expected " + expected);
         }
-        this.setState({display: true, lastAccepted: accepted});
+        const answers = this.state.answers;
+        answers.push(this.state.lastEntered);
+        this.setState({
+            answers: answers,
+            display: true,
+            lastAccepted: accepted,
+        });
         const time = accepted ? DISPLAY_TIME_MS : (2 * DISPLAY_TIME_MS);
         setTimeout(this.finishResultDisplay, time);
     }
@@ -159,6 +166,19 @@ class QuizApp extends React.Component {
     }
 
     renderFinalForm() {
+        const rows = [];
+        const tdBaseClass = "text-center px-2 py-2"
+        for (var i = 0; i < this.state.items.length; ++i) {
+            const expected = this.state.items[i].expected;
+            const answer = this.state.answers[i];
+            const answerClass = expected != answer ? "text-red-600" : "text-teal-600";
+            rows.push(
+                <tr class="border-t-2">
+                    <td class={tdBaseClass}>{expected}</td>
+                    <td class={tdBaseClass + " " + answerClass}>{answer}</td>
+                </tr>
+            );
+        }
         return (
             <div class="py-6">
                 <p class="bg-teal-100 text-teal-900 text-xl py-6 px-4">
@@ -169,6 +189,15 @@ class QuizApp extends React.Component {
                         {this.state.quizState.correct} / {this.state.quizState.total}
                     </span>
                 </p>
+                <div class="py-6">
+                    <table class="w-full">
+                        <tr>
+                            <th>Expected</th>
+                            <th>Your answers</th>
+                        </tr>
+                        {rows}
+                    </table>
+                </div>
                 <form onSubmit={this.onTryAgain} class="py-4 flex flex-col">
                     <input type="submit" value="Restart" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
