@@ -197,7 +197,7 @@ class QuizApp extends React.Component {
                     <p class="text-2xl text-gray-900">{item.hint}</p>
                     <form onSubmit={this.onSubmit} class="py-2 flex flex-col">
                         <div class="py-2">
-                            <input type="text" size={item.expected.length} value={this.state.lastEntered} onChange={this.onChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                            <input type="text" size={item.expected.length} value={this.state.lastEntered} onChange={this.onChange} placeholder={item.textHint} class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
                         </div>
                         <input type="submit" value="Submit" enabled={!this.state.display} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                     </form>
