@@ -218,9 +218,12 @@ class QuizApp extends React.Component {
             const item = this.getCurrentItem();
             return (
                 <div class="py-6">
-                    <div>
-                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">{this.state.verb}</span>
-                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
+                    <div class="flex justify-between">
+                        <div>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">{this.state.verb}</span>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
+                        </div>
+                        <button class="inline-block bg-gray-600 hover:bg-gray-900 text-white font-bold rounded px-3 py-1 mr-2 mb-2" onClick={this.onStartNew}>X</button>
                     </div>
                     <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
                     <p class="text-2xl text-gray-900">{item.hint}</p>

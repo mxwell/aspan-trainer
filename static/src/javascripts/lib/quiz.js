@@ -50,7 +50,7 @@ export function createVerbPresentTransitiveQuiz(verb) {
         for (const number of GRAMMAR_NUMBERS) {
             const hint = "Present transitive form of " + verb + " for " + person + " person, " + number;
             const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
-            const textHint = pronoun + " __";
+            const textHint = pronoun + " _____";
             const expected = pronoun + " " + verbBuilder.presentTransitiveForm(person, number, "Statement");
             result.push(new QuizItem(hint, textHint, expected));
         }
