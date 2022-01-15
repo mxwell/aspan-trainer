@@ -11,41 +11,42 @@ const DISPLAY_TIME_MS = 1000;
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
-        this.state = this.emptyState();
+        this.state = this.defaultState()
 
         this.finishResultDisplay = this.finishResultDisplay.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.onCustomVerb = this.onCustomVerb.bind(this);
+        this.onStartQuiz = this.onStartQuiz.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
-        this.onCustomVerbChange = this.onCustomVerbChange.bind(this);
-        this.onRandomVerb = this.onRandomVerb.bind(this);
+        this.onVerbChange = this.onVerbChange.bind(this);
         this.onStartNew = this.onStartNew.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onTryAgain = this.onTryAgain.bind(this);
     }
 
-    emptyState() {
+    emptyState(hint, sentenceType) {
         return {
-            verb: "",
+            verb: getVerb(hint),
             items: [],
             answers: [],
             quizState: null,
             lastEntered: "",
             lastAccepted: false,
             display: false,
-            sentenceType: "Statement",
+            sentenceType: sentenceType,
             customVerb: "",
             customVerbMessage: "",
         };
     }
 
+    defaultState() {
+        return this.emptyState("", "Statement");
+    }
+
     initialState(hint, sentenceType) {
-        const state = this.emptyState();
-        const verb = getVerb(hint);
+        const state = this.emptyState(hint, sentenceType);
+        const verb = state.verb;
         console.log("Initializing with the verb " + verb);
         const quizItems = createVerbPresentTransitiveQuiz(verb, sentenceType);
-        state.verb = verb;
-        state.sentenceType = sentenceType;
         state.items = quizItems;
         state.quizState = new QuizState(quizItems.length, 0, 0);
         return state;
@@ -58,7 +59,7 @@ class QuizApp extends React.Component {
 
     onStartNew(e) {
         e.preventDefault();
-        this.setState({items: []});
+        this.setState(this.defaultState());
     }
 
     getCurrentItem() {
@@ -73,8 +74,8 @@ class QuizApp extends React.Component {
         this.setState({ sentenceType: e.target.value });
     }
 
-    onCustomVerbChange(e) {
-        this.setState({ customVerb: e.target.value });
+    onVerbChange(e) {
+        this.setState({ verb: e.target.value });
     }
 
     finishResultDisplay() {
@@ -131,57 +132,49 @@ class QuizApp extends React.Component {
         return "";
     }
 
-    onRandomVerb(e) {
-        e.preventDefault();
-        this.setState(this.initialState("", this.state.sentenceType));
-    }
-
     getCustomVerbMessage() {
         if (this.state.customVerbMessage) {
-            return <p class="text-red-500 text-xs italic">{this.state.customVerbMessage}</p>;
+            return <p class="text-red-500 text-s italic">{this.state.customVerbMessage}</p>;
         }
         return "";
     }
 
-    onCustomVerb(e) {
+    onStartQuiz(e) {
         e.preventDefault();
-        const verb = this.state.customVerb;
+        const verb = this.state.verb;
         if (!checkCustomVerb(verb)) {
             console.log("the custom verb didn't pass the check: " + verb);
             const message = "The entered verb '" + verb + "' didn't pass the check, pick another please";
-            this.setState({customVerb: "", customVerbMessage: message});
+            this.setState({verb: "", customVerbMessage: message});
         } else {
-            this.setState(this.initialState(this.state.customVerb, this.state.sentenceType));
+            this.setState(this.initialState(this.state.verb, this.state.sentenceType));
         }
     }
 
     renderStartForm() {
         return (
-            <div class="w-full max-w-xs flex-col">
-                <div class="w-full pb-4 flex justify-between">
-                    <label class="text-gray-600 text-bold py-2">Sentence type:</label>
-                    <select
-                        required
-                        onChange={this.onSentenceTypeChange}
-                        value={this.state.sentenceType}
-                        class="bg-blue-500 text-white px-4 py-2">
-                        <option value="Statement">Statement</option>
-                        <option value="Negative">Negative</option>
-                        <option value="Question">Question</option>
-                    </select>
-                </div>
-                <form onSubmit={this.onRandomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
-                    <input type="submit" value="Random verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                </form>
-                <form onSubmit={this.onCustomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
-                    <input type="submit" value="Custom verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                    <div class="pt-4">
+            <div class="w-full max-w-screen-md flex-col py-4">
+                <form onSubmit={this.onStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
+                    <div class="w-full flex justify-between">
+                        <label class="text-gray-600 text-2xl py-2">Sentence type:</label>
+                        <select
+                            required
+                            onChange={this.onSentenceTypeChange}
+                            value={this.state.sentenceType}
+                            class="text-gray-800 text-2xl px-4 py-2">
+                            <option value="Statement">Statement</option>
+                            <option value="Negative">Negative</option>
+                            <option value="Question">Question</option>
+                        </select>
+                    </div>
+                    <div class="py-4">
                         <div class="flex justify-between">
-                            <label class="text-gray-600 pr-4 py-2">Verb:</label>
-                            <input type="text" placeHolder="бару" value={this.state.customVerb} onChange={this.onCustomVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                            <label class="text-gray-600 text-2xl pr-4 py-2">Verb:</label>
+                            <input type="text" placeHolder="verb ending with -у/-ю" value={this.state.verb} onChange={this.onVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-2xl leading-tight focus:outline-none focus:shadow-outline"/>
                         </div>
                         {this.getCustomVerbMessage()}
                     </div>
+                    <input type="submit" value="Start quiz" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
             </div>
         )
@@ -221,10 +214,10 @@ class QuizApp extends React.Component {
                     </table>
                 </div>
                 <form onSubmit={this.onTryAgain} class="py-4 flex flex-col">
-                    <input type="submit" value="Restart" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                    <input type="submit" value="Restart" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
                 <form onSubmit={this.onStartNew} class="py-4 flex flex-col">
-                    <input type="submit" value="Start new" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                    <input type="submit" value="Start new" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
             </div>
         );
@@ -254,7 +247,7 @@ class QuizApp extends React.Component {
                         <div class="py-2">
                             <input type="text" size={item.expected.length} value={this.state.lastEntered} onChange={this.onChange} placeholder={item.textHint} class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
                         </div>
-                        <input type="submit" value="Submit" enabled={!this.state.display} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                        <input type="submit" value="Submit" enabled={!this.state.display} class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                     </form>
                     {this.getCurrentResult()}
                 </div>
