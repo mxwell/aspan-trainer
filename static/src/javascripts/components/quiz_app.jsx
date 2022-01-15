@@ -16,6 +16,7 @@ class QuizApp extends React.Component {
         this.finishResultDisplay = this.finishResultDisplay.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onCustomVerb = this.onCustomVerb.bind(this);
+        this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onCustomVerbChange = this.onCustomVerbChange.bind(this);
         this.onRandomVerb = this.onRandomVerb.bind(this);
         this.onStartNew = this.onStartNew.bind(this);
@@ -32,17 +33,19 @@ class QuizApp extends React.Component {
             lastEntered: "",
             lastAccepted: false,
             display: false,
+            sentenceType: "Statement",
             customVerb: "",
             customVerbMessage: "",
         };
     }
 
-    initialState(hint) {
+    initialState(hint, sentenceType) {
         const state = this.emptyState();
         const verb = getVerb(hint);
         console.log("Initializing with the verb " + verb);
-        const quizItems = createVerbPresentTransitiveQuiz(verb);
+        const quizItems = createVerbPresentTransitiveQuiz(verb, sentenceType);
         state.verb = verb;
+        state.sentenceType = sentenceType;
         state.items = quizItems;
         state.quizState = new QuizState(quizItems.length, 0, 0);
         return state;
@@ -50,7 +53,7 @@ class QuizApp extends React.Component {
 
     onTryAgain(e) {
         e.preventDefault();
-        this.setState(this.initialState(this.state.verb));
+        this.setState(this.initialState(this.state.verb, this.state.sentenceType));
     }
 
     onStartNew(e) {
@@ -64,6 +67,10 @@ class QuizApp extends React.Component {
 
     onChange(e) {
         this.setState({ lastEntered: e.target.value});
+    }
+
+    onSentenceTypeChange(e) {
+        this.setState({ sentenceType: e.target.value });
     }
 
     onCustomVerbChange(e) {
@@ -126,7 +133,7 @@ class QuizApp extends React.Component {
 
     onRandomVerb(e) {
         e.preventDefault();
-        this.setState(this.initialState(""));
+        this.setState(this.initialState("", this.state.sentenceType));
     }
 
     getCustomVerbMessage() {
@@ -144,20 +151,35 @@ class QuizApp extends React.Component {
             const message = "The entered verb '" + verb + "' didn't pass the check, pick another please";
             this.setState({customVerb: "", customVerbMessage: message});
         } else {
-            this.setState(this.initialState(this.state.customVerb));
+            this.setState(this.initialState(this.state.customVerb, this.state.sentenceType));
         }
     }
 
     renderStartForm() {
         return (
             <div class="w-full max-w-xs flex-col">
+                <div class="w-full pb-4 flex justify-between">
+                    <label class="text-gray-600 text-bold py-2">Sentence type:</label>
+                    <select
+                        required
+                        onChange={this.onSentenceTypeChange}
+                        value={this.state.sentenceType}
+                        class="bg-blue-500 text-white px-4 py-2">
+                        <option value="Statement">Statement</option>
+                        <option value="Negative">Negative</option>
+                        <option value="Question">Question</option>
+                    </select>
+                </div>
                 <form onSubmit={this.onRandomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <input type="submit" value="Random verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                 </form>
                 <form onSubmit={this.onCustomVerb} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <input type="submit" value="Custom verb" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
                     <div class="pt-4">
-                        <input type="text" value={this.state.customVerb} onChange={this.onCustomVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                        <div class="flex justify-between">
+                            <label class="text-gray-600 pr-4 py-2">Verb:</label>
+                            <input type="text" placeHolder="бару" value={this.state.customVerb} onChange={this.onCustomVerbChange} class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                        </div>
                         {this.getCustomVerbMessage()}
                     </div>
                 </form>
@@ -221,6 +243,7 @@ class QuizApp extends React.Component {
                     <div class="flex justify-between">
                         <div>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">{this.state.verb}</span>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{this.state.sentenceType.toLowerCase()}</span>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
                         </div>
                         <button class="inline-block bg-gray-600 hover:bg-gray-900 text-white font-bold rounded px-3 py-1 mr-2 mb-2" onClick={this.onStartNew}>X</button>

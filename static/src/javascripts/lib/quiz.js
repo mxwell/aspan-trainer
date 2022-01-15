@@ -43,15 +43,22 @@ export function getVerb(hint) {
     return PRESET_VERBS[getRandomInt(PRESET_VERBS.length)];
 }
 
-export function createVerbPresentTransitiveQuiz(verb) {
+function getSentenceTerminator(sentenceType) {
+    if (sentenceType == "Question") {
+        return "?";
+    }
+    return "";
+}
+
+export function createVerbPresentTransitiveQuiz(verb, sentenceType) {
     var result = [];
     const verbBuilder = new VerbBuilder(verb);
     for (const person of GRAMMAR_PERSONS) {
         for (const number of GRAMMAR_NUMBERS) {
-            const hint = "Present transitive form of " + verb + " for " + person + " person, " + number;
+            const hint = "Present transitive " + sentenceType + " form of " + verb + " for " + person + " person, " + number;
             const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
-            const textHint = pronoun + " _____";
-            const expected = pronoun + " " + verbBuilder.presentTransitiveForm(person, number, "Statement");
+            const textHint = pronoun + " _____" + getSentenceTerminator(sentenceType);
+            const expected = pronoun + " " + verbBuilder.presentTransitiveForm(person, number, sentenceType);
             result.push(new QuizItem(hint, textHint, expected));
         }
     }
