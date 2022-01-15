@@ -2,6 +2,7 @@ import {
     GRAMMAR_PERSONS,
     GRAMMAR_NUMBERS,
     PRONOUN_BY_PERSON_NUMBER,
+    validateVerb,
     VerbBuilder
 } from './aspan';
 
@@ -66,7 +67,7 @@ export function createVerbPresentTransitiveQuiz(verb, sentenceType) {
 }
 
 export function checkCustomVerb(verb) {
-    return verb.endsWith("у") || verb.endsWith("ю");
+    return validateVerb(verb);
 }
 
 export class QuizState {
