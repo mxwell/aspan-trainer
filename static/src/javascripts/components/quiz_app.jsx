@@ -1,6 +1,7 @@
 import React from 'react';
 import {
     checkCustomVerb,
+    checkOptionalExceptionVerb,
     createVerbPresentTransitiveQuiz,
     getVerb,
     QuizState,
@@ -18,14 +19,19 @@ class QuizApp extends React.Component {
         this.onStartQuiz = this.onStartQuiz.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onVerbChange = this.onVerbChange.bind(this);
+        this.onVerbChoiceChange = this.onVerbChoiceChange.bind(this);
         this.onStartNew = this.onStartNew.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onTryAgain = this.onTryAgain.bind(this);
     }
 
-    emptyState(hint, sentenceType) {
+    emptyState(hint, sentenceType, forceExceptional) {
+        const verb = getVerb(hint);
         return {
-            verb: getVerb(hint),
+            verb: verb,
+            isOptionalException: checkOptionalExceptionVerb(verb),
+            // if the chosen verb is optionally exceptional, then we need to choose regular or exceptional form.
+            forceExceptional: forceExceptional,
             items: [],
             answers: [],
             quizState: null,
@@ -39,14 +45,13 @@ class QuizApp extends React.Component {
     }
 
     defaultState() {
-        return this.emptyState("", "Statement");
+        return this.emptyState("", "Statement", false);
     }
 
-    initialState(hint, sentenceType) {
-        const state = this.emptyState(hint, sentenceType);
-        const verb = state.verb;
-        console.log("Initializing with the verb " + verb);
-        const quizItems = createVerbPresentTransitiveQuiz(verb, sentenceType);
+    initialState() {
+        const state = this.emptyState(this.state.verb, this.state.sentenceType, this.state.forceExceptional);
+        console.log("Initializing with the verb " + state.verb + ", forceExceptional=" + state.forceExceptional);
+        const quizItems = createVerbPresentTransitiveQuiz(state.verb, state.sentenceType, state.forceExceptional);
         state.items = quizItems;
         state.quizState = new QuizState(quizItems.length, 0, 0);
         return state;
@@ -54,7 +59,7 @@ class QuizApp extends React.Component {
 
     onTryAgain(e) {
         e.preventDefault();
-        this.setState(this.initialState(this.state.verb, this.state.sentenceType));
+        this.setState(this.initialState());
     }
 
     onStartNew(e) {
@@ -75,7 +80,13 @@ class QuizApp extends React.Component {
     }
 
     onVerbChange(e) {
-        this.setState({ verb: e.target.value });
+        const verb = e.target.value;
+        this.setState({ verb: verb, isOptionalException: checkOptionalExceptionVerb(verb) });
+    }
+
+    onVerbChoiceChange(e) {
+        const forceExceptional = e.target.value == "exceptionVerb";
+        this.setState({ forceExceptional });
     }
 
     finishResultDisplay() {
@@ -147,11 +158,15 @@ class QuizApp extends React.Component {
             const message = "The entered verb '" + verb + "' didn't pass the check, pick another please";
             this.setState({verb: "", customVerbMessage: message});
         } else {
-            this.setState(this.initialState(this.state.verb, this.state.sentenceType));
+            this.setState(this.initialState());
         }
     }
 
     renderStartForm() {
+        const verbChoiceDivClass = (
+            "py-4 " +
+            (this.state.isOptionalException ? "" : "hidden")
+        );
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
                 <form onSubmit={this.onStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
@@ -177,6 +192,27 @@ class QuizApp extends React.Component {
                                 value={this.state.verb}
                                 onChange={this.onVerbChange}
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-2xl leading-tight focus:outline-none focus:shadow-outline"/>
+                        </div>
+                        <div class={verbChoiceDivClass}>
+                            <label class="text-orange-400 text-xl">The verb has two meanings with one behaving regularly and one behaving like an exception</label>
+                            <div class="py-4" onChange={this.onVerbChoiceChange}>
+                                <input
+                                    type="radio"
+                                    name="verbChoice"
+                                    id="regularVerb"
+                                    value="regularVerb"
+                                    checked={!this.state.forceExceptional}
+                                />
+                                <label for="regularVerb" class="text-gray-800 text-2xl px-4">Regular</label>
+                                <input
+                                    type="radio"
+                                    name="verbChoice"
+                                    id="exceptionVerb"
+                                    value="exceptionVerb"
+                                    checked={this.state.forceExceptional}
+                                />
+                                <label for="exceptionVerb" class="text-gray-800 text-2xl px-4">Exception</label>
+                            </div>
                         </div>
                         {this.getCustomVerbMessage()}
                     </div>

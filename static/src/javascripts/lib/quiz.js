@@ -3,6 +3,7 @@ import {
     GRAMMAR_NUMBERS,
     PRONOUN_BY_PERSON_NUMBER,
     validateVerb,
+    isVerbOptionalException,
     VerbBuilder
 } from './aspan';
 
@@ -51,9 +52,9 @@ function getSentenceTerminator(sentenceType) {
     return "";
 }
 
-export function createVerbPresentTransitiveQuiz(verb, sentenceType) {
+export function createVerbPresentTransitiveQuiz(verb, sentenceType, forceExceptional) {
     var result = [];
-    const verbBuilder = new VerbBuilder(verb);
+    const verbBuilder = new VerbBuilder(verb, forceExceptional);
     for (const person of GRAMMAR_PERSONS) {
         for (const number of GRAMMAR_NUMBERS) {
             const hint = "Present transitive " + sentenceType + " form of " + verb + " for " + person + " person, " + number;
@@ -68,6 +69,10 @@ export function createVerbPresentTransitiveQuiz(verb, sentenceType) {
 
 export function checkCustomVerb(verb) {
     return validateVerb(verb);
+}
+
+export function checkOptionalExceptionVerb(verb) {
+    return isVerbOptionalException(verb);
 }
 
 export class QuizState {
