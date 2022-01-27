@@ -9,6 +9,17 @@ import {
 
 const DISPLAY_TIME_MS = 1000;
 
+const TOPIC_NAMES = {
+    present_transitive: {
+        en: "Present transitive tense",
+        kz: "Ауыспалы осы/келер шақ"
+    },
+    present_continuous: {
+        en: "Present continuous tense",
+        kz: "Нақ осы шақ",
+    },
+};
+
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
@@ -17,6 +28,8 @@ class QuizApp extends React.Component {
         this.finishResultDisplay = this.finishResultDisplay.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onStartQuiz = this.onStartQuiz.bind(this);
+        this.onTopicChange = this.onTopicChange.bind(this);
+        this.onTopicConfirm = this.onTopicConfirm.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onVerbChange = this.onVerbChange.bind(this);
         this.onVerbChoiceChange = this.onVerbChoiceChange.bind(this);
@@ -25,7 +38,7 @@ class QuizApp extends React.Component {
         this.onTryAgain = this.onTryAgain.bind(this);
     }
 
-    emptyState(hint, sentenceType, forceExceptional) {
+    emptyState(hint, topic, topicConfirmed, sentenceType, forceExceptional) {
         const verb = getVerb(hint);
         return {
             verb: verb,
@@ -38,6 +51,8 @@ class QuizApp extends React.Component {
             lastEntered: "",
             lastAccepted: false,
             display: false,
+            topic: topic,
+            topicConfirmed: topicConfirmed,
             sentenceType: sentenceType,
             customVerb: "",
             customVerbMessage: "",
@@ -45,11 +60,23 @@ class QuizApp extends React.Component {
     }
 
     defaultState() {
-        return this.emptyState("", "Statement", false);
+        return this.emptyState(
+            /* hint */ "",
+            /* topic */ "present_transitive",
+            /* topicConfirmed */ false,
+            /* sentenceType */ "Statement",
+            /* forceException */ false
+        );
     }
 
     initialState() {
-        const state = this.emptyState(this.state.verb, this.state.sentenceType, this.state.forceExceptional);
+        const state = this.emptyState(
+            this.state.verb,
+            this.state.topic,
+            this.state.topicConfirmed,
+            this.state.sentenceType,
+            this.state.forceExceptional
+        );
         console.log("Initializing with the verb " + state.verb + ", forceExceptional=" + state.forceExceptional);
         const quizItems = createVerbPresentTransitiveQuiz(state.verb, state.sentenceType, state.forceExceptional);
         state.items = quizItems;
@@ -73,6 +100,15 @@ class QuizApp extends React.Component {
 
     onChange(e) {
         this.setState({ lastEntered: e.target.value});
+    }
+
+    onTopicChange(e) {
+        this.setState({ topic: e.target.value });
+    }
+
+    onTopicConfirm(e) {
+        e.preventDefault();
+        this.setState({ topicConfirmed: true });
     }
 
     onSentenceTypeChange(e) {
@@ -162,6 +198,27 @@ class QuizApp extends React.Component {
         }
     }
 
+    renderTopicSelectionForm() {
+        return (
+            <div class="w-full max-w-screen-md flex-col py-4">
+                <form onSubmit={this.onTopicConfirm} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
+                    <div class="w-full flex justify-between">
+                        <label class="text-gray-600 text-2xl py-2">Topic:</label>
+                        <select
+                            required
+                            onChange={this.onTopicChange}
+                            value={this.state.topic}
+                            class="text-gray-800 text-2xl px-4 py-2">
+                            <option value="present_transitive">{TOPIC_NAMES.present_transitive.en}</option>
+                            <option value="present_continuous">{TOPIC_NAMES.present_continuous.en}</option>
+                        </select>
+                    </div>
+                    <input type="submit" value="Confirm" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                </form>
+            </div>
+        );
+    }
+
     renderStartForm() {
         const verbChoiceDivClass = (
             "py-4 " +
@@ -169,6 +226,12 @@ class QuizApp extends React.Component {
         );
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
+                <div class="flex justify-center">
+                    <h2 class="text-2xl text-gray-400 text-bold">{TOPIC_NAMES[this.state.topic].en}</h2>
+                </div>
+                <div class="flex justify-center">
+                    <h3 class="text-3xl text-blue-700 text-bold p-2">{TOPIC_NAMES[this.state.topic].kz}</h3>
+                </div>
                 <form onSubmit={this.onStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <div class="w-full flex justify-between">
                         <label class="text-gray-600 text-2xl py-2">Sentence type:</label>
@@ -266,6 +329,9 @@ class QuizApp extends React.Component {
     }
 
     render () {
+        if (!this.state.topicConfirmed) {
+            return this.renderTopicSelectionForm();
+        }
         if (this.state.items.length == 0) {
             return this.renderStartForm();
         }
