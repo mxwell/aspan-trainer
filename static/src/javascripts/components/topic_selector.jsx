@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { renderOptions } from '../lib/react_util';
+
 class TopicSelector extends React.Component {
     constructor(props) {
         super(props);
@@ -27,8 +29,7 @@ class TopicSelector extends React.Component {
                             onChange={this.handleTopicChange}
                             value={this.props.topic}
                             class="text-gray-800 text-2xl px-4 py-2">
-                            <option value="presentTransitive">{this.props.topicNames.presentTransitive.en}</option>
-                            <option value="presentContinuous">{this.props.topicNames.presentContinuous.en}</option>
+                            {renderOptions(this.props.topicKeys, this.props.topicNames)}
                         </select>
                     </div>
                     <input

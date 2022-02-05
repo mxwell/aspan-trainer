@@ -10,15 +10,19 @@ import TopicSelector from './topic_selector';
 
 const DISPLAY_TIME_MS = 1000;
 
-const TOPIC_NAMES = {
-    presentTransitive: {
-        en: "Present transitive tense",
-        kz: "Ауыспалы осы/келер шақ"
-    },
-    presentContinuous: {
-        en: "Present continuous tense",
-        kz: "Нақ осы шақ",
-    },
+const TOPIC_KEYS = [
+    "presentTransitive",
+    "presentContinuous",
+];
+
+const TOPIC_EN_NAMES = {
+    presentTransitive: "Present transitive tense",
+    presentContinuous: "Present continuous tense",
+};
+
+const TOPIC_KZ_NAMES = {
+    presentTransitive: "Ауыспалы осы/келер шақ",
+    presentContinuous: "Нақ осы шақ",
 };
 
 class QuizApp extends React.Component {
@@ -63,7 +67,7 @@ class QuizApp extends React.Component {
     defaultState() {
         return this.emptyState(
             /* hint */ "",
-            /* topic */ "presentTransitive",
+            /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
             /* sentenceType */ "Statement",
             /* forceException */ false
@@ -206,10 +210,10 @@ class QuizApp extends React.Component {
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
                 <div class="flex justify-center">
-                    <h2 class="text-2xl text-gray-400 text-bold">{TOPIC_NAMES[this.state.topic].en}</h2>
+                    <h2 class="text-2xl text-gray-400 text-bold">{TOPIC_EN_NAMES[this.state.topic]}</h2>
                 </div>
                 <div class="flex justify-center">
-                    <h3 class="text-3xl text-blue-700 text-bold p-2">{TOPIC_NAMES[this.state.topic].kz}</h3>
+                    <h3 class="text-3xl text-blue-700 text-bold p-2">{TOPIC_KZ_NAMES[this.state.topic]}</h3>
                 </div>
                 <form onSubmit={this.onStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <div class="w-full flex justify-between">
@@ -310,7 +314,8 @@ class QuizApp extends React.Component {
     render () {
         if (!this.state.topicConfirmed) {
             return <TopicSelector
-                topicNames={TOPIC_NAMES}
+                topicKeys={TOPIC_KEYS}
+                topicNames={TOPIC_EN_NAMES}
                 onTopicChange={this.onTopicChange}
                 onTopicConfirm={this.onTopicConfirm}
                 topic={this.state.topic}
