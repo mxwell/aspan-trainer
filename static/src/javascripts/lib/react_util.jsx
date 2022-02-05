@@ -1,6 +1,6 @@
 import React from 'react';
 
-function renderOptions(keys, obj) {
+function renderOptionsWithKeysAndObj(keys, obj) {
     var lines = [];
     for (let key of keys) {
         lines.push(<option key={key} value={key}>{obj[key]}</option>);
@@ -8,6 +8,15 @@ function renderOptions(keys, obj) {
     return lines;
 }
 
+function renderOptionsWithKeys(keys) {
+    var lines = [];
+    for (let key of keys) {
+        lines.push(<option key={key} value={key}>{key}</option>);
+    }
+    return lines;
+}
+
 export {
-    renderOptions,
+    renderOptionsWithKeysAndObj,
+    renderOptionsWithKeys,
 };

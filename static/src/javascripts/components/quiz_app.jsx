@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-    checkCustomVerb,
     checkOptionalExceptionVerb,
     createVerbPresentTransitiveQuiz,
     getVerb,
     QuizState,
 } from '../lib/quiz';
 import TopicSelector from './topic_selector';
+import VerbQuizDetails from './verb_quiz_details';
 
 const DISPLAY_TIME_MS = 1000;
 
@@ -25,22 +25,33 @@ const TOPIC_KZ_NAMES = {
     presentContinuous: "Нақ осы шақ",
 };
 
+const SENTENCE_TYPES = [
+    "Statement",
+    "Negative",
+    "Question",
+];
+
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
         this.state = this.defaultState()
 
-        this.finishResultDisplay = this.finishResultDisplay.bind(this);
-        this.onChange = this.onChange.bind(this);
-        this.onStartQuiz = this.onStartQuiz.bind(this);
+        /* TopicSelector handlers */
         this.onTopicChange = this.onTopicChange.bind(this);
         this.onTopicConfirm = this.onTopicConfirm.bind(this);
+
+        /* VerbQuizDetails handlers */
+        this.onStartQuiz = this.onStartQuiz.bind(this);
+        this.onInvalidCustomVerb = this.onInvalidCustomVerb.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onVerbChange = this.onVerbChange.bind(this);
-        this.onVerbChoiceChange = this.onVerbChoiceChange.bind(this);
-        this.onStartNew = this.onStartNew.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+        this.setForceExceptional = this.setForceExceptional.bind(this);
+
         this.onTryAgain = this.onTryAgain.bind(this);
+        this.onStartNew = this.onStartNew.bind(this);
+        this.onChange = this.onChange.bind(this);
+        this.finishResultDisplay = this.finishResultDisplay.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
     }
 
     emptyState(hint, topic, topicConfirmed, sentenceType, forceExceptional) {
@@ -69,12 +80,12 @@ class QuizApp extends React.Component {
             /* hint */ "",
             /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
-            /* sentenceType */ "Statement",
+            /* sentenceType */ SENTENCE_TYPES[0],
             /* forceException */ false
         );
     }
 
-    initialState() {
+    initializedQuizState() {
         const state = this.emptyState(
             this.state.verb,
             this.state.topic,
@@ -89,9 +100,34 @@ class QuizApp extends React.Component {
         return state;
     }
 
+    /* TopicSelector handlers */
+    onTopicChange(topic) {
+        this.setState({ topic });
+    }
+    onTopicConfirm() {
+        this.setState({ topicConfirmed: true });
+    }
+
+    /* VerbQuizDetails handlers */
+    onStartQuiz() {
+        this.setState(this.initializedQuizState());
+    }
+    onInvalidCustomVerb(message) {
+        this.setState({verb: "", customVerbMessage: message});
+    }
+    onSentenceTypeChange(sentenceType) {
+        this.setState({ sentenceType });
+    }
+    onVerbChange(verb) {
+        this.setState({ verb: verb, isOptionalException: checkOptionalExceptionVerb(verb) });
+    }
+    setForceExceptional(forceExceptional) {
+        this.setState({ forceExceptional });
+    }
+
     onTryAgain(e) {
         e.preventDefault();
-        this.setState(this.initialState());
+        this.setState(this.initializedQuizState());
     }
 
     onStartNew(e) {
@@ -105,28 +141,6 @@ class QuizApp extends React.Component {
 
     onChange(e) {
         this.setState({ lastEntered: e.target.value});
-    }
-
-    onTopicChange(topic) {
-        this.setState({ topic });
-    }
-
-    onTopicConfirm() {
-        this.setState({ topicConfirmed: true });
-    }
-
-    onSentenceTypeChange(e) {
-        this.setState({ sentenceType: e.target.value });
-    }
-
-    onVerbChange(e) {
-        const verb = e.target.value;
-        this.setState({ verb: verb, isOptionalException: checkOptionalExceptionVerb(verb) });
-    }
-
-    onVerbChoiceChange(e) {
-        const forceExceptional = e.target.value == "exceptionVerb";
-        this.setState({ forceExceptional });
     }
 
     finishResultDisplay() {
@@ -183,91 +197,6 @@ class QuizApp extends React.Component {
         return "";
     }
 
-    getCustomVerbMessage() {
-        if (this.state.customVerbMessage) {
-            return <p class="text-red-500 text-s italic">{this.state.customVerbMessage}</p>;
-        }
-        return "";
-    }
-
-    onStartQuiz(e) {
-        e.preventDefault();
-        const verb = this.state.verb;
-        if (!checkCustomVerb(verb)) {
-            console.log("the custom verb didn't pass the check: " + verb);
-            const message = "The entered verb '" + verb + "' didn't pass the check, pick another please";
-            this.setState({verb: "", customVerbMessage: message});
-        } else {
-            this.setState(this.initialState());
-        }
-    }
-
-    renderStartForm() {
-        const verbChoiceDivClass = (
-            "py-4 " +
-            (this.state.isOptionalException ? "" : "hidden")
-        );
-        return (
-            <div class="w-full max-w-screen-md flex-col py-4">
-                <div class="flex justify-center">
-                    <h2 class="text-2xl text-gray-400 text-bold">{TOPIC_EN_NAMES[this.state.topic]}</h2>
-                </div>
-                <div class="flex justify-center">
-                    <h3 class="text-3xl text-blue-700 text-bold p-2">{TOPIC_KZ_NAMES[this.state.topic]}</h3>
-                </div>
-                <form onSubmit={this.onStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
-                    <div class="w-full flex justify-between">
-                        <label class="text-gray-600 text-2xl py-2">Sentence type:</label>
-                        <select
-                            required
-                            onChange={this.onSentenceTypeChange}
-                            value={this.state.sentenceType}
-                            class="text-gray-800 text-2xl px-4 py-2">
-                            <option value="Statement">Statement</option>
-                            <option value="Negative">Negative</option>
-                            <option value="Question">Question</option>
-                        </select>
-                    </div>
-                    <div class="py-4">
-                        <div class="flex justify-between">
-                            <label class="text-gray-600 text-2xl pr-4 py-2">Verb:</label>
-                            <input
-                                type="text"
-                                placeHolder="verb ending with -у/-ю"
-                                maxlength="36"
-                                value={this.state.verb}
-                                onChange={this.onVerbChange}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-2xl leading-tight focus:outline-none focus:shadow-outline"/>
-                        </div>
-                        <div class={verbChoiceDivClass}>
-                            <label class="text-orange-400 text-xl">The verb has two meanings with one behaving regularly and one behaving like an exception</label>
-                            <div class="py-4" onChange={this.onVerbChoiceChange}>
-                                <input
-                                    type="radio"
-                                    name="verbChoice"
-                                    id="regularVerb"
-                                    value="regularVerb"
-                                    checked={!this.state.forceExceptional}
-                                />
-                                <label for="regularVerb" class="text-gray-800 text-2xl px-4">Regular</label>
-                                <input
-                                    type="radio"
-                                    name="verbChoice"
-                                    id="exceptionVerb"
-                                    value="exceptionVerb"
-                                    checked={this.state.forceExceptional}
-                                />
-                                <label for="exceptionVerb" class="text-gray-800 text-2xl px-4">Exception</label>
-                            </div>
-                        </div>
-                        {this.getCustomVerbMessage()}
-                    </div>
-                    <input type="submit" value="Start quiz" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                </form>
-            </div>
-        )
-    }
-
     renderFinalForm() {
         const rows = [];
         const tdBaseClass = "text-center px-2 py-2"
@@ -322,7 +251,21 @@ class QuizApp extends React.Component {
             />;
         }
         if (this.state.items.length == 0) {
-            return this.renderStartForm();
+            return <VerbQuizDetails
+                verb={this.state.verb}
+                onStartQuiz={this.onStartQuiz}
+                onInvalidCustomVerb={this.onInvalidCustomVerb}
+                onSentenceTypeChange={this.onSentenceTypeChange}
+                onVerbChange={this.onVerbChange}
+                setForceExceptional={this.setForceExceptional}
+                customVerbMessage={this.state.customVerbMessage}
+                isOptionalException={this.state.isOptionalException}
+                titleEn={TOPIC_EN_NAMES[this.state.topic]}
+                titleKz={TOPIC_KZ_NAMES[this.state.topic]}
+                sentenceType={this.state.sentenceType}
+                sentenceTypes={SENTENCE_TYPES}
+                forceExceptional={this.state.forceExceptional}
+            />;
         }
         const position = this.state.quizState.position;
         const total = this.state.quizState.total;
