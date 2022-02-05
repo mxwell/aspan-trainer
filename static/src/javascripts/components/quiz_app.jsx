@@ -6,15 +6,16 @@ import {
     getVerb,
     QuizState,
 } from '../lib/quiz';
+import TopicSelector from './topic_selector';
 
 const DISPLAY_TIME_MS = 1000;
 
 const TOPIC_NAMES = {
-    present_transitive: {
+    presentTransitive: {
         en: "Present transitive tense",
         kz: "Ауыспалы осы/келер шақ"
     },
-    present_continuous: {
+    presentContinuous: {
         en: "Present continuous tense",
         kz: "Нақ осы шақ",
     },
@@ -62,7 +63,7 @@ class QuizApp extends React.Component {
     defaultState() {
         return this.emptyState(
             /* hint */ "",
-            /* topic */ "present_transitive",
+            /* topic */ "presentTransitive",
             /* topicConfirmed */ false,
             /* sentenceType */ "Statement",
             /* forceException */ false
@@ -102,12 +103,11 @@ class QuizApp extends React.Component {
         this.setState({ lastEntered: e.target.value});
     }
 
-    onTopicChange(e) {
-        this.setState({ topic: e.target.value });
+    onTopicChange(topic) {
+        this.setState({ topic });
     }
 
-    onTopicConfirm(e) {
-        e.preventDefault();
+    onTopicConfirm() {
         this.setState({ topicConfirmed: true });
     }
 
@@ -196,27 +196,6 @@ class QuizApp extends React.Component {
         } else {
             this.setState(this.initialState());
         }
-    }
-
-    renderTopicSelectionForm() {
-        return (
-            <div class="w-full max-w-screen-md flex-col py-4">
-                <form onSubmit={this.onTopicConfirm} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
-                    <div class="w-full flex justify-between">
-                        <label class="text-gray-600 text-2xl py-2">Topic:</label>
-                        <select
-                            required
-                            onChange={this.onTopicChange}
-                            value={this.state.topic}
-                            class="text-gray-800 text-2xl px-4 py-2">
-                            <option value="present_transitive">{TOPIC_NAMES.present_transitive.en}</option>
-                            <option value="present_continuous">{TOPIC_NAMES.present_continuous.en}</option>
-                        </select>
-                    </div>
-                    <input type="submit" value="Confirm" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                </form>
-            </div>
-        );
     }
 
     renderStartForm() {
@@ -330,7 +309,12 @@ class QuizApp extends React.Component {
 
     render () {
         if (!this.state.topicConfirmed) {
-            return this.renderTopicSelectionForm();
+            return <TopicSelector
+                topicNames={TOPIC_NAMES}
+                onTopicChange={this.onTopicChange}
+                onTopicConfirm={this.onTopicConfirm}
+                topic={this.state.topic}
+            />;
         }
         if (this.state.items.length == 0) {
             return this.renderStartForm();
