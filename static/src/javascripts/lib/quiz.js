@@ -52,19 +52,53 @@ function getSentenceTerminator(sentenceType) {
     return "";
 }
 
-export function createVerbPresentTransitiveQuiz(verb, sentenceType, forceExceptional) {
-    var result = [];
-    const verbBuilder = new VerbBuilder(verb, forceExceptional);
-    for (const person of GRAMMAR_PERSONS) {
-        for (const number of GRAMMAR_NUMBERS) {
-            const hint = "Present transitive " + sentenceType + " form of " + verb + " for " + person + " person, " + number;
-            const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
-            const textHint = pronoun + " _____" + getSentenceTerminator(sentenceType);
-            const expected = pronoun + " " + verbBuilder.presentTransitiveForm(person, number, sentenceType);
-            result.push(new QuizItem(hint, textHint, expected));
-        }
+export class VerbQuizBuilder {
+    constructor(verb, forceExceptional, sentenceType) {
+        this.verb = verb;
+        this.verbBuilder = new VerbBuilder(verb, forceExceptional);
+        this.sentenceType = sentenceType;
     }
-    return result;
+
+    buildForAllPersonsAndNumbers(caseFn) {
+        let result = [];
+        for (const person of GRAMMAR_PERSONS) {
+            for (const number of GRAMMAR_NUMBERS) {
+                result.push(caseFn(this, person, number));
+            }
+        }
+        return result;
+    }
+
+    makeHint(tenseName, person, number) {
+        return `${tenseName} ${this.sentenceType} form of ${this.verb} for ${person} person, ${number}`;
+    }
+
+    buildPresentTransitive() {
+        return this.buildForAllPersonsAndNumbers((self, person, number) => {
+            const hint = self.makeHint("Present transitive", person, number);
+            const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
+            const textHint = pronoun + " _____" + getSentenceTerminator(self.sentenceType);
+            const expected = pronoun + " " + self.verbBuilder.presentTransitiveForm(person, number, self.sentenceType);
+            return new QuizItem(hint, textHint, expected);
+        })
+    }
+
+    buildPresentContinuous(auxVerb) {
+        if (auxVerb == null) {
+            auxVerb = "жату";
+        }
+        let auxBuilder = new VerbBuilder(auxVerb);
+        if (auxBuilder.cont_context == null) {
+            return null;
+        }
+        return this.buildForAllPersonsAndNumbers((self, person, number) => {
+            const hint = self.makeHint("Present continuous", person, number);
+            const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
+            const textHint = pronoun + " _____" + getSentenceTerminator(self.sentenceType);
+            const expected = pronoun + " " + self.verbBuilder.presentContinuousForm(person, number, self.sentenceType, auxBuilder);
+            return new QuizItem(hint, textHint, expected);
+        });
+    }
 }
 
 export function checkCustomVerb(verb) {

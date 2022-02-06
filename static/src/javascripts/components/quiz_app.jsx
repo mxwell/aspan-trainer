@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     checkOptionalExceptionVerb,
-    createVerbPresentTransitiveQuiz,
+    VerbQuizBuilder,
     getVerb,
     QuizState,
 } from '../lib/quiz';
@@ -85,6 +85,18 @@ class QuizApp extends React.Component {
         );
     }
 
+    createQuizItems(state) {
+        console.log("Initializing with the verb " + state.verb + ", forceExceptional=" + state.forceExceptional);
+        let verbQuizBuilder = new VerbQuizBuilder(state.verb, state.forceExceptional, state.sentenceType);
+        if (state.topic == TOPIC_KEYS[0]) {
+            return verbQuizBuilder.buildPresentTransitive();
+        }
+        if (state.topic == TOPIC_KEYS[1]) {
+            return verbQuizBuilder.buildPresentContinuous(null);
+        }
+        return [];
+    }
+
     initializedQuizState() {
         const state = this.emptyState(
             this.state.verb,
@@ -93,8 +105,11 @@ class QuizApp extends React.Component {
             this.state.sentenceType,
             this.state.forceExceptional
         );
-        console.log("Initializing with the verb " + state.verb + ", forceExceptional=" + state.forceExceptional);
-        const quizItems = createVerbPresentTransitiveQuiz(state.verb, state.sentenceType, state.forceExceptional);
+        const quizItems = this.createQuizItems(state);
+        if (quizItems.length == 0) {
+            console.log("Failed to create quiz items. Abort!");
+            return this.defaultState();
+        }
         state.items = quizItems;
         state.quizState = new QuizState(quizItems.length, 0, 0);
         return state;
