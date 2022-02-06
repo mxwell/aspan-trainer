@@ -32,17 +32,35 @@ const PRESET_VERBS = [
     "демалу",
     "еріну",
     "жазу",
-]
+];
+
+const PRESET_PRESENT_CONTINUOUS_VERBS = [
+    ["алу", "ішу", "салу", "беру", "жазу", "ояну"],
+    ["жасау", "жеу", "ұйықтау", "зерттеу"],
+    ["бару", "апару"],
+    ["келу", "әкелу"],
+    ["жабу", "кебу", "себу", "тебу", "табу", "шабу"],
+];
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
+}
+
+function pickRandom(items) {
+    return items[getRandomInt(items.length)];
 }
 
 export function getVerb(hint) {
     if (hint.length > 0) {
         return hint;
     }
-    return PRESET_VERBS[getRandomInt(PRESET_VERBS.length)];
+    return pickRandom(PRESET_VERBS);
+}
+
+export function getPresentContinuousVerb() {
+    let row = pickRandom(PRESET_PRESENT_CONTINUOUS_VERBS);
+    let verb = pickRandom(row);
+    return verb;
 }
 
 function getSentenceTerminator(sentenceType) {

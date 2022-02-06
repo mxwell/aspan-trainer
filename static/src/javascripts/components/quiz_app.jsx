@@ -3,6 +3,7 @@ import {
     checkOptionalExceptionVerb,
     VerbQuizBuilder,
     getVerb,
+    getPresentContinuousVerb,
     QuizState,
 } from '../lib/quiz';
 import TopicSelector from './topic_selector';
@@ -54,11 +55,18 @@ class QuizApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    emptyState(hint, topic, topicConfirmed, sentenceType, forceExceptional) {
-        const verb = getVerb(hint);
+    presetVerb(topic) {
+        if (topic == "presentContinuous") {
+            return getPresentContinuousVerb();
+        }
+        return getVerb("");
+    }
+
+    emptyState(verb, topic, topicConfirmed, sentenceType, forceExceptional) {
+        const isOptionalException = verb.length > 0 ? checkOptionalExceptionVerb(verb) : false;
         return {
             verb: verb,
-            isOptionalException: checkOptionalExceptionVerb(verb),
+            isOptionalException: isOptionalException,
             // if the chosen verb is optionally exceptional, then we need to choose regular or exceptional form.
             forceExceptional: forceExceptional,
             items: [],
@@ -77,7 +85,7 @@ class QuizApp extends React.Component {
 
     defaultState() {
         return this.emptyState(
-            /* hint */ "",
+            /* verb */ "",
             /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
@@ -120,7 +128,10 @@ class QuizApp extends React.Component {
         this.setState({ topic });
     }
     onTopicConfirm() {
-        this.setState({ topicConfirmed: true });
+        this.setState((state, props) => ({
+            topicConfirmed: true,
+            verb: this.presetVerb(state.topic),
+        }));
     }
 
     /* VerbQuizDetails handlers */
