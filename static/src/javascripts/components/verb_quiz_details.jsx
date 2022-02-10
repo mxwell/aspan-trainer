@@ -1,4 +1,5 @@
 import React from "react";
+import { closeButton } from './close_button';
 import { checkCustomVerb } from '../lib/quiz';
 import { renderOptionsWithKeys } from "../lib/react_util";
 
@@ -51,8 +52,9 @@ class VerbQuizDetails extends React.Component {
         );
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
-                <div class="flex justify-center">
+                <div class="flex justify-between">
                     <h2 class="text-2xl text-gray-400 text-bold">{this.props.titleEn}</h2>
+                    {closeButton({onClick: this.props.onTopicCancel})}
                 </div>
                 <div class="flex justify-center">
                     <h3 class="text-3xl text-blue-700 text-bold p-2">{this.props.titleKz}</h3>

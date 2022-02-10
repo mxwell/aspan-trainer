@@ -6,6 +6,7 @@ import {
     getPresentContinuousVerb,
     QuizState,
 } from '../lib/quiz';
+import { closeButton } from './close_button';
 import TopicSelector from './topic_selector';
 import VerbQuizDetails from './verb_quiz_details';
 
@@ -46,6 +47,7 @@ class QuizApp extends React.Component {
         this.onInvalidCustomVerb = this.onInvalidCustomVerb.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onVerbChange = this.onVerbChange.bind(this);
+        this.onTopicCancel = this.onTopicCancel.bind(this);
         this.setForceExceptional = this.setForceExceptional.bind(this);
 
         this.onTryAgain = this.onTryAgain.bind(this);
@@ -146,6 +148,12 @@ class QuizApp extends React.Component {
     }
     onVerbChange(verb) {
         this.setState({ verb: verb, isOptionalException: checkOptionalExceptionVerb(verb) });
+    }
+    onTopicCancel() {
+        this.setState({
+            topicConfirmed: false,
+            verb: "",
+        });
     }
     setForceExceptional(forceExceptional) {
         this.setState({ forceExceptional });
@@ -283,6 +291,7 @@ class QuizApp extends React.Component {
                 onInvalidCustomVerb={this.onInvalidCustomVerb}
                 onSentenceTypeChange={this.onSentenceTypeChange}
                 onVerbChange={this.onVerbChange}
+                onTopicCancel={this.onTopicCancel}
                 setForceExceptional={this.setForceExceptional}
                 customVerbMessage={this.state.customVerbMessage}
                 isOptionalException={this.state.isOptionalException}
@@ -305,7 +314,7 @@ class QuizApp extends React.Component {
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{this.state.sentenceType.toLowerCase()}</span>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
                         </div>
-                        <button class="inline-block bg-gray-600 hover:bg-gray-900 text-white font-bold rounded px-3 py-1 mr-2 mb-2" onClick={this.onStartNew}>X</button>
+                        {closeButton({onClick: this.onStartNew})}
                     </div>
                     <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
                     <p class="text-2xl text-gray-900">{item.hint}</p>
