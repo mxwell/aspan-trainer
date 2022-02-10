@@ -4,6 +4,7 @@ import {
     PRONOUN_BY_PERSON_NUMBER,
     validateVerb,
     isVerbOptionalException,
+    validPresentContPair,
     VerbBuilder
 } from './aspan';
 
@@ -102,7 +103,7 @@ export class VerbQuizBuilder {
     }
 
     buildPresentContinuous(auxVerb) {
-        if (auxVerb == null) {
+        if (auxVerb == null || auxVerb == "") {
             auxVerb = "жату";
         }
         let auxBuilder = new VerbBuilder(auxVerb);
@@ -125,6 +126,10 @@ export function checkCustomVerb(verb) {
 
 export function checkOptionalExceptionVerb(verb) {
     return isVerbOptionalException(verb);
+}
+
+export function checkPresentContPair(verb, auxVerb) {
+    return validPresentContPair(verb, auxVerb);
 }
 
 export class QuizState {

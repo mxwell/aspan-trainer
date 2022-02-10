@@ -33,6 +33,13 @@ const SENTENCE_TYPES = [
     "Question",
 ];
 
+const PRESENT_CONT_AUX_NAMES = [
+    "жату",
+    "тұру",
+    "жүру",
+    "отыру",
+];
+
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
@@ -44,9 +51,9 @@ class QuizApp extends React.Component {
 
         /* VerbQuizDetails handlers */
         this.onStartQuiz = this.onStartQuiz.bind(this);
-        this.onInvalidCustomVerb = this.onInvalidCustomVerb.bind(this);
         this.onSentenceTypeChange = this.onSentenceTypeChange.bind(this);
         this.onVerbChange = this.onVerbChange.bind(this);
+        this.onAuxVerbChange = this.onAuxVerbChange.bind(this);
         this.onTopicCancel = this.onTopicCancel.bind(this);
         this.setForceExceptional = this.setForceExceptional.bind(this);
 
@@ -64,11 +71,13 @@ class QuizApp extends React.Component {
         return getVerb("");
     }
 
-    emptyState(verb, topic, topicConfirmed, sentenceType, forceExceptional) {
+    makeState(verb, needAuxVerb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional) {
         const isOptionalException = verb.length > 0 ? checkOptionalExceptionVerb(verb) : false;
         return {
             verb: verb,
             isOptionalException: isOptionalException,
+            needAuxVerb: needAuxVerb,
+            auxVerbId: auxVerbId,
             // if the chosen verb is optionally exceptional, then we need to choose regular or exceptional form.
             forceExceptional: forceExceptional,
             items: [],
@@ -80,14 +89,14 @@ class QuizApp extends React.Component {
             topic: topic,
             topicConfirmed: topicConfirmed,
             sentenceType: sentenceType,
-            customVerb: "",
-            customVerbMessage: "",
         };
     }
 
     defaultState() {
-        return this.emptyState(
+        return this.makeState(
             /* verb */ "",
+            /* needAuxVerb */ false,
+            /* auxVerbId */ 0,
             /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
@@ -96,20 +105,24 @@ class QuizApp extends React.Component {
     }
 
     createQuizItems(state) {
-        console.log("Initializing with the verb " + state.verb + ", forceExceptional=" + state.forceExceptional);
+        console.log(`Initializing: verb ${state.verb}, forceExceptional ${state.forceExceptional}`);
         let verbQuizBuilder = new VerbQuizBuilder(state.verb, state.forceExceptional, state.sentenceType);
         if (state.topic == TOPIC_KEYS[0]) {
             return verbQuizBuilder.buildPresentTransitive();
         }
         if (state.topic == TOPIC_KEYS[1]) {
-            return verbQuizBuilder.buildPresentContinuous(null);
+            const auxVerb = PRESENT_CONT_AUX_NAMES[state.auxVerbId];
+            console.log(`Using aux verb: id ${state.auxVerbId}, verb ${auxVerb}`)
+            return verbQuizBuilder.buildPresentContinuous(auxVerb);
         }
         return [];
     }
 
     initializedQuizState() {
-        const state = this.emptyState(
+        const state = this.makeState(
             this.state.verb,
+            this.state.needAuxVerb,
+            this.state.auxVerbId,
             this.state.topic,
             this.state.topicConfirmed,
             this.state.sentenceType,
@@ -127,7 +140,11 @@ class QuizApp extends React.Component {
 
     /* TopicSelector handlers */
     onTopicChange(topic) {
-        this.setState({ topic });
+        let needAuxVerb = topic == TOPIC_KEYS[1];
+        this.setState({
+            topic,
+            needAuxVerb,
+        });
     }
     onTopicConfirm() {
         this.setState((state, props) => ({
@@ -140,14 +157,14 @@ class QuizApp extends React.Component {
     onStartQuiz() {
         this.setState(this.initializedQuizState());
     }
-    onInvalidCustomVerb(message) {
-        this.setState({verb: "", customVerbMessage: message});
-    }
     onSentenceTypeChange(sentenceType) {
         this.setState({ sentenceType });
     }
     onVerbChange(verb) {
         this.setState({ verb: verb, isOptionalException: checkOptionalExceptionVerb(verb) });
+    }
+    onAuxVerbChange(auxVerbId) {
+        this.setState({ auxVerbId: Number(auxVerbId) });
     }
     onTopicCancel() {
         this.setState({
@@ -287,16 +304,18 @@ class QuizApp extends React.Component {
         if (this.state.items.length == 0) {
             return <VerbQuizDetails
                 verb={this.state.verb}
+                needAuxVerb={this.state.needAuxVerb}
+                auxVerbId={this.state.auxVerbId}
                 onStartQuiz={this.onStartQuiz}
-                onInvalidCustomVerb={this.onInvalidCustomVerb}
                 onSentenceTypeChange={this.onSentenceTypeChange}
                 onVerbChange={this.onVerbChange}
+                onAuxVerbChange={this.onAuxVerbChange}
                 onTopicCancel={this.onTopicCancel}
                 setForceExceptional={this.setForceExceptional}
-                customVerbMessage={this.state.customVerbMessage}
                 isOptionalException={this.state.isOptionalException}
                 titleEn={TOPIC_EN_NAMES[this.state.topic]}
                 titleKz={TOPIC_KZ_NAMES[this.state.topic]}
+                auxVerbNames={PRESENT_CONT_AUX_NAMES}
                 sentenceType={this.state.sentenceType}
                 sentenceTypes={SENTENCE_TYPES}
                 forceExceptional={this.state.forceExceptional}

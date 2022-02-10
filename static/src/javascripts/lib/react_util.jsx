@@ -16,7 +16,16 @@ function renderOptionsWithKeys(keys) {
     return lines;
 }
 
+function renderOptionsWithNames(names) {
+    var lines = [];
+    for (let i = 0; i < names.length; ++i) {
+        lines.push(<option key={i} value={i}>{names[i]}</option>);
+    }
+    return lines;
+}
+
 export {
     renderOptionsWithKeysAndObj,
     renderOptionsWithKeys,
+    renderOptionsWithNames,
 };

@@ -1,24 +1,35 @@
 import React from "react";
 import { closeButton } from './close_button';
-import { checkCustomVerb } from '../lib/quiz';
-import { renderOptionsWithKeys } from "../lib/react_util";
+import { checkCustomVerb, checkPresentContPair } from '../lib/quiz';
+import { renderOptionsWithKeys, renderOptionsWithNames } from "../lib/react_util";
 
 class VerbQuizDetails extends React.Component {
     constructor(props) {
         super(props);
+        this.state = this.initialState();
+
         this.handleStartQuiz = this.handleStartQuiz.bind(this);
         this.handleSentenceTypeChange = this.handleSentenceTypeChange.bind(this);
         this.handleVerbChange = this.handleVerbChange.bind(this);
         this.handleVerbChoiceChange = this.handleVerbChoiceChange.bind(this);
+        this.handleAuxVerbChange = this.handleAuxVerbChange.bind(this);
+    }
+
+    initialState() {
+        return {verbMessage: ""};
     }
 
     handleStartQuiz(e) {
         e.preventDefault();
+
         const verb = this.props.verb;
         if (!checkCustomVerb(verb)) {
             console.log("the custom verb didn't pass the check: " + verb);
-            const message = "The entered verb '" + verb + "' didn't pass the check, pick another please";
-            this.props.onInvalidCustomVerb(message);
+            const verbMessage = "The entered verb '" + verb + "' didn't pass the check, pick another please";
+            this.setState({ verbMessage });
+        } else if (this.props.needAuxVerb && !checkPresentContPair(verb, this.props.auxVerbNames[this.props.auxVerbId])) {
+            const verbMessage = "The selected auxiliary verb is not compatible with the main verb. Change you choice please";
+            this.setState({ verbMessage });
         } else {
             this.props.onStartQuiz();
         }
@@ -30,6 +41,7 @@ class VerbQuizDetails extends React.Component {
 
     handleVerbChange(e) {
         this.props.onVerbChange(e.target.value);
+        this.setState(this.initialState());
     }
 
     handleVerbChoiceChange(e) {
@@ -37,11 +49,34 @@ class VerbQuizDetails extends React.Component {
         this.props.setForceExceptional(forceExceptional);
     }
 
-    getCustomVerbMessage() {
-        if (this.props.customVerbMessage) {
-            return <p class="text-red-500 text-s italic">{this.props.customVerbMessage}</p>;
+    handleAuxVerbChange(e) {
+        this.props.onAuxVerbChange(e.target.value);
+        this.setState(this.initialState());
+    }
+
+    renderVerbAlert(text) {
+        if (text) {
+            return <p class="text-red-500 text-s italic">{text}</p>;
         }
         return "";
+    }
+
+    renderAuxVerbElements() {
+        if (!this.props.needAuxVerb) {
+            return "";
+        }
+        return (
+            <div class="flex justify-between py-2">
+                <label class="text-gray-600 text-2xl pr-4 py-2">Auxiliary verb:</label>
+                <select
+                    required
+                    onChange={this.handleAuxVerbChange}
+                    value={this.props.auxVerbId}
+                    class="text-gray-800 text-2xl px-4 py-2">
+                    {renderOptionsWithNames(this.props.auxVerbNames)}
+                </select>
+            </div>
+        );
     }
 
     render() {
@@ -102,7 +137,8 @@ class VerbQuizDetails extends React.Component {
                                 <label for="exceptionVerb" class="text-gray-800 text-2xl px-4">Exception</label>
                             </div>
                         </div>
-                        {this.getCustomVerbMessage()}
+                        {this.renderAuxVerbElements()}
+                        {this.renderVerbAlert(this.state.verbMessage)}
                     </div>
                     <input
                         type="submit"
