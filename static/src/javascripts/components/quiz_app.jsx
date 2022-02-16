@@ -15,16 +15,25 @@ const DISPLAY_TIME_MS = 1000;
 const TOPIC_KEYS = [
     "presentTransitive",
     "presentContinuous",
+    "pastTense",
+    "wantClause",
+    "canClause",
 ];
 
 const TOPIC_EN_NAMES = {
     presentTransitive: "Present transitive tense",
     presentContinuous: "Present continuous tense",
+    pastTense: "Past tense",
+    wantClause: "Want clause",
+    canClause: "Can clause",
 };
 
 const TOPIC_KZ_NAMES = {
     presentTransitive: "Ауыспалы осы/келер шақ",
     presentContinuous: "Нақ осы шақ",
+    pastTense: "Жедел өткен шақ",
+    wantClause: "Қалау рай",
+    canClause: "Алу",
 };
 
 const SENTENCE_TYPES = [
@@ -65,7 +74,7 @@ class QuizApp extends React.Component {
     }
 
     presetVerb(topic) {
-        if (topic == "presentContinuous") {
+        if (topic == TOPIC_KEYS[1]) {
             return getPresentContinuousVerb();
         }
         return getVerb("");
@@ -114,6 +123,15 @@ class QuizApp extends React.Component {
             const auxVerb = PRESENT_CONT_AUX_NAMES[state.auxVerbId];
             console.log(`Using aux verb: id ${state.auxVerbId}, verb ${auxVerb}`)
             return verbQuizBuilder.buildPresentContinuous(auxVerb);
+        }
+        if (state.topic == TOPIC_KEYS[2]) {
+            return verbQuizBuilder.buildPast();
+        }
+        if (state.topic == TOPIC_KEYS[3]) {
+            return verbQuizBuilder.buildWantClause();
+        }
+        if (state.topic == TOPIC_KEYS[4]) {
+            return verbQuizBuilder.buildCanClause();
         }
         return [];
     }
