@@ -22,7 +22,7 @@ class TopicSelector extends React.Component {
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
                 <form onSubmit={this.handleTopicConfirm} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
-                    <div class="w-full flex justify-between">
+                    <div class="w-full flex justify-between py-4">
                         <label class="text-gray-600 text-2xl py-2">Topic:</label>
                         <select
                             required
