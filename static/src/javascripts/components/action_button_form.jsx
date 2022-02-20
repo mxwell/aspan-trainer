@@ -1,6 +1,6 @@
 import React from "react";
 
-export function actionButtonForm(props) {
+export function ActionButtonForm(props) {
     return (
         <form onSubmit={props.onSubmit} class="py-4 flex flex-col">
             <input

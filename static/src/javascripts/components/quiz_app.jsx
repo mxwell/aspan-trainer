@@ -6,7 +6,7 @@ import {
     getPresentContinuousVerb,
     QuizState,
 } from '../lib/quiz';
-import { actionButtonForm } from './action_button_form';
+import { ActionButtonForm } from './action_button_form';
 import { closeButton } from './close_button';
 import TopicSelector from './topic_selector';
 import VerbQuizDetails from './verb_quiz_details';
@@ -56,8 +56,7 @@ class QuizApp extends React.Component {
         this.state = this.defaultState()
 
         /* TopicSelector handlers */
-        this.onTopicChange = this.onTopicChange.bind(this);
-        this.onTopicConfirm = this.onTopicConfirm.bind(this);
+        this.onTopicSelection = this.onTopicSelection.bind(this);
 
         /* VerbQuizDetails handlers */
         this.onStartQuiz = this.onStartQuiz.bind(this);
@@ -160,20 +159,22 @@ class QuizApp extends React.Component {
         return state;
     }
 
-    /* TopicSelector handlers */
-    onTopicChange(topic) {
-        let needAuxVerb = topic == TOPIC_KEYS[1];
-        this.setState({
-            topic,
-            needAuxVerb,
-        });
-    }
-    onTopicConfirm() {
+    initTopic() {
         this.setState((state, props) => ({
             topicConfirmed: true,
             verb: this.presetVerb(state.topic),
             items: [],
         }));
+    }
+
+    /* TopicSelector handlers */
+    onTopicSelection(topic) {
+        let needAuxVerb = topic == TOPIC_KEYS[1];
+        this.setState({
+            topic,
+            needAuxVerb,
+        });
+        this.initTopic();
     }
 
     /* VerbQuizDetails handlers */
@@ -205,7 +206,7 @@ class QuizApp extends React.Component {
     }
     onTopicContinue(e) {
         e.preventDefault();
-        this.onTopicConfirm();
+        this.initTopic();
     }
     onStartNew(e) {
         e.preventDefault();
@@ -307,9 +308,9 @@ class QuizApp extends React.Component {
                         {rows}
                     </table>
                 </div>
-                {actionButtonForm({onSubmit: this.onTryAgain, actionName: "Restart"})}
-                {actionButtonForm({onSubmit: this.onTopicContinue, actionName: "Continue with the topic"})}
-                {actionButtonForm({onSubmit: this.onStartNew, actionName: "To topic selection"})}
+                {ActionButtonForm({onSubmit: this.onTryAgain, actionName: "Restart"})}
+                {ActionButtonForm({onSubmit: this.onTopicContinue, actionName: "Continue with the topic"})}
+                {ActionButtonForm({onSubmit: this.onStartNew, actionName: "To topic selection"})}
             </div>
         );
     }
@@ -319,9 +320,7 @@ class QuizApp extends React.Component {
             return <TopicSelector
                 topicKeys={TOPIC_KEYS}
                 topicNames={TOPIC_EN_NAMES}
-                onTopicChange={this.onTopicChange}
-                onTopicConfirm={this.onTopicConfirm}
-                topic={this.state.topic}
+                onTopicSelection={this.onTopicSelection}
             />;
         }
         if (this.state.items.length == 0) {
