@@ -1,4 +1,5 @@
 import React from 'react';
+import { i18n } from './i18n';
 
 function renderOptionsWithKeysAndObj(keys, obj) {
     var lines = [];
@@ -16,6 +17,14 @@ function renderOptionsWithKeys(keys) {
     return lines;
 }
 
+function renderOptionsWithI18nKeys(keys, lang) {
+    var lines = [];
+    for (let key of keys) {
+        lines.push(<option key={key} value={key}>{i18n(key, lang)}</option>);
+    }
+    return lines;
+}
+
 function renderOptionsWithNames(names) {
     var lines = [];
     for (let i = 0; i < names.length; ++i) {
@@ -27,5 +36,6 @@ function renderOptionsWithNames(names) {
 export {
     renderOptionsWithKeysAndObj,
     renderOptionsWithKeys,
+    renderOptionsWithI18nKeys,
     renderOptionsWithNames,
 };

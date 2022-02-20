@@ -1,5 +1,13 @@
 import React from 'react';
 import {
+    I18N_LANG_EN,
+    I18N_LANG_RU,
+    i18n,
+    retrieveUiLang,
+    storeUiLang,
+    clearUiLang
+} from '../lib/i18n';
+import {
     checkOptionalExceptionVerb,
     VerbQuizBuilder,
     getVerb,
@@ -8,10 +16,13 @@ import {
 } from '../lib/quiz';
 import { ActionButtonForm } from './action_button_form';
 import { closeButton } from './close_button';
+import LanguageSelector from './language_selector';
 import TopicSelector from './topic_selector';
 import VerbQuizDetails from './verb_quiz_details';
 
 const DISPLAY_TIME_MS = 1000;
+
+const LANG_KEYS = [I18N_LANG_EN, I18N_LANG_RU];
 
 const TOPIC_KEYS = [
     "presentTransitive",
@@ -20,22 +31,6 @@ const TOPIC_KEYS = [
     "wantClause",
     "canClause",
 ];
-
-const TOPIC_EN_NAMES = {
-    presentTransitive: "Present transitive tense",
-    presentContinuous: "Present continuous tense",
-    pastTense: "Past tense",
-    wantClause: "Want clause",
-    canClause: "Can clause",
-};
-
-const TOPIC_KZ_NAMES = {
-    presentTransitive: "Ауыспалы осы/келер шақ",
-    presentContinuous: "Нақ осы шақ",
-    pastTense: "Жедел өткен шақ",
-    wantClause: "Қалау рай",
-    canClause: "Алу",
-};
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -53,10 +48,14 @@ const PRESENT_CONT_AUX_NAMES = [
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
-        this.state = this.defaultState()
+        this.state = this.defaultState();
+
+        /* LanguageSelector handlers */
+        this.onLanguageSelection = this.onLanguageSelection.bind(this);
 
         /* TopicSelector handlers */
         this.onTopicSelection = this.onTopicSelection.bind(this);
+        this.onLanguageReset = this.onLanguageReset.bind(this);
 
         /* VerbQuizDetails handlers */
         this.onStartQuiz = this.onStartQuiz.bind(this);
@@ -83,9 +82,12 @@ class QuizApp extends React.Component {
         return getVerb("");
     }
 
-    makeState(verb, needAuxVerb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional) {
-        const isOptionalException = verb.length > 0 ? checkOptionalExceptionVerb(verb) : false;
+    makeState(lang, langConfirmed, verb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional) {
+        const isOptionalException = checkOptionalExceptionVerb(verb);
+        const needAuxVerb = topic == TOPIC_KEYS[1];
         return {
+            lang: lang,
+            langConfirmed: langConfirmed,
             verb: verb,
             isOptionalException: isOptionalException,
             needAuxVerb: needAuxVerb,
@@ -105,44 +107,50 @@ class QuizApp extends React.Component {
     }
 
     defaultState() {
+        var retrievedLang = retrieveUiLang();
         return this.makeState(
+            /* lang */ retrievedLang || I18N_LANG_EN,
+            /* langConfirmed */ retrievedLang != null,
             /* verb */ "",
-            /* needAuxVerb */ false,
             /* auxVerbId */ 0,
             /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
-            /* forceException */ false
+            /* forceExceptional */ false
         );
     }
 
+    initializedTopicState(topic) {
+        const verb = this.presetVerb(topic);
+        const state = this.makeState(
+            this.state.lang,
+            this.state.langConfirmed,
+            verb,
+            /* auxVerbId */ 0,
+            topic,
+            /* topicConfirmed */ true,
+            /* sentenceType */ SENTENCE_TYPES[0],
+            /* forceExceptional */ false,
+        );
+        return state;
+    }
+
     createQuizItems(state) {
-        console.log(`Initializing: verb ${state.verb}, forceExceptional ${state.forceExceptional}`);
-        let verbQuizBuilder = new VerbQuizBuilder(state.verb, state.forceExceptional, state.sentenceType);
-        if (state.topic == TOPIC_KEYS[0]) {
-            return verbQuizBuilder.buildPresentTransitive();
-        }
+        var auxVerb = "";
         if (state.topic == TOPIC_KEYS[1]) {
-            const auxVerb = PRESENT_CONT_AUX_NAMES[state.auxVerbId];
-            console.log(`Using aux verb: id ${state.auxVerbId}, verb ${auxVerb}`)
-            return verbQuizBuilder.buildPresentContinuous(auxVerb);
+            auxVerb = PRESENT_CONT_AUX_NAMES[state.auxVerbId];
         }
-        if (state.topic == TOPIC_KEYS[2]) {
-            return verbQuizBuilder.buildPast();
-        }
-        if (state.topic == TOPIC_KEYS[3]) {
-            return verbQuizBuilder.buildWantClause();
-        }
-        if (state.topic == TOPIC_KEYS[4]) {
-            return verbQuizBuilder.buildCanClause();
-        }
-        return [];
+
+        console.log(`Creating quiz: verb "${state.verb}", forceExceptional ${state.forceExceptional}, auxVerb "${auxVerb}"`);
+        let verbQuizBuilder = new VerbQuizBuilder(state.lang, state.topic, state.verb, state.forceExceptional, state.sentenceType);
+        return verbQuizBuilder.build(auxVerb);
     }
 
     initializedQuizState() {
         const state = this.makeState(
+            this.state.lang,
+            this.state.langConfirmed,
             this.state.verb,
-            this.state.needAuxVerb,
             this.state.auxVerbId,
             this.state.topic,
             this.state.topicConfirmed,
@@ -159,22 +167,29 @@ class QuizApp extends React.Component {
         return state;
     }
 
-    initTopic() {
-        this.setState((state, props) => ({
-            topicConfirmed: true,
-            verb: this.presetVerb(state.topic),
-            items: [],
-        }));
+    i18n(key) {
+        return i18n(key, this.state.lang);
+    }
+
+    /* LanguageSelector handlers */
+    onLanguageSelection(lang) {
+        if (storeUiLang(lang)) {
+            this.setState({
+                lang: lang,
+                langConfirmed: true,
+            });
+        }
     }
 
     /* TopicSelector handlers */
     onTopicSelection(topic) {
-        let needAuxVerb = topic == TOPIC_KEYS[1];
+        this.setState(this.initializedTopicState(topic));
+    }
+    onLanguageReset() {
+        clearUiLang();
         this.setState({
-            topic,
-            needAuxVerb,
+            langConfirmed: false,
         });
-        this.initTopic();
     }
 
     /* VerbQuizDetails handlers */
@@ -193,7 +208,6 @@ class QuizApp extends React.Component {
     onTopicCancel() {
         this.setState({
             topicConfirmed: false,
-            verb: "",
         });
     }
     setForceExceptional(forceExceptional) {
@@ -206,7 +220,7 @@ class QuizApp extends React.Component {
     }
     onTopicContinue(e) {
         e.preventDefault();
-        this.initTopic();
+        this.setState(this.initializedTopicState(this.state.topic));
     }
     onStartNew(e) {
         e.preventDefault();
@@ -260,12 +274,12 @@ class QuizApp extends React.Component {
     getCurrentResult() {
         if (this.state.display) {
             if (this.state.lastAccepted) {
-                return <p class="bg-teal-100 text-teal-900 py-4">Ok</p>;
+                return <p class="bg-teal-100 text-teal-900 py-4">{this.i18n("feedbackCorrect")}</p>;
             } else {
                 return (
                     <p class="bg-red-100 text-red-700 py-4">
-                        Wrong! Correct answer:
-                        <span class="font-extrabold">
+                        {this.i18n("feedbackWrongAndHereIsCorrect")}
+                        <span class="font-extrabold px-2">
                             {this.getCurrentItem().expected}
                         </span>
                     </p>
@@ -293,7 +307,7 @@ class QuizApp extends React.Component {
             <div class="py-6">
                 <p class="bg-teal-100 text-teal-900 text-xl py-6 px-4">
                     <span class="px-2">
-                        Quiz is done! Correct responses:
+                        {this.i18n("quizDone")}
                     </span>
                     <span class="inline-block bg-teal-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">
                         {this.state.quizState.correct} / {this.state.quizState.total}
@@ -302,29 +316,48 @@ class QuizApp extends React.Component {
                 <div class="py-6">
                     <table class="w-full">
                         <tr>
-                            <th>Expected</th>
-                            <th>Your answers</th>
+                            <th>{this.i18n("columnExpected")}</th>
+                            <th>{this.i18n("columnYourAnswers")}</th>
                         </tr>
                         {rows}
                     </table>
                 </div>
-                {ActionButtonForm({onSubmit: this.onTryAgain, actionName: "Restart"})}
-                {ActionButtonForm({onSubmit: this.onTopicContinue, actionName: "Continue with the topic"})}
-                {ActionButtonForm({onSubmit: this.onStartNew, actionName: "To topic selection"})}
+                <ActionButtonForm
+                    onSubmit={this.onTryAgain}
+                    actionName={this.i18n("buttonRestartQuiz")}
+                    secondary={true}
+                />
+                <ActionButtonForm
+                    onSubmit={this.onTopicContinue}
+                    actionName={this.i18n("buttonContinueTopic")}
+                />
+                <ActionButtonForm
+                    onSubmit={this.onStartNew}
+                    actionName={this.i18n("buttonChangeTopic")}
+                />
             </div>
         );
     }
 
     render () {
+        if (!this.state.langConfirmed) {
+            return <LanguageSelector
+                langKeys={LANG_KEYS}
+                onLanguageSelection={this.onLanguageSelection}
+            />;
+        }
         if (!this.state.topicConfirmed) {
             return <TopicSelector
                 topicKeys={TOPIC_KEYS}
-                topicNames={TOPIC_EN_NAMES}
+                lang={this.state.lang}
                 onTopicSelection={this.onTopicSelection}
+                onLanguageReset={this.onLanguageReset}
             />;
         }
         if (this.state.items.length == 0) {
             return <VerbQuizDetails
+                lang={this.state.lang}
+                topic={this.state.topic}
                 verb={this.state.verb}
                 needAuxVerb={this.state.needAuxVerb}
                 auxVerbId={this.state.auxVerbId}
@@ -335,8 +368,6 @@ class QuizApp extends React.Component {
                 onTopicCancel={this.onTopicCancel}
                 setForceExceptional={this.setForceExceptional}
                 isOptionalException={this.state.isOptionalException}
-                titleEn={TOPIC_EN_NAMES[this.state.topic]}
-                titleKz={TOPIC_KZ_NAMES[this.state.topic]}
                 auxVerbNames={PRESENT_CONT_AUX_NAMES}
                 sentenceType={this.state.sentenceType}
                 sentenceTypes={SENTENCE_TYPES}
@@ -352,7 +383,7 @@ class QuizApp extends React.Component {
                     <div class="flex justify-between">
                         <div>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold mr-2 mb-2">{this.state.verb}</span>
-                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{this.state.sentenceType.toLowerCase()}</span>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{this.i18n(this.state.sentenceType.toLowerCase())}</span>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
                         </div>
                         {closeButton({onClick: this.onTopicContinue})}
@@ -370,7 +401,12 @@ class QuizApp extends React.Component {
                                 placeholder={item.textHint}
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
                         </div>
-                        <input type="submit" value="Submit" enabled={!this.state.display} class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
+                        <input
+                            type="submit"
+                            value={this.i18n("buttonSubmit")}
+                            enabled={!this.state.display}
+                            class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        />
                     </form>
                     {this.getCurrentResult()}
                 </div>

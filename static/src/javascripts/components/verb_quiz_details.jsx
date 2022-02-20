@@ -1,7 +1,8 @@
 import React from "react";
+import { I18N_LANG_KZ, i18n } from '../lib/i18n';
 import { closeButton } from './close_button';
 import { checkCustomVerb, checkPresentContPair } from '../lib/quiz';
-import { renderOptionsWithKeys, renderOptionsWithNames } from "../lib/react_util";
+import { renderOptionsWithI18nKeys, renderOptionsWithNames } from "../lib/react_util";
 
 class VerbQuizDetails extends React.Component {
     constructor(props) {
@@ -19,16 +20,20 @@ class VerbQuizDetails extends React.Component {
         return {verbMessage: ""};
     }
 
+    i18n(key) {
+        return i18n(key, this.props.lang);
+    }
+
     handleStartQuiz(e) {
         e.preventDefault();
 
         const verb = this.props.verb;
         if (!checkCustomVerb(verb)) {
             console.log("the custom verb didn't pass the check: " + verb);
-            const verbMessage = "The entered verb '" + verb + "' didn't pass the check, pick another please";
+            const verbMessage = this.i18n("EnteredVerbNotPassed");
             this.setState({ verbMessage });
         } else if (this.props.needAuxVerb && !checkPresentContPair(verb, this.props.auxVerbNames[this.props.auxVerbId])) {
-            const verbMessage = "The selected auxiliary verb is not compatible with the main verb. Change you choice please";
+            const verbMessage = this.i18n("IncompatibleAuxVerb");
             this.setState({ verbMessage });
         } else {
             this.props.onStartQuiz();
@@ -67,7 +72,7 @@ class VerbQuizDetails extends React.Component {
         }
         return (
             <div class="flex justify-between py-2">
-                <label class="text-gray-600 text-2xl pr-4 py-2">Auxiliary verb:</label>
+                <label class="text-gray-600 text-2xl pr-4 py-2">{this.i18n("AuxVerb")}:</label>
                 <select
                     required
                     onChange={this.handleAuxVerbChange}
@@ -88,26 +93,26 @@ class VerbQuizDetails extends React.Component {
         return (
             <div class="w-full max-w-screen-md flex-col py-4">
                 <div class="flex justify-between">
-                    <h2 class="text-2xl text-gray-400 text-bold">{this.props.titleEn}</h2>
+                    <h2 class="text-2xl text-gray-400 text-bold">{this.i18n(this.props.topic)}</h2>
                     {closeButton({onClick: this.props.onTopicCancel})}
                 </div>
                 <div class="flex justify-center">
-                    <h3 class="text-3xl text-blue-700 text-bold p-2">{this.props.titleKz}</h3>
+                    <h3 class="text-3xl text-blue-700 text-bold p-2">{i18n(this.props.topic, I18N_LANG_KZ)}</h3>
                 </div>
                 <form onSubmit={this.handleStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <div class="w-full flex justify-between">
-                        <label class="text-gray-600 text-2xl py-2">Sentence type:</label>
+                        <label class="text-gray-600 text-2xl py-2">{this.i18n("SentenceType")}:</label>
                         <select
                             required
                             onChange={this.handleSentenceTypeChange}
                             value={this.props.sentenceType}
                             class="text-gray-800 text-2xl px-4 py-2">
-                            {renderOptionsWithKeys(this.props.sentenceTypes)}
+                            {renderOptionsWithI18nKeys(this.props.sentenceTypes, this.props.lang)}
                         </select>
                     </div>
                     <div class="py-4">
                         <div class="flex justify-between">
-                            <label class="text-gray-600 text-2xl pr-4 py-2">Verb:</label>
+                            <label class="text-gray-600 text-2xl pr-4 py-2">{this.i18n("Verb")}:</label>
                             <input
                                 type="text"
                                 placeHolder="verb ending with -у/-ю"
@@ -117,7 +122,7 @@ class VerbQuizDetails extends React.Component {
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-2xl leading-tight focus:outline-none focus:shadow-outline"/>
                         </div>
                         <div class={verbChoiceDivClass}>
-                            <label class="text-orange-400 text-xl">The verb has two meanings with one behaving regularly and one behaving like an exception</label>
+                            <label class="text-orange-400 text-xl">{this.i18n("chooseVerbExceptionOrNot")}</label>
                             <div class="py-4" onChange={this.handleVerbChoiceChange}>
                                 <input
                                     type="radio"
@@ -126,7 +131,7 @@ class VerbQuizDetails extends React.Component {
                                     value="regularVerb"
                                     checked={!this.props.forceExceptional}
                                 />
-                                <label for="regularVerb" class="text-gray-800 text-2xl px-4">Regular</label>
+                                <label for="regularVerb" class="text-gray-800 text-2xl px-4">{this.i18n("RegularVerb")}</label>
                                 <input
                                     type="radio"
                                     name="verbChoice"
@@ -134,7 +139,7 @@ class VerbQuizDetails extends React.Component {
                                     value="exceptionVerb"
                                     checked={this.props.forceExceptional}
                                 />
-                                <label for="exceptionVerb" class="text-gray-800 text-2xl px-4">Exception</label>
+                                <label for="exceptionVerb" class="text-gray-800 text-2xl px-4">{this.i18n("ExceptionVerb")}</label>
                             </div>
                         </div>
                         {this.renderAuxVerbElements()}
@@ -142,7 +147,7 @@ class VerbQuizDetails extends React.Component {
                     </div>
                     <input
                         type="submit"
-                        value="Start quiz"
+                        value={this.i18n("StartQuiz")}
                         class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                     />
                 </form>

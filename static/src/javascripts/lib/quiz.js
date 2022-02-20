@@ -8,19 +8,13 @@ import {
     validPresentContPair,
     VerbBuilder
 } from './aspan';
+import { i18n } from './i18n';
 
 class QuizItem {
     constructor(hint, textHint, expected) {
         this.hint = hint;
         this.textHint = textHint;
         this.expected = expected;
-    }
-}
-
-class FormDetails {
-    constructor(formName, expectedVerbPhrase) {
-        this.formName = formName;
-        this.expectedVerbPhrase = expectedVerbPhrase;
     }
 }
 
@@ -81,46 +75,74 @@ function getSentenceTerminator(sentenceType) {
     return "";
 }
 
+const HINT_PERSON_KEYS = new Map([
+    ["First", "quizForFirstPerson"],
+    ["Second", "quizForSecondPerson"],
+    ["SecondPolite", "quizForSecondPolitePerson"],
+    ["Third", "quizForThirdPerson"],
+]);
+
+const HINT_NUMBER_KEYS = new Map([
+    ["Singular", "quizForSingularNumber"],
+    ["Plural", "quizForPluralNumber"],
+]);
+
+const NOMINATIVE_PRONOUN = "NOMINATIVE_PRONOUN";
+const POSSESSIVE_PRONOUN = "POSSESSIVE_PRONOUN";
+
 export class VerbQuizBuilder {
-    constructor(verb, forceExceptional, sentenceType) {
+    constructor(lang, topic, verb, forceExceptional, sentenceType) {
+        this.lang = lang;
+        this.topic = topic;
         this.verb = verb;
         this.verbBuilder = new VerbBuilder(verb, forceExceptional);
         this.sentenceType = sentenceType;
+        this.sentenceTypeI18nLower = this.i18n(this.sentenceType.toLowerCase());
     }
 
-    buildForAllPersonsAndNumbers(caseFn) {
+    i18n(key) {
+        return i18n(key, this.lang);
+    }
+
+    makeHint(person, number) {
+        const personText = this.i18n(HINT_PERSON_KEYS.get(person));
+        const numberText = this.i18n(HINT_NUMBER_KEYS.get(number));
+        return `${this.i18n(this.topic)}, ${this.sentenceTypeI18nLower} ${this.i18n("quizSentenceOfVerb")} ${this.verb} ${personText} ${numberText}`;
+    }
+
+    getPronoun(pronounType, person, number) {
+        if (pronounType == POSSESSIVE_PRONOUN) {
+            return POSSESSIVE_BY_PERSON_NUMBER[person][number];
+        }
+        return PRONOUN_BY_PERSON_NUMBER[person][number];
+    }
+
+    /**
+     * The function:
+     * - returns a list of QuizItem
+     * - requires "caseFn" to return expected verb phrase (no pronoun, but with question mark if needed)
+     **/
+    buildForAllPersonsAndNumbers(pronounType, caseFn) {
         let result = [];
         for (const person of GRAMMAR_PERSONS) {
             for (const number of GRAMMAR_NUMBERS) {
-                result.push(caseFn(this, person, number));
+                const hint = this.makeHint(person, number);
+                const expectedVerbPhrase = caseFn(this, person, number);
+                const pronoun = this.getPronoun(pronounType, person, number);
+                const terminator = getSentenceTerminator(this.sentenceType);
+                const textHint = `${pronoun} ____${terminator}`;
+                const expected = `${pronoun} ${expectedVerbPhrase}`;
+                result.push(new QuizItem(hint, textHint, expected));
             }
         }
         return result;
     }
 
-    makeHint(tenseName, person, number) {
-        return `${tenseName} ${this.sentenceType} form of ${this.verb} for ${person} person, ${number}`;
-    }
-
-    buildNominativePronounPhrases(caseFn) {
-        return this.buildForAllPersonsAndNumbers(function(self, person, number) {
-            const details = caseFn(self, person, number);
-            const hint = self.makeHint(details.formName, person, number);
-            const pronoun = PRONOUN_BY_PERSON_NUMBER[person][number];
-            const terminator = getSentenceTerminator(self.sentenceType);
-            const textHint = `${pronoun} ____${terminator}`;
-            const expected = `${pronoun} ${details.expectedVerbPhrase}`;
-            return new QuizItem(hint, textHint, expected);
-        });
-    }
-
     buildPresentTransitive() {
-        return this.buildNominativePronounPhrases(function(self, person, number) {
-            return new FormDetails(
-                "Present transitive",
-                self.verbBuilder.presentTransitiveForm(person, number, self.sentenceType)
-            );
-        });
+        return this.buildForAllPersonsAndNumbers(
+            NOMINATIVE_PRONOUN,
+            (self, person, number) => self.verbBuilder.presentTransitiveForm(person, number, self.sentenceType)
+        );
     }
 
     buildPresentContinuous(auxVerb) {
@@ -131,48 +153,54 @@ export class VerbQuizBuilder {
         if (auxBuilder.cont_context == null) {
             return null;
         }
-        return this.buildNominativePronounPhrases(function(self, person, number) {
-            return new FormDetails(
-                "Present continuous",
-                self.verbBuilder.presentContinuousForm(person, number, self.sentenceType, auxBuilder)
-            );
-        });
+        return this.buildForAllPersonsAndNumbers(
+            NOMINATIVE_PRONOUN,
+            (self, person, number) => self.verbBuilder.presentContinuousForm(person, number, self.sentenceType, auxBuilder)
+        );
     }
 
     buildPast() {
-        return this.buildNominativePronounPhrases(function(self, person, number) {
-            return new FormDetails(
-                "Past",
-                self.verbBuilder.pastForm(person, number, self.sentenceType)
-            );
-        });
+        return this.buildForAllPersonsAndNumbers(
+            NOMINATIVE_PRONOUN,
+            (self, person, number) => self.verbBuilder.pastForm(person, number, self.sentenceType)
+        );
     }
 
     buildWantClause() {
         // TODO make it a param
         const shak = "PresentTransitive";
 
-        return this.buildForAllPersonsAndNumbers(function(self, person, number) {
-            const hint = self.makeHint("Want clause", person, number);
-            const pronoun = POSSESSIVE_BY_PERSON_NUMBER[person][number];
-            const terminator = getSentenceTerminator(self.sentenceType);
-            const textHint = `${pronoun} ____${terminator}`;
-            const expectedPhrase = self.verbBuilder.wantClause(person, number, self.sentenceType, shak);
-            const expected = `${pronoun} ${expectedPhrase}`;
-            return new QuizItem(hint, textHint, expected);
-        });
+        return this.buildForAllPersonsAndNumbers(
+            POSSESSIVE_PRONOUN,
+            (self, person, number) => self.verbBuilder.wantClause(person, number, self.sentenceType, shak)
+        );
     }
 
     buildCanClause() {
         // TODO make it a param
         const shak = "PresentTransitive";
 
-        return this.buildNominativePronounPhrases(function(self, person, number) {
-            return new FormDetails(
-                "Can clause",
-                self.verbBuilder.canClause(person, number, self.sentenceType, shak)
-            );
-        });
+        return this.buildForAllPersonsAndNumbers(
+            NOMINATIVE_PRONOUN,
+            (self, person, number) => self.verbBuilder.canClause(person, number, self.sentenceType, shak)
+        );
+    }
+
+    build(auxVerb) {
+        if (this.topic == "presentTransitive") {
+            return this.buildPresentTransitive();
+        } else if (this.topic == "presentContinuous") {
+            return this.buildPresentContinuous(auxVerb);
+        } else if (this.topic == "pastTense") {
+            return this.buildPast();
+        } else if (this.topic == "wantClause") {
+            return this.buildWantClause();
+        } else if (this.topic == "canClause") {
+            return this.buildCanClause();
+        } else {
+            console.log(`Unsupported topic: ${this.topic}`)
+            return [];
+        }
     }
 }
 
