@@ -6,6 +6,7 @@ import {
     getPresentContinuousVerb,
     QuizState,
 } from '../lib/quiz';
+import { actionButtonForm } from './action_button_form';
 import { closeButton } from './close_button';
 import TopicSelector from './topic_selector';
 import VerbQuizDetails from './verb_quiz_details';
@@ -66,8 +67,11 @@ class QuizApp extends React.Component {
         this.onTopicCancel = this.onTopicCancel.bind(this);
         this.setForceExceptional = this.setForceExceptional.bind(this);
 
+        /* final form handlers */
         this.onTryAgain = this.onTryAgain.bind(this);
+        this.onTopicContinue = this.onTopicContinue.bind(this);
         this.onStartNew = this.onStartNew.bind(this);
+
         this.onChange = this.onChange.bind(this);
         this.finishResultDisplay = this.finishResultDisplay.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -168,6 +172,7 @@ class QuizApp extends React.Component {
         this.setState((state, props) => ({
             topicConfirmed: true,
             verb: this.presetVerb(state.topic),
+            items: [],
         }));
     }
 
@@ -193,12 +198,15 @@ class QuizApp extends React.Component {
     setForceExceptional(forceExceptional) {
         this.setState({ forceExceptional });
     }
-
+    /* final form handlers */
     onTryAgain(e) {
         e.preventDefault();
         this.setState(this.initializedQuizState());
     }
-
+    onTopicContinue(e) {
+        e.preventDefault();
+        this.onTopicConfirm();
+    }
     onStartNew(e) {
         e.preventDefault();
         this.setState(this.defaultState());
@@ -299,12 +307,9 @@ class QuizApp extends React.Component {
                         {rows}
                     </table>
                 </div>
-                <form onSubmit={this.onTryAgain} class="py-4 flex flex-col">
-                    <input type="submit" value="Restart" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                </form>
-                <form onSubmit={this.onStartNew} class="py-4 flex flex-col">
-                    <input type="submit" value="Start new" class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"/>
-                </form>
+                {actionButtonForm({onSubmit: this.onTryAgain, actionName: "Restart"})}
+                {actionButtonForm({onSubmit: this.onTopicContinue, actionName: "Continue with the topic"})}
+                {actionButtonForm({onSubmit: this.onStartNew, actionName: "To topic selection"})}
             </div>
         );
     }
@@ -351,7 +356,7 @@ class QuizApp extends React.Component {
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{this.state.sentenceType.toLowerCase()}</span>
                             <span class="inline-block bg-gray-200 rounded-full px-3 py-1 font-semibold text-gray-700 mr-2 mb-2">{position} / {total}</span>
                         </div>
-                        {closeButton({onClick: this.onStartNew})}
+                        {closeButton({onClick: this.onTopicContinue})}
                     </div>
                     <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
                     <p class="text-2xl text-gray-900">{item.hint}</p>
