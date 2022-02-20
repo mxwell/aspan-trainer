@@ -21,6 +21,7 @@ import TopicSelector from './topic_selector';
 import VerbQuizDetails from './verb_quiz_details';
 
 const DISPLAY_TIME_MS = 1000;
+const MISTAKE_DISPLAY_TIME_MS = 5000;
 
 const LANG_KEYS = [I18N_LANG_EN, I18N_LANG_RU];
 
@@ -48,6 +49,7 @@ const PRESENT_CONT_AUX_NAMES = [
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
+        this.disableEvents = false;
         this.state = this.defaultState();
 
         /* LanguageSelector handlers */
@@ -239,7 +241,7 @@ class QuizApp extends React.Component {
         console.log("finishing display");
         if (!this.state.display) {
             console.log("display flag is not set yet, delay finishing");
-            setTimeout(this.finishResultDisplay, DISPLAY_TIME_MS);
+            setTimeout(this.finishResultDisplay, DISPLAY_TIME_MS * 2);
         } else {
             const correct = this.state.lastAccepted ? 1 : 0;
             this.setState({
@@ -247,27 +249,44 @@ class QuizApp extends React.Component {
                 lastEntered: "",
                 quizState: this.state.quizState.advance(correct),
             });
+            this.disableEvents = false;
         }
     }
 
     onSubmit(e) {
         e.preventDefault();
-        console.log("Submitting " + this.state.lastEntered);
+        if (this.disableEvents) {
+            console.log("Suppressing input event during display");
+            return;
+        }
+        const response = this.state.lastEntered;
+        if (response.length == 0) {
+            console.log("Empty input, ignoring it")
+            return;
+        }
+        if (this.state.display) {
+            console.log("Suppressing input event during display");
+            return;
+        }
+        this.disableEvents = true;
+        this.setState({display: true});
+        console.log(`Submitting ${response}`);
         const expected = this.getCurrentItem().expected;
         var accepted = false;
-        if (this.state.lastEntered == expected) {
+        if (response == expected) {
             accepted = true;
         } else {
-            console.log("Entered " + this.state.lastEntered + ", but expected " + expected);
+            console.log(`Entered ${response}, but expected ${expected}`);
         }
-        const answers = this.state.answers;
-        answers.push(this.state.lastEntered);
-        this.setState({
-            answers: answers,
-            display: true,
-            lastAccepted: accepted,
+        this.setState(function(state, props) {
+            const answers = state.answers;
+            answers.push(response);
+            return {
+                answers: answers,
+                lastAccepted: accepted,
+            }
         });
-        const time = accepted ? DISPLAY_TIME_MS : (2 * DISPLAY_TIME_MS);
+        const time = accepted ? DISPLAY_TIME_MS : MISTAKE_DISPLAY_TIME_MS;
         setTimeout(this.finishResultDisplay, time);
     }
 
@@ -390,7 +409,7 @@ class QuizApp extends React.Component {
                     </div>
                     <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
                     <p class="text-2xl text-gray-900">{item.hint}</p>
-                    <form onSubmit={this.onSubmit} class="py-2 flex flex-col">
+                    <form onSubmit={this.onSubmit} class="py-2 flex flex-col" disabled={this.state.display}>
                         <div class="py-2">
                             <input
                                 type="text"
@@ -404,7 +423,6 @@ class QuizApp extends React.Component {
                         <input
                             type="submit"
                             value={this.i18n("buttonSubmit")}
-                            enabled={!this.state.display}
                             class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         />
                     </form>
