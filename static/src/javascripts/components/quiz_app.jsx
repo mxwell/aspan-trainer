@@ -13,6 +13,8 @@ import {
     getVerb,
     getPresentContinuousVerb,
     QuizState,
+    storeDoneQuizes,
+    retrieveDoneQuizes
 } from '../lib/quiz';
 import { ActionButtonForm } from './action_button_form';
 import { closeButton } from './close_button';
@@ -84,7 +86,7 @@ class QuizApp extends React.Component {
         return getVerb("");
     }
 
-    makeState(lang, langConfirmed, verb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional) {
+    makeState(lang, langConfirmed, verb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional, doneQuizes) {
         const isOptionalException = checkOptionalExceptionVerb(verb);
         const needAuxVerb = topic == TOPIC_KEYS[1];
         return {
@@ -105,11 +107,13 @@ class QuizApp extends React.Component {
             topic: topic,
             topicConfirmed: topicConfirmed,
             sentenceType: sentenceType,
+            doneQuizes: doneQuizes,
         };
     }
 
     defaultState() {
         var retrievedLang = retrieveUiLang();
+        const retrievedDoneQuizes = retrieveDoneQuizes();
         return this.makeState(
             /* lang */ retrievedLang || I18N_LANG_EN,
             /* langConfirmed */ retrievedLang != null,
@@ -118,7 +122,8 @@ class QuizApp extends React.Component {
             /* topic */ TOPIC_KEYS[0],
             /* topicConfirmed */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
-            /* forceExceptional */ false
+            /* forceExceptional */ false,
+            /* doneQuizes */ retrievedDoneQuizes,
         );
     }
 
@@ -133,6 +138,7 @@ class QuizApp extends React.Component {
             /* topicConfirmed */ true,
             /* sentenceType */ SENTENCE_TYPES[0],
             /* forceExceptional */ false,
+            this.state.doneQuizes,
         );
         return state;
     }
@@ -157,7 +163,8 @@ class QuizApp extends React.Component {
             this.state.topic,
             this.state.topicConfirmed,
             this.state.sentenceType,
-            this.state.forceExceptional
+            this.state.forceExceptional,
+            this.state.doneQuizes,
         );
         const quizItems = this.createQuizItems(state);
         if (quizItems.length == 0) {
@@ -244,10 +251,20 @@ class QuizApp extends React.Component {
             setTimeout(this.finishResultDisplay, DISPLAY_TIME_MS * 2);
         } else {
             const correct = this.state.lastAccepted ? 1 : 0;
-            this.setState({
-                display: false,
-                lastEntered: "",
-                quizState: this.state.quizState.advance(correct),
+            this.setState(function(state, props) {
+                const nextQuizState = state.quizState.advance(correct);
+                const update = {
+                    display: false,
+                    lastEntered: "",
+                    quizState: nextQuizState,
+                    doneQuizes: state.doneQuizes,
+                };
+                if (nextQuizState.done() && !state.quizState.done()) {
+                    const newDoneQuizes = state.doneQuizes + 1;
+                    storeDoneQuizes(newDoneQuizes);
+                    update.doneQuizes = newDoneQuizes;
+                }
+                return update;
             });
             this.disableEvents = false;
         }
@@ -322,6 +339,14 @@ class QuizApp extends React.Component {
                 </tr>
             );
         }
+        var surveyInvitation = null;
+        if (this.state.doneQuizes <= 5) {
+            surveyInvitation = (<div class="py-12">
+                <p class="bg-red-400 px-4 text-bold py-4">
+                    {this.i18n("inviteToSurvey")} <a class="underline" href="https://forms.yandex.ru/u/6216a3a6acda5a1898d70ba8/">{this.i18n("linkShortSurvey")}</a>!
+                </p>
+            </div>);
+        }
         return (
             <div class="py-6">
                 <p class="bg-teal-100 text-teal-900 text-xl py-6 px-4">
@@ -341,6 +366,7 @@ class QuizApp extends React.Component {
                         {rows}
                     </table>
                 </div>
+                {surveyInvitation}
                 <ActionButtonForm
                     onSubmit={this.onTryAgain}
                     actionName={this.i18n("buttonRestartQuiz")}

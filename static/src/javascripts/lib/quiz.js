@@ -224,10 +224,37 @@ export class QuizState {
     }
 
     advance(correct) {
-        if (this.position >= this.total) {
+        if (this.done()) {
             console.log("Unable to advance past final quiz state");
             return this;
         }
         return new QuizState(this.total, this.position + 1, this.correct + correct);
     }
+
+    done() {
+        return this.position >= this.total;
+    }
+}
+
+const DONE_QUIZES_KEY = "KAZGRAM_DONE_QUIZES";
+
+export function storeDoneQuizes(count) {
+    if (count < 1) {
+        console.log(`Trying to store invalid value to localStorage at key ${DONE_QUIZES_KEY}: ${count}, ignoring it`);
+        return false;
+    }
+    console.log(`Store done quizes: ${count}`);
+    window.localStorage.setItem(DONE_QUIZES_KEY, count.toString());
+    return true;
+}
+
+export function retrieveDoneQuizes() {
+    const localStorage = window.localStorage;
+    var str = localStorage.getItem(DONE_QUIZES_KEY);
+    if (isNaN(str) || isNaN(parseInt(str))) {
+        console.log(`Invalid value retrieved from localStorage at key ${DONE_QUIZES_KEY}: ${str}, clearing it`);
+        localStorage.removeItem(DONE_QUIZES_KEY);
+        str = "0";
+    }
+    return parseInt(str);
 }

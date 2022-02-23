@@ -11,13 +11,14 @@ mixin a_page(title)
             link(rel="icon", href="../images/favicon.png")
         body
             div.page-grid
-                header(class="bg-blue-800 text-white p-2")
+                header(class="bg-blue-800 text-white p-2 flex justify-between")
                     h2(class="text-3xl text-bold mx-8") Kazakh Grammar Trainer<sup class="pl-2 text-red-400">α</sup>
+                    a(class="text-red-200 underline", href="https://youtu.be/C74yAFeeI8Y", target="_blank") Инструкция (видео, RU) >
                 article
                     block
-                footer(class="bg-blue-800 text-white")
-                    span © 2022
+                footer(class="bg-blue-800 text-white flex justify-between")
+                    span © 2022 Murat Khairulin
                     span
-                        a(href="https://github.com/mxwell") Murat Khairulin
+                        a(href="https://forms.yandex.ru/u/6216a3a6acda5a1898d70ba8/") Обратная связь
             script(src="../javascripts/boot.jsx")
             noscript() The web page requires Javascript enabled in the browser to work
