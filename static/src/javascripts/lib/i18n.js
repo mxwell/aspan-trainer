@@ -83,7 +83,7 @@ function prepareTranslations() {
     setEnRu(map, "buttonRestartQuiz", "Restart the quiz", "Перезапустить тест");
     setEnRu(map, "buttonContinueTopic", "Continue with the topic", "Продолжить тему");
     setEnRu(map, "buttonChangeTopic", "Change topic", "Поменять тему");
-    setEnRu(map, "inviteToSurvey", "Help us with feedback, fill in ", "Помогите нам с обратной связью, пройдите ");
+    setEnRu(map, "inviteToSurvey", "We'll be glad to hear back. Fill in ", "Будем рады получить обратную связь. Пройдите ");
     setEnRu(map, "linkShortSurvey", "the short survey", "короткий опрос");
 
     return map;
