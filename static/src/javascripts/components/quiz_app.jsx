@@ -76,6 +76,7 @@ class QuizApp extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.finishResultDisplay = this.finishResultDisplay.bind(this);
+        this.onExtraKeyClick = this.onExtraKeyClick.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
@@ -270,6 +271,15 @@ class QuizApp extends React.Component {
         }
     }
 
+    onExtraKeyClick(e) {
+        e.preventDefault();
+        const value = e.target.value;
+        this.setState(function(state, props) {
+            const lastEntered = state.lastEntered + value;
+            return { lastEntered };
+        });
+    }
+
     onSubmit(e) {
         e.preventDefault();
         if (this.disableEvents) {
@@ -384,6 +394,20 @@ class QuizApp extends React.Component {
         );
     }
 
+    renderExtraKeys() {
+        const buttons = [];
+        for (const key of ["ә", "і", "ң", "ғ", "ү", "ұ", "қ", "ө", "һ"]) {
+            const button = <input
+                type="button"
+                value={key}
+                onClick={this.onExtraKeyClick}
+                class="bg-gray-400 text-white text-xl font-bold py-2 px-4 rounded mx-2"
+            />;
+            buttons.push(button);
+        }
+        return buttons;
+    }
+
     render () {
         if (!this.state.langConfirmed) {
             return <LanguageSelector
@@ -445,6 +469,9 @@ class QuizApp extends React.Component {
                                 onChange={this.onChange}
                                 placeholder={item.textHint}
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                        </div>
+                        <div class="py-2 flex">
+                            {this.renderExtraKeys()}
                         </div>
                         <input
                             type="submit"
