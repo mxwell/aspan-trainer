@@ -10,11 +10,17 @@ import {
 } from './aspan';
 import { i18n } from './i18n';
 
+export function composeAnswer(pronoun, verbPhrase) {
+    return `${pronoun} ${verbPhrase}`;
+}
+
 class QuizItem {
-    constructor(hint, textHint, expected) {
+    constructor(hint, textHint, expectedPronoun, expectedVerbPhrase) {
         this.hint = hint;
         this.textHint = textHint;
-        this.expected = expected;
+        this.expectedPronoun = expectedPronoun;
+        this.expectedVerbPhrase = expectedVerbPhrase;
+        this.expected = composeAnswer(expectedPronoun, expectedVerbPhrase);
     }
 }
 
@@ -75,6 +81,32 @@ function getSentenceTerminator(sentenceType) {
     return "";
 }
 
+export function shuffleArray(array) {
+    const n = array.length;
+    if (n <= 0) {
+        return array;
+    }
+    for (var i = n - 1; i > 0; --i) {
+        var j = getRandomInt(i);
+        const temp = array[j];
+        array[j] = array[i];
+        array[i] = temp;
+    }
+    return array;
+}
+
+export function collectAnswerOptions(quizItems) {
+    const optionSet = new Set();
+    for (const quizItem of quizItems) {
+        optionSet.add(quizItem.expectedVerbPhrase);
+    }
+    const optionArray = [];
+    for (const option of optionSet) {
+        optionArray.push(option);
+    }
+    return optionArray;
+}
+
 const HINT_PERSON_KEYS = new Map([
     ["First", "quizForFirstPerson"],
     ["Second", "quizForSecondPerson"],
@@ -131,8 +163,7 @@ export class VerbQuizBuilder {
                 const pronoun = this.getPronoun(pronounType, person, number).toLowerCase();
                 const terminator = getSentenceTerminator(this.sentenceType);
                 const textHint = `${pronoun} ____${terminator}`;
-                const expected = `${pronoun} ${expectedVerbPhrase}`;
-                result.push(new QuizItem(hint, textHint, expected));
+                result.push(new QuizItem(hint, textHint, pronoun, expectedVerbPhrase));
             }
         }
         return result;
@@ -217,10 +248,11 @@ export function checkPresentContPair(verb, auxVerb) {
 }
 
 export class QuizState {
-    constructor(total, position, correct) {
+    constructor(total, position, correct, options) {
         this.total = total;
         this.position = position;
         this.correct = correct;
+        this.options = shuffleArray(options);
     }
 
     advance(correct) {
@@ -228,7 +260,7 @@ export class QuizState {
             console.log("Unable to advance past final quiz state");
             return this;
         }
-        return new QuizState(this.total, this.position + 1, this.correct + correct);
+        return new QuizState(this.total, this.position + 1, this.correct + correct, this.options);
     }
 
     done() {

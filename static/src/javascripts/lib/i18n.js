@@ -39,6 +39,9 @@ function prepareTranslations() {
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
     /* verb quiz details */
+    setEnRu(map, "DifficultyLevel", "Difficulty level", "Уровень сложности");
+    setEnRu(map, "easy", "Easy (one-click)", "Лёгкий (один клик)");
+    setEnRu(map, "hard", "Hard (type answer)", "Сложный (печать ответа)");
     setEnRu(map, "SentenceType", "Sentence type", "Тип предложения");
     setEnRu(map, "Verb", "Verb", "Глагол");
     setEnRu(map, "AuxVerb", "Auxiliary verb", "Вспомогательный глагол");

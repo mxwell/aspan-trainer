@@ -10,6 +10,8 @@ import {
 import {
     checkOptionalExceptionVerb,
     VerbQuizBuilder,
+    composeAnswer,
+    collectAnswerOptions,
     getVerb,
     getPresentContinuousVerb,
     QuizState,
@@ -48,6 +50,11 @@ const PRESENT_CONT_AUX_NAMES = [
     "отыру",
 ];
 
+const DIFFICULTY_LEVELS = [
+    "easy",  // user is presented with variants of answer to choose; one click is required
+    "hard",  // user is required to type in the whole phrase and to click "Submit"
+];
+
 class QuizApp extends React.Component {
     constructor(props) {
         super(props);
@@ -68,6 +75,7 @@ class QuizApp extends React.Component {
         this.onAuxVerbChange = this.onAuxVerbChange.bind(this);
         this.onTopicCancel = this.onTopicCancel.bind(this);
         this.setForceExceptional = this.setForceExceptional.bind(this);
+        this.onDifficultyLevelChange = this.onDifficultyLevelChange.bind(this);
 
         /* final form handlers */
         this.onTryAgain = this.onTryAgain.bind(this);
@@ -87,7 +95,7 @@ class QuizApp extends React.Component {
         return getVerb("");
     }
 
-    makeState(lang, langConfirmed, verb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional, doneQuizes) {
+    makeState(lang, langConfirmed, verb, auxVerbId, topic, topicConfirmed, sentenceType, forceExceptional, doneQuizes, difficultyLevel) {
         const isOptionalException = checkOptionalExceptionVerb(verb);
         const needAuxVerb = topic == TOPIC_KEYS[1];
         return {
@@ -109,6 +117,7 @@ class QuizApp extends React.Component {
             topicConfirmed: topicConfirmed,
             sentenceType: sentenceType,
             doneQuizes: doneQuizes,
+            difficultyLevel: difficultyLevel,
         };
     }
 
@@ -125,6 +134,7 @@ class QuizApp extends React.Component {
             /* sentenceType */ SENTENCE_TYPES[0],
             /* forceExceptional */ false,
             /* doneQuizes */ retrievedDoneQuizes,
+            /* difficultyLevel */ DIFFICULTY_LEVELS[0],
         );
     }
 
@@ -140,6 +150,7 @@ class QuizApp extends React.Component {
             /* sentenceType */ SENTENCE_TYPES[0],
             /* forceExceptional */ false,
             this.state.doneQuizes,
+            this.state.difficultyLevel,
         );
         return state;
     }
@@ -166,6 +177,7 @@ class QuizApp extends React.Component {
             this.state.sentenceType,
             this.state.forceExceptional,
             this.state.doneQuizes,
+            this.state.difficultyLevel
         );
         const quizItems = this.createQuizItems(state);
         if (quizItems.length == 0) {
@@ -173,7 +185,8 @@ class QuizApp extends React.Component {
             return this.defaultState();
         }
         state.items = quizItems;
-        state.quizState = new QuizState(quizItems.length, 0, 0);
+        const answerOptions = collectAnswerOptions(quizItems);
+        state.quizState = new QuizState(quizItems.length, 0, 0, answerOptions);
         return state;
     }
 
@@ -222,6 +235,9 @@ class QuizApp extends React.Component {
     }
     setForceExceptional(forceExceptional) {
         this.setState({ forceExceptional });
+    }
+    onDifficultyLevelChange(difficultyLevel) {
+        this.setState({ difficultyLevel });
     }
     /* final form handlers */
     onTryAgain(e) {
@@ -286,7 +302,13 @@ class QuizApp extends React.Component {
             console.log("Suppressing input event during display");
             return;
         }
-        const response = this.state.lastEntered;
+        let response = null;
+        if (this.state.difficultyLevel == DIFFICULTY_LEVELS[0]) {
+            const value = e.target.value;
+            response = composeAnswer(this.getCurrentItem().expectedPronoun, value);
+        } else {
+            response = this.state.lastEntered;
+        }
         if (response.length == 0) {
             console.log("Empty input, ignoring it")
             return;
@@ -408,6 +430,64 @@ class QuizApp extends React.Component {
         return buttons;
     }
 
+    renderButtonSelectionUserInput() {
+        const buttons = [];
+        for (const option of this.state.quizState.options) {
+            const button = (<span class="p-1">
+                <input
+                type="button"
+                value={option}
+                onClick={this.onSubmit}
+                class="bg-blue-400 hover:bg-blue-700 text-white text-2xl py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                />
+            </span>);
+            buttons.push(button);
+        }
+        return (
+            <form onSubmit={this.onSubmit} class="py-2 flex flex-col" disabled={this.state.display}>
+                <div class="py-2 flex flex-wrap">
+                    {buttons}
+                </div>
+            </form>
+        );
+    }
+
+    renderManualUserInput() {
+        const item = this.getCurrentItem();
+        return (
+            <form onSubmit={this.onSubmit} class="py-2 flex flex-col" disabled={this.state.display}>
+                <div class="py-2">
+                    <input
+                        type="text"
+                        size={item.expected.length}
+                        maxlength={3 * item.expected.length}
+                        value={this.state.lastEntered}
+                        onChange={this.onChange}
+                        placeholder={item.textHint}
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                </div>
+                <div class="py-2 flex">
+                    {this.renderExtraKeys()}
+                </div>
+                <input
+                    type="submit"
+                    value={this.i18n("buttonSubmit")}
+                    class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                />
+            </form>
+        );
+    }
+
+    renderUserInput() {
+        if (this.state.difficultyLevel == DIFFICULTY_LEVELS[0]) {
+            return this.renderButtonSelectionUserInput();
+        } else if (this.state.difficultyLevel == DIFFICULTY_LEVELS[1]) {
+            return this.renderManualUserInput();
+        } else {
+            return <p>invalid difficulty level</p>;
+        }
+    }
+
     render () {
         if (!this.state.langConfirmed) {
             return <LanguageSelector
@@ -441,6 +521,9 @@ class QuizApp extends React.Component {
                 sentenceType={this.state.sentenceType}
                 sentenceTypes={SENTENCE_TYPES}
                 forceExceptional={this.state.forceExceptional}
+                difficultyLevel={this.state.difficultyLevel}
+                difficultyLevels={DIFFICULTY_LEVELS}
+                onDifficultyLevelChange={this.onDifficultyLevelChange}
             />;
         }
         const position = this.state.quizState.position;
@@ -459,26 +542,7 @@ class QuizApp extends React.Component {
                     </div>
                     <p class="text-5xl text-purple-600 py-4">{item.textHint}</p>
                     <p class="text-2xl text-gray-900">{item.hint}</p>
-                    <form onSubmit={this.onSubmit} class="py-2 flex flex-col" disabled={this.state.display}>
-                        <div class="py-2">
-                            <input
-                                type="text"
-                                size={item.expected.length}
-                                maxlength={3 * item.expected.length}
-                                value={this.state.lastEntered}
-                                onChange={this.onChange}
-                                placeholder={item.textHint}
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
-                        </div>
-                        <div class="py-2 flex">
-                            {this.renderExtraKeys()}
-                        </div>
-                        <input
-                            type="submit"
-                            value={this.i18n("buttonSubmit")}
-                            class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        />
-                    </form>
+                    {this.renderUserInput()}
                     {this.getCurrentResult()}
                 </div>
             )

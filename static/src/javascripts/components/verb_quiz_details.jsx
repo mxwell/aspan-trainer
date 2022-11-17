@@ -14,6 +14,7 @@ class VerbQuizDetails extends React.Component {
         this.handleVerbChange = this.handleVerbChange.bind(this);
         this.handleVerbChoiceChange = this.handleVerbChoiceChange.bind(this);
         this.handleAuxVerbChange = this.handleAuxVerbChange.bind(this);
+        this.handleDifficultyLevelChange = this.handleDifficultyLevelChange.bind(this);
     }
 
     initialState() {
@@ -38,6 +39,10 @@ class VerbQuizDetails extends React.Component {
         } else {
             this.props.onStartQuiz();
         }
+    }
+
+    handleDifficultyLevelChange(e) {
+        this.props.onDifficultyLevelChange(e.target.value);
     }
 
     handleSentenceTypeChange(e) {
@@ -100,6 +105,16 @@ class VerbQuizDetails extends React.Component {
                     <h3 class="text-3xl text-blue-700 text-bold p-2">{i18n(this.props.topic, I18N_LANG_KZ)}</h3>
                 </div>
                 <form onSubmit={this.handleStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
+                    <div class="w-full flex justify-between pb-2">
+                        <label class="text-gray-600 text-2xl py-2">{this.i18n("DifficultyLevel")}:</label>
+                        <select
+                            required
+                            onChange={this.handleDifficultyLevelChange}
+                            value={this.props.difficultyLevel}
+                            class="text-gray-800 text-2xl px-4 py-2">
+                            {renderOptionsWithI18nKeys(this.props.difficultyLevels, this.props.lang)}
+                        </select>
+                    </div>
                     <div class="w-full flex justify-between">
                         <label class="text-gray-600 text-2xl py-2">{this.i18n("SentenceType")}:</label>
                         <select
