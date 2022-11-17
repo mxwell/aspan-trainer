@@ -7,6 +7,7 @@ Prepare image. This needs to be done once.
 Run the image in a container and build stuff:
 
 1. Run docker: `make builder`
+2. Prepare `aspan.js` from [Aspan library](https://github.com/mxwell/aspan) and put into `static/src/javascripts/lib/aspan.js`
 2. Build: `./build_web.sh`
 3. Find build output inside `dist`.
 

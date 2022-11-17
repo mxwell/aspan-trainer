@@ -11,7 +11,7 @@ class LanguageSelector extends React.Component {
         let items = [];
         for (const key of this.props.langKeys) {
             const name = i18n("useThisLangInterface", key);
-            const handler = function(e) {
+            let handler = function(e) {
                 e.preventDefault();
                 this.props.onLanguageSelection(key);
             };

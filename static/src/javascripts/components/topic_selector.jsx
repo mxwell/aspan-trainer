@@ -12,7 +12,7 @@ class TopicSelector extends React.Component {
         const lang = this.props.lang;
         for (const key of this.props.topicKeys) {
             const name = i18n(key, lang);
-            const handler = function(e) {
+            let handler = function(e) {
                 e.preventDefault();
                 this.props.onTopicSelection(key);
             };
