@@ -7,6 +7,7 @@ export OUTPUT_DIR=dist
 rm -rf $OUTPUT_DIR/*
 
 parcel build static/src/javascripts/boot.jsx
+parcel build static/src/javascripts/viewer.jsx
 
 for path in static/src/html/*.pug
 do

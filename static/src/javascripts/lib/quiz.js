@@ -1,14 +1,18 @@
 import {
     GRAMMAR_PERSONS,
     GRAMMAR_NUMBERS,
-    PRONOUN_BY_PERSON_NUMBER,
-    POSSESSIVE_BY_PERSON_NUMBER,
     validateVerb,
     isVerbOptionalException,
     validPresentContPair,
     VerbBuilder
 } from './aspan';
 import { i18n } from './i18n';
+import {
+    NOMINATIVE_PRONOUN,
+    POSSESSIVE_PRONOUN,
+    getPronounByParams,
+    getSentenceTerminator
+} from './grammar_utils';
 
 export function composeAnswer(pronoun, verbPhrase) {
     return `${pronoun} ${verbPhrase}`;
@@ -74,13 +78,6 @@ export function getPresentContinuousVerb() {
     return verb;
 }
 
-function getSentenceTerminator(sentenceType) {
-    if (sentenceType == "Question") {
-        return "?";
-    }
-    return "";
-}
-
 export function shuffleArray(array) {
     const n = array.length;
     if (n <= 0) {
@@ -119,9 +116,6 @@ const HINT_NUMBER_KEYS = new Map([
     ["Plural", "quizForPluralNumber"],
 ]);
 
-const NOMINATIVE_PRONOUN = "NOMINATIVE_PRONOUN";
-const POSSESSIVE_PRONOUN = "POSSESSIVE_PRONOUN";
-
 export class VerbQuizBuilder {
     constructor(lang, topic, verb, forceExceptional, sentenceType) {
         this.lang = lang;
@@ -142,13 +136,6 @@ export class VerbQuizBuilder {
         return `${this.i18n(this.topic)}, ${this.sentenceTypeI18nLower} ${this.i18n("quizSentenceOfVerb")} ${this.verb} ${personText} ${numberText}`;
     }
 
-    getPronoun(pronounType, person, number) {
-        if (pronounType == POSSESSIVE_PRONOUN) {
-            return POSSESSIVE_BY_PERSON_NUMBER[person][number];
-        }
-        return PRONOUN_BY_PERSON_NUMBER[person][number];
-    }
-
     /**
      * The function:
      * - returns a list of QuizItem
@@ -160,7 +147,7 @@ export class VerbQuizBuilder {
             for (const number of GRAMMAR_NUMBERS) {
                 const hint = this.makeHint(person, number);
                 const expectedVerbPhrase = caseFn(this, person, number);
-                const pronoun = this.getPronoun(pronounType, person, number).toLowerCase();
+                const pronoun = getPronounByParams(pronounType, person, number).toLowerCase();
                 const terminator = getSentenceTerminator(this.sentenceType);
                 const textHint = `${pronoun} ____${terminator}`;
                 result.push(new QuizItem(hint, textHint, pronoun, expectedVerbPhrase));
