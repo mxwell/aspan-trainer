@@ -48,7 +48,6 @@ class ViewerApp extends React.Component {
 
     renderOneTense(tenseForms) {
         let rows = [];
-        // let tdBaseClass = "text-center px-2 py-2";
         let tdBaseClass = "";
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
@@ -60,8 +59,9 @@ class ViewerApp extends React.Component {
             );
         }
         return (
-            <div>
+            <div class="px-6 flex flex-col">
                 <h3 class="text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
+                <h4 class="text-gray-500">{i18n(tenseForms.tenseNameKey, I18N_LANG_EN)}</h4>
                 <div class="py-6">
                     <table class="w-full">
                         {rows}
@@ -78,7 +78,7 @@ class ViewerApp extends React.Component {
             tables.push(this.renderOneTense(tense));
         }
         return (
-            <div class="py-6">
+            <div class="py-6 flex flex-wrap">
                 {tables}
             </div>
         );
@@ -87,16 +87,16 @@ class ViewerApp extends React.Component {
     render () {
         return (
             <div class="py-6">
-                <form onSubmit={this.onSubmit} class="py-2 flex flex-col">
-                    <div class="py-2">
+                <form onSubmit={this.onSubmit} class="py-2 flex justify-center">
+                    <div class="px-2">
                         <input
                             type="text"
                             size="20"
                             maxlength="100"
                             value={this.state.lastEntered}
                             onChange={this.onChange}
-                            placeholder="Enter verb"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 leading-tight focus:outline-none focus:shadow-outline"/>
+                            placeholder="Enter verb, e.g. алу"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"/>
                     </div>
                     <input
                         type="submit"
