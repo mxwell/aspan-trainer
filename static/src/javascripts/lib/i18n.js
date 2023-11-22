@@ -35,6 +35,7 @@ function prepareTranslations() {
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
     setEnRuKz(map, "pastTense", "Past tense", "Прошедшее время", "Жедел өткен шақ");
+    setEnRuKz(map, "possibleFuture", "Possible future tense", "Будущее предположительное время", "Болжалды келер шақ");
     setEnRuKz(map, "wantClause", "Want clause", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
