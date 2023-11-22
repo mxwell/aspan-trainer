@@ -4,9 +4,14 @@ import {
     I18N_LANG_KZ,
     i18n
 } from '../lib/i18n';
+import { renderOptionsWithI18nKeys } from "../lib/react_util";
 import { generateVerbForms } from '../lib/verb_forms';
 
-const SENTENCE_TYPE = "Statement";
+const SENTENCE_TYPES = [
+    "Statement",
+    "Negative",
+    "Question",
+];
 
 class ViewerApp extends React.Component {
     constructor(props) {
@@ -14,13 +19,15 @@ class ViewerApp extends React.Component {
         this.state = this.defaultState();
 
         this.onChange = this.onChange.bind(this);
+        this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    makeState(verb, lastEntered) {
+    makeState(verb, lastEntered, sentenceType) {
         return {
             verb: verb,
             lastEntered: lastEntered,
+            sentenceType: sentenceType,
             tenses: [],
         };
     }
@@ -28,7 +35,8 @@ class ViewerApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* verb */ "",
-            /* lastEntered */ ""
+            /* lastEntered */ "",
+            /* sentenceType */ SENTENCE_TYPES[0],
         );
     }
 
@@ -40,9 +48,13 @@ class ViewerApp extends React.Component {
         this.setState({ lastEntered: e.target.value });
     }
 
+    onSentenceTypeSelect(e) {
+        this.setState({ sentenceType: e.target.value });
+    }
+
     onSubmit(e) {
         e.preventDefault();
-        let tenses = generateVerbForms(this.state.lastEntered, "", false, SENTENCE_TYPE);
+        let tenses = generateVerbForms(this.state.lastEntered, "", false, this.state.sentenceType);
         this.setState({ tenses });
     }
 
@@ -97,6 +109,15 @@ class ViewerApp extends React.Component {
                             onChange={this.onChange}
                             placeholder="Enter verb, e.g. алу"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"/>
+                    </div>
+                    <div class="px-2">
+                        <select
+                            required
+                            value={this.state.sentenceType}
+                            onChange={this.onSentenceTypeSelect}
+                            class="text-gray-800 text-2xl px-4 py-2">
+                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, I18N_LANG_EN)}
+                        </select>
                     </div>
                     <input
                         type="submit"
