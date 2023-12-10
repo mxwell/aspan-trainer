@@ -1,5 +1,8 @@
 import React from 'react';
 import {
+    PHRASAL_PART_TYPE
+} from '../lib/aspan';
+import {
     I18N_LANG_EN,
     I18N_LANG_KZ,
     i18n
@@ -12,6 +15,31 @@ const SENTENCE_TYPES = [
     "Negative",
     "Question",
 ];
+
+function highlightPhrasal(phrasal) {
+    let htmlParts = [];
+    let parts = phrasal.parts;
+    for (var i = 0; i < parts.length; ++i) {
+        let part = parts[i];
+        let pt = part.partType;
+        var partClass = "";
+        if (pt == PHRASAL_PART_TYPE.VerbBase) {
+            partClass = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
+            partClass = "text-orange-700 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
+            partClass = "text-indigo-700 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
+            partClass = "text-red-500 font-bold";
+        }
+        htmlParts.push(
+            <span class={partClass}>
+                {part.content}
+            </span>
+        );
+    }
+    return htmlParts
+}
 
 class ViewerApp extends React.Component {
     constructor(props) {
@@ -66,7 +94,7 @@ class ViewerApp extends React.Component {
             rows.push(
                 <tr class="border-t-2">
                     <td class={tdBaseClass}>{form.pronoun}</td>
-                    <td class={tdBaseClass + " text-teal-600"}>{form.verbPhrase}</td>
+                    <td class={tdBaseClass}>{highlightPhrasal(form.verbPhrase)}</td>
                 </tr>
             );
         }

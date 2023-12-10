@@ -146,7 +146,7 @@ export class VerbQuizBuilder {
         for (const person of GRAMMAR_PERSONS) {
             for (const number of GRAMMAR_NUMBERS) {
                 const hint = this.makeHint(person, number);
-                const expectedVerbPhrase = caseFn(this, person, number);
+                const expectedVerbPhrase = caseFn(this, person, number).raw;
                 const pronoun = getPronounByParams(pronounType, person, number).toLowerCase();
                 const terminator = getSentenceTerminator(this.sentenceType);
                 const textHint = `${pronoun} ____${terminator}`;
