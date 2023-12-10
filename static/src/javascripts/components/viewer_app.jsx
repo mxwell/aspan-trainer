@@ -66,7 +66,7 @@ class ViewerApp extends React.Component {
             rows.push(
                 <tr class="border-t-2">
                     <td class={tdBaseClass}>{form.pronoun}</td>
-                    <td class={tdBaseClass + " text-teal-600"}>{form.verbPhrase + form.terminator}</td>
+                    <td class={tdBaseClass + " text-teal-600"}>{form.verbPhrase}</td>
                 </tr>
             );
         }
