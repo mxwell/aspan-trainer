@@ -70,6 +70,12 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         (person, number) => verbBuilder.possibleFutureForm(person, number, sentenceType),
         terminator
     ));
+    tenses.push(createForms(
+        "intentionFuture",
+        NOMINATIVE_PRONOUN,
+        (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
+        terminator
+    ));
     const shak = "PresentTransitive";
     tenses.push(createForms(
         "wantClause",
