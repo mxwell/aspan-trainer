@@ -16,24 +16,44 @@ const SENTENCE_TYPES = [
     "Question",
 ];
 
+function addPartClasses(colorPrefix, aux, partClasses) {
+    if (aux) {
+        partClasses.push(colorPrefix + "800");
+        partClasses.push("font-medium");
+    } else {
+        partClasses.push(colorPrefix + "600");
+        partClasses.push("font-bold");
+    }
+}
+
 function highlightPhrasal(phrasal) {
     let htmlParts = [];
     let parts = phrasal.parts;
+    var firstRegular = true;
+    var firstAux = true;
     for (var i = 0; i < parts.length; ++i) {
         let part = parts[i];
         let pt = part.partType;
-        var partClass = "";
+        let partClasses = [];
+        if (!part.aux && firstRegular) {
+            partClasses.push("pl-1");
+            firstRegular = false;
+        }
+        if (part.aux && firstAux) {
+            partClasses.push("pl-2");
+            firstAux = false;
+        }
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            partClass = "text-teal-600 font-bold";
+            addPartClasses("text-teal-", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
-            partClass = "text-orange-700 font-bold";
+            addPartClasses("text-orange-", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
-            partClass = "text-indigo-700 font-bold";
+            addPartClasses("text-indigo-", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
-            partClass = "text-red-500 font-bold";
+            addPartClasses("text-red-", part.aux, partClasses);
         }
         htmlParts.push(
-            <span class={partClass}>
+            <span class={partClasses.join(" ")}>
                 {part.content}
             </span>
         );
