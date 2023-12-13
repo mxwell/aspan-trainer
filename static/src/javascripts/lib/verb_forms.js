@@ -54,6 +54,11 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
     ));
     tenses.push(createForms(
+        "remotePastTense",
+        NOMINATIVE_PRONOUN,
+        (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
         "pastTense",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastForm(person, number, sentenceType),
