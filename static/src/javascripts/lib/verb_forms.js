@@ -64,6 +64,11 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
     ));
     tenses.push(createForms(
+        "pastTransitiveTense",
+        NOMINATIVE_PRONOUN,
+        (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
         "pastTense",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastForm(person, number, sentenceType),
