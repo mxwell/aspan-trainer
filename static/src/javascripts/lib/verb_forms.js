@@ -83,6 +83,11 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
     ));
+    tenses.push(createForms(
+        "conditionalMood",
+        NOMINATIVE_PRONOUN,
+        (person, number) => verbBuilder.conditionalMood(person, number, sentenceType),
+    ));
     const shak = "PresentTransitive";
     tenses.push(createForms(
         "wantClause",
