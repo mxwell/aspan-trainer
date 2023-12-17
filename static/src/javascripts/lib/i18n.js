@@ -41,6 +41,7 @@ function prepareTranslations() {
     setEnRuKz(map, "possibleFuture", "Possible future tense", "Будущее предположительное время", "Болжалды келер шақ");
     setEnRuKz(map, "intentionFuture", "Intention future tense", "Будущее время намерения", "Мақсатты келер шақ");
     setEnRuKz(map, "conditionalMood", "Conditional mood", "Условное наклонение", "Шартты рай");
+    setEnRuKz(map, "imperativeMood", "Imperative mood", "Повелительное наклонение", "Бұйрық рай");
     setEnRuKz(map, "wantClause", "Want clause", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
