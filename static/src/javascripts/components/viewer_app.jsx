@@ -8,6 +8,7 @@ import {
     i18n
 } from '../lib/i18n';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
+import { parseParams } from "../lib/url";
 import { generateVerbForms } from '../lib/verb_forms';
 
 const SENTENCE_TYPES = [
@@ -15,6 +16,18 @@ const SENTENCE_TYPES = [
     "Negative",
     "Question",
 ];
+
+function parseSentenceType(s) {
+    if (s != null) {
+        const sLower = s.toLowerCase();
+        for (let i in SENTENCE_TYPES) {
+            if (SENTENCE_TYPES[i].toLowerCase() == sLower) {
+                return SENTENCE_TYPES[i];
+            }
+        }
+    }
+    return SENTENCE_TYPES[0];
+}
 
 function addPartClasses(colorPrefix, aux, partClasses) {
     if (aux) {
@@ -64,19 +77,19 @@ function highlightPhrasal(phrasal) {
 class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
-        this.state = this.defaultState();
+        this.state = this.readUrlState() || this.defaultState();
 
         this.onChange = this.onChange.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    makeState(verb, lastEntered, sentenceType) {
+    makeState(verb, lastEntered, sentenceType, tenses) {
         return {
             verb: verb,
             lastEntered: lastEntered,
             sentenceType: sentenceType,
-            tenses: [],
+            tenses: tenses,
         };
     }
 
@@ -85,6 +98,30 @@ class ViewerApp extends React.Component {
             /* verb */ "",
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
+            /* tenses */ [],
+        );
+    }
+
+    readUrlState() {
+        const params = parseParams();
+        const verb = params.verb;
+        if (verb == null || verb.length <= 0) {
+            return null;
+        }
+        const sentenceType = parseSentenceType(params.sentence_type);
+        console.log(`URL state: ${verb}, ${sentenceType}`);
+        var tenses = [];
+        try {
+            tenses = generateVerbForms(verb, "", false, sentenceType);
+        } catch (err) {
+            console.log(`Error during form generation: ${err}`);
+            return null;
+        }
+        return this.makeState(
+            verb,
+            /* lastEntered */ verb,
+            sentenceType,
+            tenses,
         );
     }
 
