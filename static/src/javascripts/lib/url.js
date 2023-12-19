@@ -15,4 +15,22 @@ function parseParams() {
     return result;
 }
 
-export { parseParams };
+function buildViewerUrl(verb, sentenceType) {
+    const url = window.location.href;
+    const qMark = url.indexOf("?");
+    const prefix = (qMark >= 0) ? url.substring(0, qMark) : url;
+    if (verb != null) {
+        let params = [];
+        params.push(`verb=${encodeURI(verb)}`);
+        if (sentenceType != null) {
+            params.push(`sentence_type=${sentenceType.toLowerCase()}`);
+        }
+        return `${prefix}?${params.join("&")}`;
+    }
+    return prefix;
+}
+
+export {
+    buildViewerUrl,
+    parseParams,
+};

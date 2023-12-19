@@ -8,7 +8,10 @@ import {
     i18n
 } from '../lib/i18n';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
-import { parseParams } from "../lib/url";
+import {
+    buildViewerUrl,
+    parseParams
+} from "../lib/url";
 import { generateVerbForms } from '../lib/verb_forms';
 
 const SENTENCE_TYPES = [
@@ -16,6 +19,16 @@ const SENTENCE_TYPES = [
     "Negative",
     "Question",
 ];
+
+/**
+ * If true, upon hitting Submit, we get URL modified and page reloaded, hopefully, mostly from cache.
+ *   Advantage: we get a proper browser history, that we can nagivate back and forth.
+ *   Also, the address bar contains a URL that contains an actual state. Users can copy and share the URL.
+ *
+ * If false, only internal state is changed and DOM is rebuilt, no reload is required.
+ *   Advantage: it can work indefinitely without connection to backend.
+ */
+const RELOAD_ON_SUBMIT = true;
 
 function parseSentenceType(s) {
     if (s != null) {
@@ -109,7 +122,6 @@ class ViewerApp extends React.Component {
             return null;
         }
         const sentenceType = parseSentenceType(params.sentence_type);
-        console.log(`URL state: ${verb}, ${sentenceType}`);
         var tenses = [];
         try {
             tenses = generateVerbForms(verb, "", false, sentenceType);
@@ -139,8 +151,13 @@ class ViewerApp extends React.Component {
 
     onSubmit(e) {
         e.preventDefault();
-        let tenses = generateVerbForms(this.state.lastEntered, "", false, this.state.sentenceType);
-        this.setState({ tenses });
+        if (RELOAD_ON_SUBMIT) {
+            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType);
+            window.location.href = url;
+        } else {
+            let tenses = generateVerbForms(this.state.lastEntered, "", false, this.state.sentenceType);
+            this.setState({ tenses });
+        }
     }
 
     renderOneTense(tenseForms) {
