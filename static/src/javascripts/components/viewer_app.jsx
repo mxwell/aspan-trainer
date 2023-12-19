@@ -209,7 +209,8 @@ class ViewerApp extends React.Component {
                             value={this.state.lastEntered}
                             onChange={this.onChange}
                             placeholder="Enter verb, e.g. алу"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"/>
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            autoFocus />
                     </div>
                     <div class="px-2">
                         <select
