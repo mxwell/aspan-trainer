@@ -124,10 +124,9 @@ class ViewerApp extends React.Component {
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
         try {
-            tenses = generateVerbForms(verb, "", false, sentenceType);
+            tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
-            return null;
         }
         return this.makeState(
             verb,
