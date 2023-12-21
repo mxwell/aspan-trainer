@@ -96,6 +96,9 @@ function prepareTranslations() {
     setEnRu(map, "inviteToSurvey", "We'll be glad to hear back. Fill in ", "Будем рады получить обратную связь. Пройдите ");
     setEnRu(map, "linkShortSurvey", "the short survey", "короткий опрос");
 
+    /* viewer texts */
+    setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар")
+
     return map;
 }
 

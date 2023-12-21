@@ -213,6 +213,29 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderExampleVerbs() {
+        // TODO pick randomly from a pool
+        let exampleVerbs = ["жабу", "зерттеу"];
+        let links = [];
+        for (var i = 0; i < exampleVerbs.length; ++i) {
+            let verb = exampleVerbs[i];
+            let link = `/viewer.html?verb=${verb}`;
+            links.push(
+                <a
+                    class="px-2 text-sm underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    href={link} >
+                    {verb}
+                </a>
+            )
+        }
+        return (
+            <div>
+                <span class="px-2 text-sm text-gray-600">{this.i18n("examples")}:</span>
+                {links}
+            </div>
+        );
+    }
+
     render () {
         return (
             <div class="py-6">
@@ -227,6 +250,7 @@ class ViewerApp extends React.Component {
                             placeholder="Enter verb, e.g. алу"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
+                        {this.renderExampleVerbs()}
                     </div>
                     <div class="px-2">
                         <select
