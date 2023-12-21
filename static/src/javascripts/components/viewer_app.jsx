@@ -252,19 +252,17 @@ class ViewerApp extends React.Component {
                             autoFocus />
                         {this.renderExampleVerbs()}
                     </div>
-                    <div class="px-2">
-                        <select
-                            required
-                            value={this.state.sentenceType}
-                            onChange={this.onSentenceTypeSelect}
-                            class="text-gray-800 text-2xl px-4 py-2">
-                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, I18N_LANG_EN)}
-                        </select>
-                    </div>
+                    <select
+                        required
+                        value={this.state.sentenceType}
+                        onChange={this.onSentenceTypeSelect}
+                        class="text-gray-800 text-2xl mx-2 mb-6 px-4">
+                        {renderOptionsWithI18nKeys(SENTENCE_TYPES, I18N_LANG_EN)}
+                    </select>
                     <input
                         type="submit"
                         value={this.i18n("buttonSubmit")}
-                        class="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        class="bg-blue-500 hover:bg-blue-700 text-white text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
                     />
                 </form>
                 {this.renderTenses()}
