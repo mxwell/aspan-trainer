@@ -175,7 +175,7 @@ class ViewerApp extends React.Component {
             <div class="px-6 flex flex-col">
                 <h3 class="text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
                 <h4 class="text-gray-500">{i18n(tenseForms.tenseNameKey, I18N_LANG_EN)}</h4>
-                <div class="py-6">
+                <div class="pt-6">
                     <table class="w-full">
                         {rows}
                     </table>
@@ -185,14 +185,30 @@ class ViewerApp extends React.Component {
     }
 
     renderTenses() {
-        let tables = [];
+        let groupedTables = {};
+        let groupNames = [];
         for (var i = 0; i < this.state.tenses.length; ++i) {
             let tense = this.state.tenses[i];
-            tables.push(this.renderOneTense(tense));
+            let groupNameKey = tense.groupNameKey;
+            let table = this.renderOneTense(tense);
+            if (groupedTables[groupNameKey] == null) {
+                groupNames.push(groupNameKey);
+                groupedTables[groupNameKey] = [];
+            }
+            groupedTables[groupNameKey].push(table);
+        }
+        let groups = [];
+        for (var i = 0; i < groupNames.length; ++i) {
+            let groupNameKey = groupNames[i];
+            groups.push(
+                <div class="py-6 flex flex-wrap">
+                    {groupedTables[groupNameKey]}
+                </div>
+            );
         }
         return (
-            <div class="py-6 flex flex-wrap">
-                {tables}
+            <div>
+                {groups}
             </div>
         );
     }
