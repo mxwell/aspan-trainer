@@ -279,7 +279,7 @@ class ViewerApp extends React.Component {
     render () {
         return (
             <div class="py-6">
-                <form onSubmit={this.onSubmit} class="py-2 flex justify-center">
+                <form onSubmit={this.onSubmit} class="px-3 py-2 flex">
                     <div class="px-2">
                         <input
                             type="text"
