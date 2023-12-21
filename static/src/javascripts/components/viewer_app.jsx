@@ -30,6 +30,8 @@ const SENTENCE_TYPES = [
  */
 const RELOAD_ON_SUBMIT = true;
 
+const DEFAULT_TITLE = "Kazakh Verb";
+
 function parseSentenceType(s) {
     if (s != null) {
         const sLower = s.toLowerCase();
@@ -87,6 +89,12 @@ function highlightPhrasal(phrasal) {
     return htmlParts
 }
 
+function setPageTitle(verb) {
+    let verbOk = (typeof verb == "string") && 0 < verb.length && verb.length < 20;
+    let title = verbOk ? `${verb} – ${DEFAULT_TITLE}` : DEFAULT_TITLE;
+    document.title = title;
+}
+
 class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
@@ -125,6 +133,7 @@ class ViewerApp extends React.Component {
         var tenses = [];
         try {
             tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
+            setPageTitle(verb);
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
         }
