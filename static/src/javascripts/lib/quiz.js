@@ -184,7 +184,7 @@ export class VerbQuizBuilder {
         );
     }
 
-    buildWantClause() {
+    buildOptativeMood() {
         // TODO make it a param
         const shak = "PresentTransitive";
 
@@ -211,8 +211,8 @@ export class VerbQuizBuilder {
             return this.buildPresentContinuous(auxVerb);
         } else if (this.topic == "pastTense") {
             return this.buildPast();
-        } else if (this.topic == "wantClause") {
-            return this.buildWantClause();
+        } else if (this.topic == "optativeMood") {
+            return this.buildOptativeMood();
         } else if (this.topic == "canClause") {
             return this.buildCanClause();
         } else {

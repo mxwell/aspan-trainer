@@ -115,7 +115,7 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
     ));
     const shak = "PresentTransitive";
     tenses.push(createForms(
-        "wantClause",
+        "optativeMood",
         "moods",
         POSSESSIVE_PRONOUN,
         (person, number) => verbBuilder.wantClause(person, number, sentenceType, shak),

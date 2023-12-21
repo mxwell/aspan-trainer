@@ -33,7 +33,7 @@ const TOPIC_KEYS = [
     "presentTransitive",
     "presentContinuous",
     "pastTense",
-    "wantClause",
+    "optativeMood",
     "canClause",
 ];
 
