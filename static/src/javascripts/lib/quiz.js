@@ -13,6 +13,10 @@ import {
     getPronounByParams,
     getSentenceTerminator
 } from './grammar_utils';
+import {
+    getRandomInt,
+    pickRandom
+} from './random';
 
 export function composeAnswer(pronoun, verbPhrase) {
     return `${pronoun} ${verbPhrase}`;
@@ -54,14 +58,6 @@ const PRESET_PRESENT_CONTINUOUS_VERBS = [
     ["келу", "әкелу"],
     ["жабу", "кебу", "себу", "тебу", "табу", "шабу"],
 ];
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
-
-function pickRandom(items) {
-    return items[getRandomInt(items.length)];
-}
 
 export function getVerb(hint) {
     if (hint.length > 0) {

@@ -7,6 +7,7 @@ import {
     I18N_LANG_KZ,
     i18n
 } from '../lib/i18n';
+import { pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
 import {
     buildViewerUrl,
@@ -31,6 +32,24 @@ const SENTENCE_TYPES = [
 const RELOAD_ON_SUBMIT = true;
 
 const DEFAULT_TITLE = "Kazakh Verb";
+const PRESET_VIEWER_VERBS = [
+    /* common */
+    "бару", "келу", "алу", "беру", "жазу",
+    /* end with vowel */
+    "жасау", "зерттеу", "ойнау", "билеу", "жаю",
+    /* end with бвгғд */
+    "тігу", "тебу", "шабу",
+    /* exceptions */
+    "абыржу", "аршу", "қобалжу", "оқу",
+    /* exceptions of different kind */
+    "жаю", "қою", "сүю",
+    /* end with руйл */
+    "қуыру", "демалу", "жуу", "пісіру",
+    /* end with unvoiced consonant */
+    "көмектесу", "айту", "кесу", "көшу",
+    /* end with мнң */
+    "еріну", "үйрену", "қуану",
+];
 
 function parseSentenceType(s) {
     if (s != null) {
@@ -223,24 +242,36 @@ class ViewerApp extends React.Component {
     }
 
     renderExampleVerbs() {
-        // TODO pick randomly from a pool
-        let exampleVerbs = ["жабу", "зерттеу"];
-        let links = [];
+        let exampleVerbs = [pickRandom(PRESET_VIEWER_VERBS)];
+        for (var i = 0; i < 3; ++i) {
+            let second = pickRandom(PRESET_VIEWER_VERBS);
+            if (exampleVerbs[0] != second) {
+                exampleVerbs.push(second);
+                break;
+            }
+        }
+        let items = [
+            <span class="text-sm text-gray-600">{this.i18n("examples")}:</span>
+        ];
         for (var i = 0; i < exampleVerbs.length; ++i) {
             let verb = exampleVerbs[i];
             let link = `/viewer.html?verb=${verb}`;
-            links.push(
+            if (i > 0) {
+                items.push(
+                    <span class="text-sm text-gray-600">{this.i18n("or")}</span>
+                )
+            }
+            items.push(
                 <a
                     class="px-2 text-sm underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
                     href={link} >
                     {verb}
                 </a>
-            )
+            );
         }
         return (
             <div>
-                <span class="px-2 text-sm text-gray-600">{this.i18n("examples")}:</span>
-                {links}
+                {items}
             </div>
         );
     }
