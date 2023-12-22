@@ -114,6 +114,23 @@ function setPageTitle(verb) {
     document.title = title;
 }
 
+function pickExamples(chosenVerb) {
+    if (PRESET_VIEWER_VERBS.length < 3) {
+        return [];
+    }
+    let verbs = [];
+    while (verbs.length < 2) {
+        while (true) {
+            let verb = pickRandom(PRESET_VIEWER_VERBS);
+            if (verb == chosenVerb) continue;
+            if (verbs.indexOf(verb) >= 0) continue;
+            verbs.push(verb);
+            break;
+        }
+    }
+    return verbs;
+}
+
 class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
@@ -130,6 +147,7 @@ class ViewerApp extends React.Component {
             lastEntered: lastEntered,
             sentenceType: sentenceType,
             tenses: tenses,
+            examples: pickExamples(verb),
         };
     }
 
@@ -242,20 +260,16 @@ class ViewerApp extends React.Component {
     }
 
     renderExampleVerbs() {
-        let exampleVerbs = [pickRandom(PRESET_VIEWER_VERBS)];
-        for (var i = 0; i < 3; ++i) {
-            let second = pickRandom(PRESET_VIEWER_VERBS);
-            if (exampleVerbs[0] != second) {
-                exampleVerbs.push(second);
-                break;
-            }
+        let verbs = this.state.examples;
+        if (verbs.length < 2) {
+            return null;
         }
         let items = [
             <span class="text-sm text-gray-600">{this.i18n("examples")}:</span>
         ];
-        for (var i = 0; i < exampleVerbs.length; ++i) {
-            let verb = exampleVerbs[i];
-            let link = `/viewer.html?verb=${verb}`;
+        for (var i = 0; i < verbs.length; ++i) {
+            let verb = verbs[i];
+            let link = `${document.location.pathname}?verb=${verb}`;
             if (i > 0) {
                 items.push(
                     <span class="text-sm text-gray-600">{this.i18n("or")}</span>
@@ -263,7 +277,7 @@ class ViewerApp extends React.Component {
             }
             items.push(
                 <a
-                    class="px-2 text-sm underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    class="px-2 text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
                     href={link} >
                     {verb}
                 </a>
