@@ -63,12 +63,12 @@ function parseSentenceType(s) {
     return SENTENCE_TYPES[0];
 }
 
-function addPartClasses(colorPrefix, aux, partClasses) {
+function addPartClasses(auxColorPrefix, colorPrefix, aux, partClasses) {
     if (aux) {
-        partClasses.push(colorPrefix + "800");
+        partClasses.push(auxColorPrefix);
         partClasses.push("font-medium");
     } else {
-        partClasses.push(colorPrefix + "600");
+        partClasses.push(colorPrefix);
         partClasses.push("font-bold");
     }
 }
@@ -91,13 +91,13 @@ function highlightPhrasal(phrasal) {
             firstAux = false;
         }
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            addPartClasses("text-teal-", part.aux, partClasses);
+            addPartClasses("text-teal-800", "text-teal-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
-            addPartClasses("text-orange-", part.aux, partClasses);
+            addPartClasses("text-orange-800", "text-orange-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
-            addPartClasses("text-indigo-", part.aux, partClasses);
+            addPartClasses("text-indigo-800", "text-indigo-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
-            addPartClasses("text-red-", part.aux, partClasses);
+            addPartClasses("text-red-800", "text-red-600", part.aux, partClasses);
         }
         htmlParts.push(
             <span class={partClasses.join(" ")}>
