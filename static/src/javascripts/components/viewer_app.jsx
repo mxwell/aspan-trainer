@@ -213,7 +213,7 @@ class ViewerApp extends React.Component {
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             rows.push(
-                <tr class="border-t-2">
+                <tr class="border-t-2 text-4xl lg:text-xl">
                     <td class={tdBaseClass}>{form.pronoun}</td>
                     <td class={tdBaseClass}>{highlightPhrasal(form.verbPhrase)}</td>
                 </tr>
@@ -221,10 +221,10 @@ class ViewerApp extends React.Component {
         }
         return (
             <div class="px-6 flex flex-col">
-                <h3 class="text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
-                <h4 class="text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
-                <div class="pt-6">
-                    <table class="w-full">
+                <h3 class="text-5xl lg:text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
+                <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
+                <div class="py-6">
+                    <table class="lg:w-full">
                         {rows}
                     </table>
                 </div>
@@ -249,7 +249,7 @@ class ViewerApp extends React.Component {
         for (var i = 0; i < groupNames.length; ++i) {
             let groupNameKey = groupNames[i];
             groups.push(
-                <div class="py-6 flex flex-wrap">
+                <div class="py-6 flex sm:flex-col lg:flex-row lg:flex-wrap">
                     {groupedTables[groupNameKey]}
                 </div>
             );
@@ -267,26 +267,26 @@ class ViewerApp extends React.Component {
             return null;
         }
         let items = [
-            <span class="text-sm text-gray-600">{this.i18n("examples")}:</span>
+            <span class="text-3xl lg:text-sm text-gray-600">{this.i18n("examples")}:</span>
         ];
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
             let link = `${document.location.pathname}?verb=${verb}`;
             if (i > 0) {
                 items.push(
-                    <span class="text-sm text-gray-600">{this.i18n("or")}</span>
+                    <span class="text-3xl lg:text-sm text-gray-600">{this.i18n("or")}</span>
                 )
             }
             items.push(
                 <a
-                    class="px-2 text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    class="px-6 lg:px-2 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
                     href={link} >
                     {verb}
                 </a>
             );
         }
         return (
-            <div>
+            <div class="py-4 lg:py-0">
                 {items}
             </div>
         );
@@ -294,9 +294,9 @@ class ViewerApp extends React.Component {
 
     render () {
         return (
-            <div class="py-6">
-                <form onSubmit={this.onSubmit} class="px-3 py-2 flex">
-                    <div class="px-2">
+            <div class="md:py-6">
+                <form onSubmit={this.onSubmit} class="px-3 py-2 flex flex-col lg:flex-row">
+                    <div class="lg:px-2">
                         <input
                             type="text"
                             size="20"
@@ -304,7 +304,7 @@ class ViewerApp extends React.Component {
                             value={this.state.lastEntered}
                             onChange={this.onChange}
                             placeholder={this.i18n("hintEnterVerb")}
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            class="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                         {this.renderExampleVerbs()}
                     </div>
@@ -312,13 +312,13 @@ class ViewerApp extends React.Component {
                         required
                         value={this.state.sentenceType}
                         onChange={this.onSentenceTypeSelect}
-                        class="text-gray-800 text-2xl mx-2 mb-6 px-4">
+                        class="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
                         {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
                     </select>
                     <input
                         type="submit"
                         value={this.i18n("buttonSubmit")}
-                        class="bg-blue-500 hover:bg-blue-700 text-white text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                        class="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
                     />
                 </form>
                 {this.renderTenses()}
