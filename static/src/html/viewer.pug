@@ -1,25 +1,29 @@
 mixin a_page(title)
     doctype html
-    html(lang="en")
+    html(lang="ru")
         head
             meta(charset="utf8")
             meta(property="og:title", content= title)
-            meta(property="og:description", content="Viewer for Kazakh verb forms")
-            meta(property="og:site_name", content="Kazakh verbs")
+            meta(property="og:description", content="Generator of Kazakh verb forms, tenses and moods")
+            meta(property="og:site_name", content="Kazakh Verb")
             title= title
             link(rel="stylesheet", href="../css/page.pcss")
             link(rel="icon", href="../images/favicon.png")
         body
             div.page-grid
                 header(class="bg-blue-800 text-white p-2 flex justify-between")
-                    h2(class="text-3xl text-bold mx-8") Kazakh Verbs<sup class="pl-2 text-red-400">α</sup>
-                    a(class="text-red-200 text-sm underline", href="/quiz.pug", target="_blank") Kazakh Grammar Trainer >
+                    h2(class="text-3xl text-bold mx-8")
+                        = title
+                        <sup class="pl-2 text-red-400">β</sup>
+                    div
+                        p(class="text-sm") Нужна помощь?
+                        a(class="text-red-200 text-sm underline", href="https://t.me/kazakhverb", target="_blank") Группа Kazakh Verb >
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")
-                    span © 2022 Murat Khairulin
+                    span © 2023 Murat Khairulin
                     span(class="flex flex-col")
-                        a(class="text-sm", href="https://github.com/mxwell/aspan-trainer") Github
+                        a(class="text-sm", href="https://github.com/mxwell/aspan") Powered by Aspan
             script(src="../javascripts/viewer.jsx")
             noscript() The web page requires Javascript enabled in the browser to work
 
