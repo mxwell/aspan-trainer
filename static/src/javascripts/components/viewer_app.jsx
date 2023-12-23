@@ -287,7 +287,18 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderImage() {
+        return (
+            <div class="py-40 flex justify-center">
+                <img src="/bg1.png"></img>
+            </div>
+        );
+    }
+
     renderTenses() {
+        if (this.state.tenses.length == 0) {
+            return this.renderImage();
+        }
         let groupedTables = {};
         let groupNames = [];
         for (var i = 0; i < this.state.tenses.length; ++i) {
