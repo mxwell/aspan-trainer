@@ -116,6 +116,21 @@ function setPageTitle(verb) {
     document.title = title;
 }
 
+function checkForCollapse() {
+    return window.matchMedia('screen and (max-width: 1024px)').matches;
+}
+
+function getInitiallyShown(collapse, tenses) {
+    let shown = [];
+    if (collapse) {
+        let n = Math.min(2, tenses.length);
+        for (var i = 0; i < n; ++i) {
+            shown.push(tenses[i].tenseNameKey);
+        }
+    }
+    return shown;
+}
+
 function pickExamples(chosenVerb) {
     if (PRESET_VIEWER_VERBS.length < 3) {
         return [];
@@ -144,13 +159,16 @@ class ViewerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    makeState(verb, lastEntered, sentenceType, tenses, shown) {
+    makeState(verb, lastEntered, sentenceType, tenses) {
+        let collapse = checkForCollapse();
+        let shown = getInitiallyShown(collapse, tenses);
         return {
             verb: verb,
             lastEntered: lastEntered,
             sentenceType: sentenceType,
             tenses: tenses,
             examples: pickExamples(verb),
+            collapse: collapse,
             shown: shown,
         };
     }
@@ -161,7 +179,6 @@ class ViewerApp extends React.Component {
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tenses */ [],
-            /* shown */ [],
         );
     }
 
@@ -173,12 +190,8 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
-        var shown = [];
         try {
             tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
-            for (var i = 0; i < 2 && i < tenses.length; ++i) {
-                shown.push(tenses[i].tenseNameKey);
-            }
             setPageTitle(verb);
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
@@ -188,7 +201,6 @@ class ViewerApp extends React.Component {
             /* lastEntered */ verb,
             sentenceType,
             tenses,
-            shown,
         );
     }
 
@@ -246,11 +258,13 @@ class ViewerApp extends React.Component {
         }
         let tenseNameKey = tenseForms.tenseNameKey;
 
+        let collapse = this.state.collapse;
+        var clickListener = collapse ? this.onTenseTitleClick : null;
         var content = null;
         var titleClasses = "text-red-400 border-b-2";
-        if (this.state.shown.indexOf(tenseNameKey) >= 0) {
+        if (!collapse || this.state.shown.indexOf(tenseNameKey) >= 0) {
             content = (
-                <div class="pb-4 lg:py-6" id={`${tenseNameKey}_content`}>
+                <div class="pb-4 lg:py-6">
                     <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
                     <table class="lg:w-full">
                         {rows}
@@ -263,7 +277,7 @@ class ViewerApp extends React.Component {
         return (
             <div class="px-6 flex flex-col">
                 <h3
-                    onClick={this.onTenseTitleClick}
+                    onClick={clickListener}
                     id={`${tenseNameKey}_title`}
                     class={"text-5xl lg:text-xl font-bold " + titleClasses}>
                     {i18n(tenseNameKey, I18N_LANG_KZ)}
