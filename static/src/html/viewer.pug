@@ -4,18 +4,20 @@ mixin a_page(title)
         head
             meta(charset="utf8")
             meta(property="og:title", content= title)
-            meta(property="og:description", content="Generator of Kazakh verb forms, tenses and moods")
+            meta(property="og:description", content="Tables of Kazakh verb forms, tenses and moods")
             meta(property="og:site_name", content="Kazakh Verb")
             title= title
             link(rel="stylesheet", href="../css/page.pcss")
             link(rel="icon", href="../images/favicon.png")
         body
             div.page-grid
-                header(class="bg-blue-800 text-white p-2 flex justify-between")
-                    h2(class="text-3xl text-bold mx-8")
-                        = title
-                        <sup class="pl-2 text-red-400">β</sup>
-                    div
+                header(class="bg-blue-800 text-white p-1 flex justify-between")
+                    div(class="mx-8")
+                        h2(class="text-2xl text-bold")
+                            = title
+                            <sup class="pl-2 text-red-400">β</sup>
+                        h4(class="text-yellow-300") Таблицы форм казахских глаголов – времена и наклонения
+                    div(class="p-2")
                         p(class="text-sm") Нужна помощь?
                         a(class="text-red-200 text-sm underline", href="https://t.me/kazakhverb", target="_blank") Группа Kazakh Verb >
                 article
