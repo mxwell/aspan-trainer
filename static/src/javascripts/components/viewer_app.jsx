@@ -139,17 +139,19 @@ class ViewerApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
 
         this.onChange = this.onChange.bind(this);
+        this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    makeState(verb, lastEntered, sentenceType, tenses) {
+    makeState(verb, lastEntered, sentenceType, tenses, shown) {
         return {
             verb: verb,
             lastEntered: lastEntered,
             sentenceType: sentenceType,
             tenses: tenses,
             examples: pickExamples(verb),
+            shown: shown,
         };
     }
 
@@ -159,6 +161,7 @@ class ViewerApp extends React.Component {
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tenses */ [],
+            /* shown */ [],
         );
     }
 
@@ -170,8 +173,12 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
+        var shown = [];
         try {
             tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
+            for (var i = 0; i < 2 && i < tenses.length; ++i) {
+                shown.push(tenses[i].tenseNameKey);
+            }
             setPageTitle(verb);
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
@@ -181,6 +188,7 @@ class ViewerApp extends React.Component {
             /* lastEntered */ verb,
             sentenceType,
             tenses,
+            shown,
         );
     }
 
@@ -190,6 +198,23 @@ class ViewerApp extends React.Component {
 
     onChange(e) {
         this.setState({ lastEntered: e.target.value });
+    }
+
+    onTenseTitleClick(e) {
+        let titleId = e.target.id;
+        if ((typeof titleId != "string") || !titleId.endsWith("_title")) {
+            return
+        }
+        let tenseNameKey = titleId.substring(0, titleId.length - 6);
+        let shown = this.state.shown;
+        let pos = shown.indexOf(tenseNameKey);
+        if (pos < 0) {
+            shown.push(tenseNameKey);
+            this.setState({ shown: shown });
+        } else {
+            let filtered = shown.filter(function(item) { return item != tenseNameKey; });
+            this.setState({ shown: filtered });
+        }
     }
 
     onSentenceTypeSelect(e) {
@@ -219,15 +244,31 @@ class ViewerApp extends React.Component {
                 </tr>
             );
         }
-        return (
-            <div class="px-6 flex flex-col">
-                <h3 class="text-5xl lg:text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
-                <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
-                <div class="py-6">
+        let tenseNameKey = tenseForms.tenseNameKey;
+
+        var content = null;
+        var titleClasses = "text-red-400 border-b-2";
+        if (this.state.shown.indexOf(tenseNameKey) >= 0) {
+            content = (
+                <div class="pb-4 lg:py-6" id={`${tenseNameKey}_content`}>
+                    <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
                     <table class="lg:w-full">
                         {rows}
                     </table>
                 </div>
+            );
+            titleClasses = "text-red-600";
+        }
+
+        return (
+            <div class="px-6 flex flex-col">
+                <h3
+                    onClick={this.onTenseTitleClick}
+                    id={`${tenseNameKey}_title`}
+                    class={"text-5xl lg:text-xl font-bold " + titleClasses}>
+                    {i18n(tenseNameKey, I18N_LANG_KZ)}
+                </h3>
+                {content}
             </div>
         );
     }
