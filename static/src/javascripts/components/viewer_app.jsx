@@ -250,7 +250,7 @@ class ViewerApp extends React.Component {
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             rows.push(
-                <tr class="border-t-2 text-4xl lg:text-xl">
+                <tr class="border-t-2 text-4xl lg:text-base">
                     <td class={tdBaseClass}>{form.pronoun}</td>
                     <td class={tdBaseClass}>{highlightPhrasal(form.verbPhrase)}</td>
                 </tr>
