@@ -5,6 +5,7 @@ import {
 import {
     I18N_LANG_EN,
     I18N_LANG_KZ,
+    I18N_LANG_RU,
     i18n
 } from '../lib/i18n';
 import { pickRandom } from '../lib/random';
@@ -30,6 +31,7 @@ const SENTENCE_TYPES = [
  *   Advantage: it can work indefinitely without connection to backend.
  */
 const RELOAD_ON_SUBMIT = true;
+const DEFAULT_LANG = I18N_LANG_RU;
 
 const DEFAULT_TITLE = "Kazakh Verb";
 const PRESET_VIEWER_VERBS = [
@@ -183,7 +185,7 @@ class ViewerApp extends React.Component {
     }
 
     i18n(key) {
-        return i18n(key, I18N_LANG_EN);
+        return i18n(key, DEFAULT_LANG);
     }
 
     onChange(e) {
@@ -220,7 +222,7 @@ class ViewerApp extends React.Component {
         return (
             <div class="px-6 flex flex-col">
                 <h3 class="text-xl text-red-600 font-bold">{i18n(tenseForms.tenseNameKey, I18N_LANG_KZ)}</h3>
-                <h4 class="text-gray-500">{i18n(tenseForms.tenseNameKey, I18N_LANG_EN)}</h4>
+                <h4 class="text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
                 <div class="pt-6">
                     <table class="w-full">
                         {rows}
@@ -301,7 +303,7 @@ class ViewerApp extends React.Component {
                             maxlength="100"
                             value={this.state.lastEntered}
                             onChange={this.onChange}
-                            placeholder="Enter verb, e.g. алу"
+                            placeholder={this.i18n("hintEnterVerb")}
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                         {this.renderExampleVerbs()}
@@ -311,7 +313,7 @@ class ViewerApp extends React.Component {
                         value={this.state.sentenceType}
                         onChange={this.onSentenceTypeSelect}
                         class="text-gray-800 text-2xl mx-2 mb-6 px-4">
-                        {renderOptionsWithI18nKeys(SENTENCE_TYPES, I18N_LANG_EN)}
+                        {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
                     </select>
                     <input
                         type="submit"

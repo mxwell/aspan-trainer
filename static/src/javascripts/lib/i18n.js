@@ -97,6 +97,7 @@ function prepareTranslations() {
     setEnRu(map, "linkShortSurvey", "the short survey", "короткий опрос");
 
     /* viewer texts */
+    setEnRuKz(map, "hintEnterVerb", "Enter verb", "Введите глагол", "Етістік енгізіңіз");
     setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
     setEnRuKz(map, "or", "or", "или", "әлде");
 
