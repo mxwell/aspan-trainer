@@ -213,7 +213,7 @@ class ViewerApp extends React.Component {
     }
 
     onTenseTitleClick(e) {
-        let titleId = e.target.id;
+        let titleId = e.target.id || e.target.parentElement.id;
         if ((typeof titleId != "string") || !titleId.endsWith("_title")) {
             return
         }
@@ -259,10 +259,17 @@ class ViewerApp extends React.Component {
         let tenseNameKey = tenseForms.tenseNameKey;
 
         let collapse = this.state.collapse;
+        let shown = this.state.shown.indexOf(tenseNameKey) >= 0;
         var clickListener = collapse ? this.onTenseTitleClick : null;
+        var icon = collapse ? (
+            <span class="pt-6 pr-4 lg:pt-1 lg:pr-1">
+                <img src={shown ? "expand_up.svg" : "expand_down.svg"} />
+            </span>
+        ) : null;
+
         var content = null;
         var titleClasses = "text-red-400 border-b-2";
-        if (!collapse || this.state.shown.indexOf(tenseNameKey) >= 0) {
+        if (!collapse || shown) {
             content = (
                 <div class="pb-4 lg:py-6">
                     <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
@@ -273,6 +280,9 @@ class ViewerApp extends React.Component {
             );
             titleClasses = "text-red-600";
         }
+        if (collapse) {
+            titleClasses += " cursor-pointer flex"
+        }
 
         return (
             <div class="px-6 flex flex-col">
@@ -280,7 +290,10 @@ class ViewerApp extends React.Component {
                     onClick={clickListener}
                     id={`${tenseNameKey}_title`}
                     class={"text-5xl lg:text-xl font-bold " + titleClasses}>
-                    {i18n(tenseNameKey, I18N_LANG_KZ)}
+                    {icon}
+                    <span>
+                        {i18n(tenseNameKey, I18N_LANG_KZ)}
+                    </span>
                 </h3>
                 {content}
             </div>
