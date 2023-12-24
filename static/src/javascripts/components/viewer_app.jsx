@@ -102,7 +102,9 @@ function highlightPhrasal(phrasal) {
             addPartClasses("text-red-800", "text-red-600", part.aux, partClasses);
         }
         htmlParts.push(
-            <span class={partClasses.join(" ")}>
+            <span
+                className={partClasses.join(" ")}
+                key={`part${htmlParts.length}`}>
                 {part.content}
             </span>
         );
@@ -244,25 +246,30 @@ class ViewerApp extends React.Component {
         }
     }
 
-    renderOneTense(tenseForms) {
+    renderFormRows(tenseForms) {
         let rows = [];
-        let tdBaseClass = "";
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             rows.push(
-                <tr class="border-t-2 text-4xl lg:text-base">
-                    <td class={tdBaseClass}>{form.pronoun}</td>
-                    <td class={tdBaseClass}>{highlightPhrasal(form.verbPhrase)}</td>
+                <tr
+                    className="border-t-2 text-4xl lg:text-base"
+                    key={`row_${rows.length}`} >
+                    <td>{form.pronoun}</td>
+                    <td>{highlightPhrasal(form.verbPhrase)}</td>
                 </tr>
             );
         }
+        return rows;
+    }
+
+    renderOneTense(tenseForms) {
         let tenseNameKey = tenseForms.tenseNameKey;
 
         let collapse = this.state.collapse;
         let shown = this.state.shown.indexOf(tenseNameKey) >= 0;
         var clickListener = collapse ? this.onTenseTitleClick : null;
         var icon = collapse ? (
-            <span class="pt-6 pr-4 lg:pt-1 lg:pr-1">
+            <span className="pt-6 pr-4 lg:pt-1 lg:pr-1">
                 <img src={shown ? "expand_up.svg" : "expand_down.svg"} />
             </span>
         ) : null;
@@ -271,10 +278,12 @@ class ViewerApp extends React.Component {
         var titleClasses = "text-red-400 border-b-2";
         if (!collapse || shown) {
             content = (
-                <div class="pb-4 lg:py-6">
-                    <h4 class="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
-                    <table class="lg:w-full">
-                        {rows}
+                <div className="pb-4 lg:py-6">
+                    <h4 className="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
+                    <table className="lg:w-full">
+                        <tbody>
+                            {this.renderFormRows(tenseForms)}
+                        </tbody>
                     </table>
                 </div>
             );
@@ -285,11 +294,11 @@ class ViewerApp extends React.Component {
         }
 
         return (
-            <div class="px-6 flex flex-col">
+            <div className="px-6 flex flex-col" key={tenseNameKey}>
                 <h3
                     onClick={clickListener}
                     id={`${tenseNameKey}_title`}
-                    class={"text-5xl lg:text-xl font-bold " + titleClasses}>
+                    className={"text-5xl lg:text-xl font-bold " + titleClasses}>
                     {icon}
                     <span>
                         {i18n(tenseNameKey, I18N_LANG_KZ)}
@@ -302,7 +311,7 @@ class ViewerApp extends React.Component {
 
     renderImage() {
         return (
-            <div class="py-40 flex justify-center">
+            <div className="py-40 flex justify-center">
                 <img src="/bg1.png"></img>
             </div>
         );
@@ -328,7 +337,9 @@ class ViewerApp extends React.Component {
         for (var i = 0; i < groupNames.length; ++i) {
             let groupNameKey = groupNames[i];
             groups.push(
-                <div class="py-6 flex sm:flex-col lg:flex-row lg:flex-wrap">
+                <div
+                    className="py-6 flex sm:flex-col lg:flex-row lg:flex-wrap"
+                    key={groupNameKey} >
                     {groupedTables[groupNameKey]}
                 </div>
             );
@@ -345,27 +356,37 @@ class ViewerApp extends React.Component {
         if (verbs.length < 2) {
             return null;
         }
-        let items = [
-            <span class="text-3xl lg:text-sm text-gray-600">{this.i18n("examples")}:</span>
-        ];
+        let items = [];
+        items.push(
+            <span
+                className="text-3xl lg:text-sm text-gray-600"
+                key={`example${items.length}`} >
+                {this.i18n("examples")}:
+            </span>
+        );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
             let link = `${document.location.pathname}?verb=${verb}`;
             if (i > 0) {
                 items.push(
-                    <span class="text-3xl lg:text-sm text-gray-600">{this.i18n("or")}</span>
+                    <span
+                        className="text-3xl lg:text-sm text-gray-600"
+                        key={`example${items.length}`} >
+                        {this.i18n("or")}
+                    </span>
                 )
             }
             items.push(
                 <a
-                    class="px-6 lg:px-2 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    className="px-6 lg:px-2 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    key={`example${items.length}`}
                     href={link} >
                     {verb}
                 </a>
             );
         }
         return (
-            <div class="py-4 lg:py-0">
+            <div className="py-4 lg:py-0">
                 {items}
             </div>
         );
@@ -373,17 +394,17 @@ class ViewerApp extends React.Component {
 
     render () {
         return (
-            <div class="md:py-6">
-                <form onSubmit={this.onSubmit} class="px-3 py-2 flex flex-col lg:flex-row">
-                    <div class="lg:px-2">
+            <div className="md:py-6">
+                <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
+                    <div className="lg:px-2">
                         <input
                             type="text"
                             size="20"
-                            maxlength="100"
+                            maxLength="100"
                             value={this.state.lastEntered}
                             onChange={this.onChange}
                             placeholder={this.i18n("hintEnterVerb")}
-                            class="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                         {this.renderExampleVerbs()}
                     </div>
@@ -391,13 +412,13 @@ class ViewerApp extends React.Component {
                         required
                         value={this.state.sentenceType}
                         onChange={this.onSentenceTypeSelect}
-                        class="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                        className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
                         {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
                     </select>
                     <input
                         type="submit"
                         value={this.i18n("buttonSubmit")}
-                        class="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
                     />
                 </form>
                 {this.renderTenses()}
