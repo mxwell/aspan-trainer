@@ -32,6 +32,8 @@ const SENTENCE_TYPES = [
  */
 const RELOAD_ON_SUBMIT = true;
 const DEFAULT_LANG = I18N_LANG_RU;
+const DEFAULT_SUGGESTIONS = [];
+const DEFAULT_SUGGESTION_POS = -1;
 
 const DEFAULT_TITLE = "Kazakh Verb";
 const PRESET_VIEWER_VERBS = [
@@ -156,6 +158,9 @@ class ViewerApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
 
         this.onChange = this.onChange.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onBgClick = this.onBgClick.bind(this);
+        this.onSuggestionClick = this.onSuggestionClick.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -172,6 +177,8 @@ class ViewerApp extends React.Component {
             examples: pickExamples(verb),
             collapse: collapse,
             shown: shown,
+            suggestions: DEFAULT_SUGGESTIONS,
+            currentFocus: DEFAULT_SUGGESTION_POS,
         };
     }
 
@@ -211,7 +218,68 @@ class ViewerApp extends React.Component {
     }
 
     onChange(e) {
-        this.setState({ lastEntered: e.target.value });
+        let lastEntered = e.target.value;
+        // TODO request suggestions elsewhere and update them async
+        let suggestions = [];
+        for (var i = 0; lastEntered.length > 0 && i < PRESET_VIEWER_VERBS.length; ++i) {
+            let verb = PRESET_VIEWER_VERBS[i];
+            if (!verb.startsWith(lastEntered)) continue;
+            suggestions.push(verb);
+            if (suggestions.length >= 10) break;
+        }
+        let currentFocus = DEFAULT_SUGGESTION_POS;
+        this.setState({ lastEntered, suggestions, currentFocus });
+    }
+
+    moveActiveSuggestion(posChange) {
+        if (posChange == 0) return;
+        let suggestions = this.state.suggestions;
+        let prevFocus = this.state.currentFocus;
+        let currentFocus = prevFocus + posChange;
+        if (currentFocus >= suggestions.length || suggestions.length == 0) {
+            currentFocus = 0;
+        } else if (currentFocus < 0) {
+            currentFocus = suggestions.length - 1;
+        }
+        this.setState({ currentFocus });
+    }
+
+    clearSuggestions() {
+        this.setState({
+            suggestions: DEFAULT_SUGGESTIONS,
+        });
+    }
+
+    activateSuggestion(lastEntered) {
+        this.setState({ lastEntered });
+        this.clearSuggestions();
+    }
+
+    onKeyDown(e) {
+        if (e.keyCode == 40) {  // arrow down
+            this.moveActiveSuggestion(1);
+        } else if (e.keyCode == 38) { // arrow up
+            this.moveActiveSuggestion(-1);
+        } else if (e.keyCode == 27) { // esc
+            this.clearSuggestions();
+        } else if (e.keyCode == 13) { // enter
+            let suggestions = this.state.suggestions;
+            let currentFocus = this.state.currentFocus;
+            if (0 <= currentFocus && currentFocus < suggestions.length) {
+                e.preventDefault();
+                let lastEntered = suggestions[currentFocus];
+                this.activateSuggestion(lastEntered);
+            }
+        }
+    }
+
+    onBgClick(e) {
+        this.clearSuggestions();
+    }
+
+    onSuggestionClick(e) {
+        let lastEntered = e.target.getElementsByTagName("input")[0].value;
+        this.activateSuggestion(lastEntered);
     }
 
     onTenseTitleClick(e) {
@@ -351,6 +419,41 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderSuggestions() {
+        let suggestions = this.state.suggestions;
+        if (suggestions.length == 0) {
+            return null;
+        }
+
+        let lastEntered = this.state.lastEntered;
+        let currentFocus = this.state.currentFocus;
+
+        let items = [];
+        for (var i = 0; i < suggestions.length; ++i) {
+            let verb = suggestions[i];
+            let divClasses = "p-2 border-b-2 border-gray-300 text-4xl lg:text-2xl";
+            if (i == currentFocus) {
+                divClasses += " bg-blue-500 text-white";
+            } else {
+                divClasses += " bg-white text-gray-700";
+            }
+            items.push(
+                <div
+                    onClick={this.onSuggestionClick}
+                    className={divClasses} >
+                    <strong>{verb.substring(0, lastEntered.length)}</strong>
+                    {verb.substring(lastEntered.length)}
+                    <input type="hidden" value={verb} />
+                </div>
+            );
+        }
+        return (
+            <div className="absolute z-50 left-0 right-0 border-l-2 border-r-2 border-gray-300">
+                {items}
+            </div>
+        );
+    }
+
     renderExampleVerbs() {
         let verbs = this.state.examples;
         if (verbs.length < 2) {
@@ -394,18 +497,22 @@ class ViewerApp extends React.Component {
 
     render () {
         return (
-            <div className="md:py-6">
+            <div className="md:py-6" onClick={this.onBgClick}>
                 <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
                     <div className="lg:px-2">
-                        <input
-                            type="text"
-                            size="20"
-                            maxLength="100"
-                            value={this.state.lastEntered}
-                            onChange={this.onChange}
-                            placeholder={this.i18n("hintEnterVerb")}
-                            className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                            autoFocus />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                size="20"
+                                maxLength="100"
+                                value={this.state.lastEntered}
+                                onChange={this.onChange}
+                                onKeyDown={this.onKeyDown}
+                                placeholder={this.i18n("hintEnterVerb")}
+                                className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                                autoFocus />
+                            {this.renderSuggestions()}
+                        </div>
                         {this.renderExampleVerbs()}
                     </div>
                     <select
