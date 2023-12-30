@@ -10,6 +10,7 @@ import {
 } from '../lib/i18n';
 import { pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
+import { makeSuggestRequest } from '../lib/requests';
 import {
     buildViewerUrl,
     parseParams
@@ -32,6 +33,7 @@ const SENTENCE_TYPES = [
  */
 const RELOAD_ON_SUBMIT = true;
 const DEFAULT_LANG = I18N_LANG_RU;
+const ENABLE_SUGGEST = false;
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
 
@@ -161,6 +163,8 @@ class ViewerApp extends React.Component {
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
         this.onSuggestionClick = this.onSuggestionClick.bind(this);
+        this.handleSuggestResponse = this.handleSuggestResponse.bind(this);
+        this.handleSuggestError = this.handleSuggestError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -217,18 +221,51 @@ class ViewerApp extends React.Component {
         return i18n(key, DEFAULT_LANG);
     }
 
+    async handleSuggestResponse(context, responseJsonPromise) {
+        let response = await responseJsonPromise;
+        let lastEntered = this.state.lastEntered;
+        if (lastEntered == context.prevEntered || lastEntered == context.lastEntered) {
+            let suggestions = [];
+            for (let i = 0; i < response.length; ++i) {
+                let item = response[i];
+                if (item.text && item.text.length > 0) {
+                    suggestions.push(item);
+                }
+            }
+            if (suggestions.length < response.length) {
+                console.log(`Got ${suggestions.length} suggestions after filtering.`);
+            }
+            let currentFocus = DEFAULT_SUGGESTION_POS;
+            this.setState({ suggestions, currentFocus });
+        } else {
+            console.log(`Suggestions are too old, lastEntered is ${lastEntered}.`);
+        }
+    }
+
+    async handleSuggestError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from suggest: ${responseText}, lastEntered was ${context.lastEntered}.`);
+        this.clearSuggestions();
+    }
+
     onChange(e) {
         let lastEntered = e.target.value;
-        // TODO request suggestions elsewhere and update them async
-        let suggestions = [];
-        for (var i = 0; lastEntered.length > 0 && i < PRESET_VIEWER_VERBS.length; ++i) {
-            let verb = PRESET_VIEWER_VERBS[i];
-            if (!verb.startsWith(lastEntered)) continue;
-            suggestions.push(verb);
-            if (suggestions.length >= 10) break;
+        if (ENABLE_SUGGEST) {
+            if (lastEntered.length > 0) {
+                makeSuggestRequest(
+                    lastEntered,
+                    this.handleSuggestResponse,
+                    this.handleSuggestError,
+                    {
+                        prevEntered: this.state.lastEntered,
+                        lastEntered: lastEntered,
+                    }
+                );
+            } else {
+                this.clearSuggestions();
+            }
         }
-        let currentFocus = DEFAULT_SUGGESTION_POS;
-        this.setState({ lastEntered, suggestions, currentFocus });
+        this.setState({ lastEntered });
     }
 
     moveActiveSuggestion(posChange) {
@@ -267,7 +304,7 @@ class ViewerApp extends React.Component {
             let currentFocus = this.state.currentFocus;
             if (0 <= currentFocus && currentFocus < suggestions.length) {
                 e.preventDefault();
-                let lastEntered = suggestions[currentFocus];
+                let lastEntered = suggestions[currentFocus].data.base;
                 this.activateSuggestion(lastEntered);
             }
         }
@@ -277,8 +314,9 @@ class ViewerApp extends React.Component {
         this.clearSuggestions();
     }
 
-    onSuggestionClick(e) {
-        let lastEntered = e.target.getElementsByTagName("input")[0].value;
+    onSuggestionClick(verb, e) {
+        e.stopPropagation();
+        let lastEntered = verb;
         this.activateSuggestion(lastEntered);
     }
 
@@ -425,25 +463,34 @@ class ViewerApp extends React.Component {
             return null;
         }
 
-        let lastEntered = this.state.lastEntered;
         let currentFocus = this.state.currentFocus;
 
         let items = [];
         for (var i = 0; i < suggestions.length; ++i) {
-            let verb = suggestions[i];
-            let divClasses = "p-2 border-b-2 border-gray-300 text-4xl lg:text-2xl";
+            let verb = suggestions[i].data.base;
+            let texts = suggestions[i].text;
+            let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
             if (i == currentFocus) {
                 divClasses += " bg-blue-500 text-white";
             } else {
                 divClasses += " bg-white text-gray-700";
             }
+            let parts = [];
+            for (var j = 0; j < texts.length; ++j) {
+                let text = texts[j];
+                if (text.hl) {
+                    parts.push(<strong key={parts.length}>{text.text}</strong>);
+                } else {
+                    parts.push(<span key={parts.length}>{text.text}</span>);
+                }
+            }
+            parts.push(<i key={parts.length}>→ {verb}</i>)
             items.push(
                 <div
-                    onClick={this.onSuggestionClick}
+                    onClick={(e) => { this.onSuggestionClick(verb, e) }}
+                    key={i}
                     className={divClasses} >
-                    <strong>{verb.substring(0, lastEntered.length)}</strong>
-                    {verb.substring(lastEntered.length)}
-                    <input type="hidden" value={verb} />
+                    {parts}
                 </div>
             );
         }
