@@ -434,7 +434,7 @@ class ViewerApp extends React.Component {
             return null;
         }
         return (
-            <div className="text-orange-600 p-5">
+            <div className="text-3xl lg:text-sm text-orange-600 p-5">
                 {warning}
             </div>
         )
