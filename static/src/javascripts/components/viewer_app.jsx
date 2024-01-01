@@ -170,12 +170,13 @@ class ViewerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
     }
 
-    makeState(verb, lastEntered, sentenceType, tenses) {
+    makeState(verb, lastEntered, sentenceType, tenses, warning) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
             verb: verb,
             lastEntered: lastEntered,
+            warning: warning,
             sentenceType: sentenceType,
             tenses: tenses,
             examples: pickExamples(verb),
@@ -192,6 +193,7 @@ class ViewerApp extends React.Component {
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tenses */ [],
+            /* warning */ null,
         );
     }
 
@@ -203,17 +205,20 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
+        var warning = null;
         try {
             tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
             setPageTitle(verb);
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
+            warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
         }
         return this.makeState(
             verb,
             /* lastEntered */ verb,
             sentenceType,
             tenses,
+            warning,
         );
     }
 
@@ -423,6 +428,18 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderWarning() {
+        let warning = this.state.warning;
+        if (warning == null) {
+            return null;
+        }
+        return (
+            <div className="text-orange-600 p-5">
+                {warning}
+            </div>
+        )
+    }
+
     renderTenses() {
         if (this.state.tenses.length == 0) {
             return this.renderImage();
@@ -575,6 +592,7 @@ class ViewerApp extends React.Component {
                         className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
                     />
                 </form>
+                {this.renderWarning()}
                 {this.renderTenses()}
             </div>
         );

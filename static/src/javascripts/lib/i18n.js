@@ -100,6 +100,7 @@ function prepareTranslations() {
     setEnRuKz(map, "hintEnterVerb", "Enter verb", "Введите глагол", "Етістік енгізіңіз");
     setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
     setEnRuKz(map, "or", "or", "или", "әлде");
+    setEnRu(map, "failed_recognize_verb", "Failed to recognize initial form of Kazakh verb", "Не удалось разпознать начальную форму казахского глагола");
 
     return map;
 }
