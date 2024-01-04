@@ -13,6 +13,8 @@ import { renderOptionsWithI18nKeys } from "../lib/react_util";
 import { makeSuggestRequest } from '../lib/requests';
 import {
     buildViewerUrl,
+    extractSsrVerb,
+    isSsrPage,
     parseParams
 } from "../lib/url";
 import { generateVerbForms } from '../lib/verb_forms';
@@ -198,6 +200,12 @@ class ViewerApp extends React.Component {
     }
 
     readUrlState() {
+        if (isSsrPage()) {
+            const verb = extractSsrVerb();
+            const url = buildViewerUrl(verb, SENTENCE_TYPES[0]);
+            window.location.href = url;
+            return;
+        }
         const params = parseParams();
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
@@ -533,7 +541,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            let link = `${document.location.pathname}?verb=${verb}`;
+            const link = buildViewerUrl(verb, SENTENCE_TYPES[0]);
             if (i > 0) {
                 items.push(
                     <span

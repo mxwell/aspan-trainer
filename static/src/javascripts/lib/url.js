@@ -15,22 +15,36 @@ function parseParams() {
     return result;
 }
 
+function isSsrPage() {
+    return window.location.pathname.startsWith("/ssr/");
+}
+
+function extractSsrVerb() {
+    const path = window.location.pathname;
+    const slash = path.lastIndexOf("/");
+    const ext = path.lastIndexOf(".html");
+    if (slash < 0 || ext < 0 || slash + 1 >= ext) {
+        return null;
+    }
+    return decodeURI(path.substring(slash + 1, ext)).replace(/_/g, " ");
+}
+
 function buildViewerUrl(verb, sentenceType) {
-    const url = window.location.href;
-    const qMark = url.indexOf("?");
-    const prefix = (qMark >= 0) ? url.substring(0, qMark) : url;
+    const path = isSsrPage() ? "/" : window.location.pathname;
     if (verb != null) {
         let params = [];
         params.push(`verb=${encodeURI(verb)}`);
         if (sentenceType != null) {
             params.push(`sentence_type=${sentenceType.toLowerCase()}`);
         }
-        return `${prefix}?${params.join("&")}`;
+        return `${path}?${params.join("&")}`;
     }
-    return prefix;
+    return path;
 }
 
 export {
     buildViewerUrl,
+    extractSsrVerb,
+    isSsrPage,
     parseParams,
 };

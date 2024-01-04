@@ -4,6 +4,7 @@ import argparse
 from bs4 import BeautifulSoup
 import logging
 import os
+import urllib.parse
 
 
 def main():
@@ -16,8 +17,10 @@ def main():
 
     scrapped_path = args.input
     base_name = os.path.basename(scrapped_path)
+
     noext_name = os.path.splitext(base_name)[0]
-    additional_files = f"{noext_name}_files"
+    encoded_name = urllib.parse.quote(noext_name)
+    additional_files = f"{encoded_name}_files"
 
     def strip_directory_name(link):
         if link.startswith(additional_files):
