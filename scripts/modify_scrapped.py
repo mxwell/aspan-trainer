@@ -68,9 +68,11 @@ def main():
             if viewer_root:
                 # Wrap the div with noscript tag.
                 noscript = soup.new_tag("noscript")
-                viewer_root.replace_with(noscript)
-                noscript.append(viewer_root)
-                print(soup.prettify())
+                for item in viewer_root.contents:
+                    noscript.append(item)
+                viewer_root.clear()
+                viewer_root.append(noscript)
+                print(soup)
             else:
                 logging.error("No div with id 'viewer_root' found in the provided HTML.")
 
