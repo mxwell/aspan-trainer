@@ -102,6 +102,10 @@ function prepareTranslations() {
     setEnRuKz(map, "or", "or", "или", "әлде");
     setEnRu(map, "failed_recognize_verb", "Failed to recognize initial form of Kazakh verb", "Не удалось разпознать начальную форму казахского глагола");
 
+    /* side quiz */
+    setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");
+    setEnRu(map, "what_verb_form", "What is the verb form?", "Что это за форма глагола?");
+
     return map;
 }
 

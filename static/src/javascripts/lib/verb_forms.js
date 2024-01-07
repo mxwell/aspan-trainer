@@ -8,6 +8,7 @@ import {
     POSSESSIVE_PRONOUN,
     getPronounByParams,
 } from './grammar_utils';
+import { getRandomInt, pickRandom } from './random';
 
 class VerbForm {
     constructor(pronoun, verbPhrase) {
@@ -127,4 +128,86 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         (person, number) => verbBuilder.canClause(person, number, sentenceType, shak),
     ));
     return tenses;
+}
+
+const CASE_KEYS = [
+    "presentTransitive",
+    "presentContinuous",
+    "remotePastTense",
+    "pastUncertainTense",
+    "pastTransitiveTense",
+    "pastTense",
+    "possibleFuture",
+    "intentionFuture",
+    "conditionalMood",
+    "imperativeMood",
+    "optativeMood",
+];
+
+function createFormById(verbBuider, person, number, sentenceType, id) {
+    switch (id) {
+        case 0:
+            return verbBuider.presentTransitiveForm(person, number, sentenceType);
+        case 1:
+            return verbBuider.presentContinuousForm(person, number, sentenceType, new VerbBuilder("жату"));
+        case 2:
+            return verbBuider.remotePastTense(person, number, sentenceType);
+        case 3:
+            return verbBuider.pastUncertainTense(person, number, sentenceType);
+        case 4:
+            return verbBuider.pastTransitiveTense(person, number, sentenceType);
+        case 5:
+            return verbBuider.pastForm(person, number, sentenceType);
+        case 6:
+            return verbBuider.possibleFutureForm(person, number, sentenceType);
+        case 7:
+            return verbBuider.intentionFutureForm(person, number, sentenceType);
+        case 8:
+            return verbBuider.conditionalMood(person, number, sentenceType);
+        case 9:
+            return verbBuider.imperativeMood(person, number, sentenceType);
+        case 10:
+            return verbBuider.wantClause(person, number, sentenceType);
+        default:
+            return null;
+    }
+}
+
+class SideQuizTask {
+    constructor(subject, caseKeys, correct) {
+        this.subject = subject;
+        this.caseKeys = caseKeys;
+        this.correct = correct;
+    }
+}
+
+export function createSideQuizTask(verb, forceExceptional, sentenceType) {
+    let caseIds = [];
+    let caseKeys = [];
+    let attempts = 0;
+    while (caseIds.length < 4) {
+        while (true) {
+            let id = getRandomInt(CASE_KEYS.length);
+            ++attempts;
+            if (caseIds.indexOf(id) >= 0) {
+                if (attempts > 100) {
+                    return null;
+                }
+                continue;
+            }
+            caseIds.push(id);
+            caseKeys.push(CASE_KEYS[id]);
+            break;
+        }
+    }
+    let verbBuilder = new VerbBuilder(verb, forceExceptional);
+    let person = pickRandom(GRAMMAR_PERSONS);
+    let number = pickRandom(GRAMMAR_NUMBERS);
+    let correct = getRandomInt(caseIds.length);
+    let phrasal = createFormById(verbBuilder, person, number, sentenceType, caseIds[correct]);
+    return new SideQuizTask(
+        phrasal.raw,
+        caseKeys,
+        correct
+    );
 }

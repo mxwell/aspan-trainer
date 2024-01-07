@@ -17,7 +17,8 @@ import {
     isSsrPage,
     parseParams
 } from "../lib/url";
-import { generateVerbForms } from '../lib/verb_forms';
+import { generateVerbForms, createSideQuizTask } from '../lib/verb_forms';
+import SideQuiz from './side_quiz';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -139,12 +140,12 @@ function getInitiallyShown(collapse, tenses) {
     return shown;
 }
 
-function pickExamples(chosenVerb) {
-    if (PRESET_VIEWER_VERBS.length < 3) {
+function pickExamples(chosenVerb, exampleCount) {
+    if (PRESET_VIEWER_VERBS.length < exampleCount + 1) {
         return [];
     }
     let verbs = [];
-    while (verbs.length < 2) {
+    while (verbs.length < exampleCount) {
         while (true) {
             let verb = pickRandom(PRESET_VIEWER_VERBS);
             if (verb == chosenVerb) continue;
@@ -170,22 +171,36 @@ class ViewerApp extends React.Component {
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+
+        this.onQuizSelection = this.onQuizSelection.bind(this);
+        this.onQuizCompletion = this.onQuizCompletion.bind(this);
     }
 
     makeState(verb, lastEntered, sentenceType, tenses, warning) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
+        let quizVerb = pickExamples(verb, 1)[0];
+        let sideQuizTask = createSideQuizTask(quizVerb, true, SENTENCE_TYPES[0]);
+        let quizState = (collapse || sideQuizTask == null) ? null : {
+            taskDescription: i18n("what_verb_form", DEFAULT_LANG),
+            taskSubject: sideQuizTask.subject,
+            cases: sideQuizTask.caseKeys,
+            correct: sideQuizTask.correct,
+            selected: -1,
+            completed: false,
+        };
         return {
             verb: verb,
             lastEntered: lastEntered,
             warning: warning,
             sentenceType: sentenceType,
             tenses: tenses,
-            examples: pickExamples(verb),
+            examples: pickExamples(verb, 2),
             collapse: collapse,
             shown: shown,
             suggestions: DEFAULT_SUGGESTIONS,
             currentFocus: DEFAULT_SUGGESTION_POS,
+            quizState: quizState,
         };
     }
 
@@ -567,41 +582,78 @@ class ViewerApp extends React.Component {
         );
     }
 
+    onQuizCompletion() {
+        // nothing yet
+    }
+
+    onQuizSelection(position) {
+        let quizState = this.state.quizState;
+        quizState.selected = position;
+        this.setState ({ quizState });
+        setTimeout(this.onQuizCompletion, 1000);
+    }
+
+    renderQuiz() {
+        let quizState = this.state.quizState;
+        if (quizState && !quizState.completed) {
+            return (
+                <div className="flex flex-col justify-start pl-16 pt-32">
+                    <SideQuiz
+                        lang={DEFAULT_LANG}
+                        taskDescription={quizState.taskDescription}
+                        taskSubject={quizState.taskSubject}
+                        cases={quizState.cases}
+                        correct={quizState.correct}
+                        selected={quizState.selected}
+                        completed={quizState.completed}
+                        onQuizSelection={this.onQuizSelection}
+                    />
+                    <div></div>
+                </div>
+            );
+        } else {
+            return null;
+        }
+    }
+
     render () {
         return (
-            <div className="md:py-6" onClick={this.onBgClick}>
-                <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
-                    <div className="lg:px-2">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                size="20"
-                                maxLength="100"
-                                value={this.state.lastEntered}
-                                onChange={this.onChange}
-                                onKeyDown={this.onKeyDown}
-                                placeholder={this.i18n("hintEnterVerb")}
-                                className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                                autoFocus />
-                            {this.renderSuggestions()}
+            <div className="flex">
+                <div className="md:py-6" onClick={this.onBgClick}>
+                    <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
+                        <div className="lg:px-2">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    size="20"
+                                    maxLength="100"
+                                    value={this.state.lastEntered}
+                                    onChange={this.onChange}
+                                    onKeyDown={this.onKeyDown}
+                                    placeholder={this.i18n("hintEnterVerb")}
+                                    className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                                    autoFocus />
+                                {this.renderSuggestions()}
+                            </div>
+                            {this.renderExampleVerbs()}
                         </div>
-                        {this.renderExampleVerbs()}
-                    </div>
-                    <select
-                        required
-                        value={this.state.sentenceType}
-                        onChange={this.onSentenceTypeSelect}
-                        className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
-                        {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
-                    </select>
-                    <input
-                        type="submit"
-                        value={this.i18n("buttonSubmit")}
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
-                    />
-                </form>
-                {this.renderWarning()}
-                {this.renderTenses()}
+                        <select
+                            required
+                            value={this.state.sentenceType}
+                            onChange={this.onSentenceTypeSelect}
+                            className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
+                        </select>
+                        <input
+                            type="submit"
+                            value={this.i18n("buttonSubmit")}
+                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                        />
+                    </form>
+                    {this.renderWarning()}
+                    {this.renderTenses()}
+                </div>
+                {this.renderQuiz()}
             </div>
         );
     }
