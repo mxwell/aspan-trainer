@@ -608,7 +608,6 @@ class ViewerApp extends React.Component {
                         completed={quizState.completed}
                         onQuizSelection={this.onQuizSelection}
                     />
-                    <div></div>
                 </div>
             );
         } else {
