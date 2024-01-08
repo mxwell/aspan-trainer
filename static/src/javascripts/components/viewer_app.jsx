@@ -8,7 +8,7 @@ import {
     I18N_LANG_RU,
     i18n
 } from '../lib/i18n';
-import { pickRandom } from '../lib/random';
+import { getRandomInt, pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
 import { makeSuggestRequest } from '../lib/requests';
 import {
@@ -179,16 +179,7 @@ class ViewerApp extends React.Component {
     makeState(verb, lastEntered, sentenceType, tenses, warning) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
-        let quizVerb = pickExamples(verb, 1)[0];
-        let sideQuizTask = createSideQuizTask(quizVerb, true, SENTENCE_TYPES[0]);
-        let quizState = (collapse || sideQuizTask == null) ? null : {
-            taskDescription: i18n("what_verb_form", DEFAULT_LANG),
-            taskSubject: sideQuizTask.subject,
-            cases: sideQuizTask.caseKeys,
-            correct: sideQuizTask.correct,
-            selected: -1,
-            completed: false,
-        };
+        let quizState = this.buildSideQuizState(collapse, verb);
         return {
             verb: verb,
             lastEntered: lastEntered,
@@ -243,6 +234,25 @@ class ViewerApp extends React.Component {
             tenses,
             warning,
         );
+    }
+
+    buildSideQuizState(collapse, chosenVerb) {
+        if (collapse) {
+            return null;
+        }
+        let verb = pickExamples(chosenVerb, 1)[0];
+        let task = createSideQuizTask(verb, true, SENTENCE_TYPES[0]);
+        if (task == null) {
+            return null;
+        }
+        return {
+            taskDescription: this.i18n("what_verb_form"),
+            taskSubject: task.subject,
+            cases: task.caseKeys,
+            correct: task.correct,
+            selected: -1,
+            completed: false,
+        };
     }
 
     i18n(key) {
@@ -583,14 +593,15 @@ class ViewerApp extends React.Component {
     }
 
     onQuizCompletion() {
-        // nothing yet
+        let quizState = this.buildSideQuizState(this.state.collapse, this.state.verb);
+        this.setState({ quizState });
     }
 
     onQuizSelection(position) {
         let quizState = this.state.quizState;
         quizState.selected = position;
         this.setState ({ quizState });
-        setTimeout(this.onQuizCompletion, 1000);
+        setTimeout(this.onQuizCompletion, 2000);
     }
 
     renderQuiz() {
