@@ -58,7 +58,7 @@ function prepareTranslations() {
     setEnRu(map, "StartQuiz", "Start quiz", "Начать тест");
     setEnRu(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
-        "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение"
+        "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение."
     );
     setEnRu(map, "RegularVerb", "Regular verb", "Обычный глагол");
     setEnRu(map, "ExceptionVerb", "Exception verb", "Глагол-исключение");
@@ -101,6 +101,14 @@ function prepareTranslations() {
     setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
     setEnRuKz(map, "or", "or", "или", "әлде");
     setEnRu(map, "failed_recognize_verb", "Failed to recognize initial form of Kazakh verb", "Не удалось разпознать начальную форму казахского глагола");
+    setEnRu(map, "switch_to_exception",
+        "Switch to the exception verb",
+        "Переключиться на глагол-исключение"
+    );
+    setEnRu(map, "switch_to_regular",
+        "Switch to the regular verb",
+        "Переключиться на обычный глагол"
+    );
 
     /* side quiz */
     setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");

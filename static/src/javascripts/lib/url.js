@@ -29,13 +29,16 @@ function extractSsrVerb() {
     return decodeURI(path.substring(slash + 1, ext)).replace(/_/g, " ");
 }
 
-function buildViewerUrl(verb, sentenceType) {
+function buildViewerUrl(verb, sentenceType, forceExceptional) {
     const path = isSsrPage() ? "/" : window.location.pathname;
     if (verb != null) {
         let params = [];
         params.push(`verb=${encodeURI(verb)}`);
         if (sentenceType != null) {
             params.push(`sentence_type=${sentenceType.toLowerCase()}`);
+        }
+        if (forceExceptional == true) {
+            params.push(`exception=true`);
         }
         return `${path}?${params.join("&")}`;
     }

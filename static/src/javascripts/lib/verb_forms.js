@@ -1,7 +1,8 @@
 import {
     GRAMMAR_PERSONS,
     GRAMMAR_NUMBERS,
-    VerbBuilder
+    VerbBuilder,
+    isVerbOptionalException
 } from './aspan';
 import {
     NOMINATIVE_PRONOUN,
@@ -210,4 +211,8 @@ export function createSideQuizTask(verb, forceExceptional, sentenceType) {
         caseKeys,
         correct
     );
+}
+
+export function checkOptionalExceptionVerb(verb) {
+    return isVerbOptionalException(verb);
 }

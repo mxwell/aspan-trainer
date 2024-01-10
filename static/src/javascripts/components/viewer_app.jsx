@@ -17,7 +17,11 @@ import {
     isSsrPage,
     parseParams
 } from "../lib/url";
-import { generateVerbForms, createSideQuizTask } from '../lib/verb_forms';
+import {
+    checkOptionalExceptionVerb,
+    createSideQuizTask,
+    generateVerbForms,
+} from '../lib/verb_forms';
 import SideQuiz from './side_quiz';
 
 const SENTENCE_TYPES = [
@@ -176,14 +180,16 @@ class ViewerApp extends React.Component {
         this.onQuizCompletion = this.onQuizCompletion.bind(this);
     }
 
-    makeState(verb, lastEntered, sentenceType, tenses, warning) {
+    makeState(verb, forceExceptional, lastEntered, sentenceType, tenses, warning, showVerbSwitcher) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         let quizState = this.buildSideQuizState(collapse, verb);
         return {
             verb: verb,
+            forceExceptional: forceExceptional,
             lastEntered: lastEntered,
             warning: warning,
+            showVerbSwitcher: showVerbSwitcher,
             sentenceType: sentenceType,
             tenses: tenses,
             examples: pickExamples(verb, 2),
@@ -198,17 +204,19 @@ class ViewerApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* verb */ "",
+            /* forceExceptional */ false,
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tenses */ [],
             /* warning */ null,
+            /* exceptionWarning */ null,
         );
     }
 
     readUrlState() {
         if (isSsrPage()) {
             const verb = extractSsrVerb();
-            const url = buildViewerUrl(verb, SENTENCE_TYPES[0]);
+            const url = buildViewerUrl(verb, SENTENCE_TYPES[0], false);
             window.location.href = url;
             return;
         }
@@ -217,22 +225,30 @@ class ViewerApp extends React.Component {
         if (verb == null || verb.length <= 0) {
             return null;
         }
+        const forceExceptional = params.exception == "true"
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
         var warning = null;
+        var showVerbSwitcher = false;
         try {
-            tenses = generateVerbForms(verb.toLowerCase(), "", false, sentenceType);
+            tenses = generateVerbForms(verb.toLowerCase(), "", forceExceptional, sentenceType);
             setPageTitle(verb);
+            if (checkOptionalExceptionVerb(verb)) {
+                warning = this.i18n("chooseVerbExceptionOrNot");
+                showVerbSwitcher = true;
+            }
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
             warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
         }
         return this.makeState(
             verb,
+            forceExceptional,
             /* lastEntered */ verb,
             sentenceType,
             tenses,
             warning,
+            showVerbSwitcher,
         );
     }
 
@@ -382,7 +398,7 @@ class ViewerApp extends React.Component {
     onSubmit(e) {
         e.preventDefault();
         if (RELOAD_ON_SUBMIT) {
-            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType);
+            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType, false);
             window.location.href = url;
         } else {
             let tenses = generateVerbForms(this.state.lastEntered, "", false, this.state.sentenceType);
@@ -461,6 +477,23 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderSwitcher() {
+        if (!this.state.showVerbSwitcher) {
+            return null;
+        }
+        const oppositeUrl = buildViewerUrl(
+            this.state.verb,
+            this.state.sentenceType,
+            !this.state.forceExceptional
+        );
+        const textKey = this.state.forceExceptional ? "switch_to_regular" : "switch_to_exception";
+        return (
+            <p className="my-4">
+                <a className="underline" href={oppositeUrl}>{this.i18n(textKey)}</a>
+            </p>
+        );
+    }
+
     renderWarning() {
         let warning = this.state.warning;
         if (warning == null) {
@@ -469,8 +502,9 @@ class ViewerApp extends React.Component {
         return (
             <div className="text-3xl lg:text-sm text-orange-600 p-5">
                 {warning}
+                {this.renderSwitcher()}
             </div>
-        )
+        );
     }
 
     renderTenses() {
@@ -566,7 +600,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            const link = buildViewerUrl(verb, SENTENCE_TYPES[0]);
+            const link = buildViewerUrl(verb, SENTENCE_TYPES[0], false);
             if (i > 0) {
                 items.push(
                     <span
