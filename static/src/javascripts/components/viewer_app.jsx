@@ -397,11 +397,12 @@ class ViewerApp extends React.Component {
 
     onSubmit(e) {
         e.preventDefault();
+        const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
         if (RELOAD_ON_SUBMIT) {
-            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType, false);
+            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType, forceExceptional);
             window.location.href = url;
         } else {
-            let tenses = generateVerbForms(this.state.lastEntered, "", false, this.state.sentenceType);
+            let tenses = generateVerbForms(this.state.lastEntered, "", forceExceptional, this.state.sentenceType);
             this.setState({ tenses });
         }
     }
