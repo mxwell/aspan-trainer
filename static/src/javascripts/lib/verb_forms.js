@@ -207,7 +207,7 @@ export function createSideQuizTask(verb, forceExceptional, sentenceType) {
     let correct = getRandomInt(caseIds.length);
     let phrasal = createFormById(verbBuilder, person, number, sentenceType, caseIds[correct]);
     return new SideQuizTask(
-        phrasal.raw,
+        phrasal,
         caseKeys,
         correct
     );

@@ -642,12 +642,15 @@ class ViewerApp extends React.Component {
     renderQuiz() {
         let quizState = this.state.quizState;
         if (quizState && !quizState.completed) {
+            const subject = quizState.taskSubject;
+            const subjectAfterCompletion = highlightPhrasal(subject);
             return (
                 <div className="flex flex-col justify-start pl-16 pt-32">
                     <SideQuiz
                         lang={DEFAULT_LANG}
                         taskDescription={quizState.taskDescription}
-                        taskSubject={quizState.taskSubject}
+                        taskSubject={subject.raw}
+                        subjectAfterCompletion={subjectAfterCompletion}
                         cases={quizState.cases}
                         correct={quizState.correct}
                         selected={quizState.selected}

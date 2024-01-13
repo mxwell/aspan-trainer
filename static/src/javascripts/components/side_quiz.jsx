@@ -14,6 +14,14 @@ class SideQuiz extends React.Component {
         this.props.onQuizSelection(position);
     }
 
+    renderSubject() {
+        if (this.props.selected >= 0) {
+            return this.props.subjectAfterCompletion;
+        } else {
+            return this.props.taskSubject;
+        }
+    }
+
     renderCases() {
         let listItems = [];
 
@@ -29,6 +37,8 @@ class SideQuiz extends React.Component {
                 } else {
                     classes += " bg-red-600";
                 }
+            } else if (selected >= 0 && i == this.props.correct) {
+                classes += " bg-green-600";
             } else {
                 classes += " bg-white text-teal-500";
                 if (selected < 0) {
@@ -60,7 +70,7 @@ class SideQuiz extends React.Component {
             <div className="bg-teal-400 p-5 text-white">
                 <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
                 <h4 className="text-2xl text-center">{this.props.taskDescription}</h4>
-                <h3 className="text-4xl text-center">{this.props.taskSubject}</h3>
+                <h3 className="text-4xl text-center">{this.renderSubject()}</h3>
                 {this.renderCases()}
             </div>
         );
