@@ -4,6 +4,7 @@ import argparse
 import logging
 from lxml import etree
 import os
+import urllib.parse
 
 
 def collect_html_names(input_directory):
@@ -20,7 +21,8 @@ def collect_html_names(input_directory):
 def make_urls(prefix, html_names):
     result = []
     for name in html_names:
-        result.append(f"{prefix}{name}")
+        escaped = urllib.parse.quote(name)
+        result.append(f"{prefix}{escaped}")
     return result
 
 
