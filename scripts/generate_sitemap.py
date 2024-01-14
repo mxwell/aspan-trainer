@@ -18,11 +18,22 @@ def collect_html_names(input_directory):
     return result
 
 
-def make_urls(prefix, html_names):
+def make_ssr_urls(prefix, html_names):
     result = []
     for name in html_names:
         escaped = urllib.parse.quote(name)
-        result.append(f"{prefix}{escaped}")
+        result.append(f"{prefix}/ssr/{escaped}")
+    return result
+
+
+def make_spa_urls(prefix, html_names):
+    result = []
+    for name in html_names:
+        if not name.endswith(".html"):
+            continue
+        verb = name[:-5].replace("_", " ")
+        escaped = urllib.parse.quote_plus(verb)
+        result.append(f"{prefix}/?verb={escaped}")
     return result
 
 
@@ -37,7 +48,7 @@ def generate_sitemap(url_list):
         loc.text = url
 
         lastmod = etree.SubElement(url_element, "lastmod")
-        lastmod.text = "2024-01-05"
+        lastmod.text = "2024-01-14"
 
         changefreq = etree.SubElement(url_element, "changefreq")
         changefreq.text = "monthly"
@@ -62,7 +73,8 @@ def main():
     args = parser.parse_args()
 
     html_names = collect_html_names(args.input_directory)
-    urls = make_urls(args.url_prefix, html_names)
+    urls = make_ssr_urls(args.url_prefix, html_names)
+    urls += make_spa_urls(args.url_prefix, html_names)
     generate_sitemap(urls)
 
 
