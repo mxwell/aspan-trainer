@@ -1,0 +1,37 @@
+mixin a_viewer_page(title, description, contact_us, yt_channel, tg_group, powered, js_path)
+    doctype html
+    html(lang="ru")
+        head
+            meta(charset="utf8")
+            meta(property="og:title", content= title)
+            meta(property="og:description", content= description)
+            meta(property="og:site_name", content= title)
+            title= title
+            link(rel="stylesheet", href="../css/page.pcss")
+            link(rel="icon", href="../images/favicon.png", type="image/png")
+        body
+            div.page-grid
+                header(class="bg-blue-800 text-white p-1 flex justify-between")
+                    div(class="ml-2 md:mx-8 my-1")
+                        a(class="text-4xl lg:text-2xl text-bold", href="?")
+                            = title
+                            <sup class="text-red-400">β</sup>
+                        p(class="sm:invisible lg:visible text-xs lg:text-sm text-yellow-300")
+                            = description
+                article
+                    block
+                footer(class="bg-blue-800 text-white flex justify-between")
+                    span © 2023-2024 Murat Khairulin
+                    div(class="flex")
+                        span(class="text-xl md:text-sm")
+                            = contact_us
+                        a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://www.youtube.com/@KazakhVerb", target="_blank")
+                            = yt_channel
+                        span |
+                        a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://t.me/kazakhverb", target="_blank")
+                            = tg_group
+                    span(class="flex flex-col")
+                        a(class="text-sm", href="https://github.com/mxwell/aspan")
+                            = powered
+            script(src= js_path)
+            noscript() The web page requires Javascript enabled in the browser to work

@@ -1,35 +1,3 @@
-mixin a_page(title)
-    doctype html
-    html(lang="ru")
-        head
-            meta(charset="utf8")
-            meta(property="og:title", content= title)
-            meta(property="og:description", content="Tables of Kazakh verb forms, tenses and moods")
-            meta(property="og:site_name", content="Kazakh Verb")
-            title= title
-            link(rel="stylesheet", href="../css/page.pcss")
-            link(rel="icon", href="../images/favicon.png", type="image/png")
-        body
-            div.page-grid
-                header(class="bg-blue-800 text-white p-1 flex justify-between")
-                    div(class="ml-2 md:mx-8 my-1")
-                        a(class="text-4xl lg:text-2xl text-bold", href="?")
-                            = title
-                            <sup class="text-red-400">β</sup>
-                        p(class="sm:invisible lg:visible text-xs lg:text-sm text-yellow-300") Таблицы форм казахских глаголов – времена и наклонения
-                article
-                    block
-                footer(class="bg-blue-800 text-white flex justify-between")
-                    span © 2023-2024 Murat Khairulin
-                    div(class="flex")
-                        span(class="text-xl md:text-sm") Contact us:
-                        a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://www.youtube.com/@KazakhVerb", target="_blank") Youtube channel
-                        span |
-                        a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://t.me/kazakhverb", target="_blank") Telegram group
-                    span(class="flex flex-col")
-                        a(class="text-sm", href="https://github.com/mxwell/aspan") Powered by Aspan
-            script(src="../javascripts/viewer.jsx")
-            noscript() The web page requires Javascript enabled in the browser to work
-
-+a_page("Kazakh Verb")
+include partials/viewer_page
++a_viewer_page("Kazakh Verb", "Таблицы форм казахских глаголов – времена и наклонения", "Наши контакты:", "Канал Youtube", "Группа Telegram", "Работает на Aspan", "../javascripts/viewer.jsx")
     div#viewer_root(class="md:flex md:justify-center")

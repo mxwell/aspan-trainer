@@ -3,9 +3,7 @@ import {
     PHRASAL_PART_TYPE
 } from '../lib/aspan';
 import {
-    I18N_LANG_EN,
     I18N_LANG_KZ,
-    I18N_LANG_RU,
     i18n
 } from '../lib/i18n';
 import { getRandomInt, pickRandom } from '../lib/random';
@@ -39,7 +37,6 @@ const SENTENCE_TYPES = [
  *   Advantage: it can work indefinitely without connection to backend.
  */
 const RELOAD_ON_SUBMIT = true;
-const DEFAULT_LANG = I18N_LANG_RU;
 const ENABLE_SUGGEST = false;
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
@@ -272,7 +269,7 @@ class ViewerApp extends React.Component {
     }
 
     i18n(key) {
-        return i18n(key, DEFAULT_LANG);
+        return i18n(key, this.props.lang);
     }
 
     async handleSuggestResponse(context, responseJsonPromise) {
@@ -647,7 +644,7 @@ class ViewerApp extends React.Component {
             return (
                 <div className="flex flex-col justify-start pl-16 pt-32">
                     <SideQuiz
-                        lang={DEFAULT_LANG}
+                        lang={this.props.lang}
                         taskDescription={quizState.taskDescription}
                         taskSubject={subject.raw}
                         subjectAfterCompletion={subjectAfterCompletion}
@@ -690,7 +687,7 @@ class ViewerApp extends React.Component {
                             value={this.state.sentenceType}
                             onChange={this.onSentenceTypeSelect}
                             className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
-                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, DEFAULT_LANG)}
+                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, this.props.lang)}
                         </select>
                         <input
                             type="submit"
