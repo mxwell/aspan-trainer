@@ -167,6 +167,18 @@ function clearUiLang() {
     window.localStorage.removeItem(UI_LANG_KEY);
 }
 
+function toggleLangSwitcher() {
+    const langSwitcherContent = document.getElementById("lang_switcher_content");
+    if (langSwitcherContent) {
+        langSwitcherContent.classList.toggle("hidden");
+    }
+}
+
+function initUiLangSwitcher() {
+    const langSwitcherButton = document.getElementById("lang_switcher_btn");
+    langSwitcherButton.addEventListener('click', toggleLangSwitcher);
+}
+
 export {
     I18N_LANG_EN,
     I18N_LANG_RU,
@@ -175,4 +187,5 @@ export {
     storeUiLang,
     retrieveUiLang,
     clearUiLang,
+    initUiLangSwitcher,
 };
