@@ -428,7 +428,7 @@ class ViewerApp extends React.Component {
         var clickListener = collapse ? this.onTenseTitleClick : null;
         var icon = collapse ? (
             <span className="pt-6 pr-4 lg:pt-1 lg:pr-1">
-                <img src={shown ? "expand_up.svg" : "expand_down.svg"} />
+                <img src={shown ? "/expand_up.svg" : "/expand_down.svg"} />
             </span>
         ) : null;
 
