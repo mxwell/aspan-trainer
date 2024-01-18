@@ -1,9 +1,11 @@
 #! /usr/bin/python3
 
 import argparse
+from dataclasses import dataclass, field
 import logging
 from lxml import etree
 import os
+from typing import List
 import urllib.parse
 
 
@@ -18,40 +20,79 @@ def collect_html_names(input_directory):
     return result
 
 
-def make_ssr_urls(prefix, html_names):
+@dataclass
+class WebsiteInfo:
+    main_url: str
+    lastmod: str
+    languages: List[str] = field(default_factory=list)
+    alternates: List[str] = field(default_factory=list)
+
+
+def make_ssr_urls(prefix, html_names, lastmod):
     result = []
     for name in html_names:
         escaped = urllib.parse.quote(name)
-        result.append(f"{prefix}/ssr/{escaped}")
+        result.append(WebsiteInfo(f"{prefix}/ssr/{escaped}", lastmod))
     return result
 
 
-def make_spa_urls(prefix, html_names):
+def make_spa_urls(prefix_by_language, main_language, html_names, lastmod):
     result = []
     for name in html_names:
         if not name.endswith(".html"):
             continue
         verb = name[:-5].replace("_", " ")
         escaped = urllib.parse.quote_plus(verb)
-        result.append(f"{prefix}/?verb={escaped}")
+        assert main_language in prefix_by_language
+        main_url = f"{prefix_by_language[main_language]}/?verb={escaped}"
+        languages = []
+        alternates = []
+        for language, prefix in prefix_by_language.items():
+            if language == main_language:
+                continue
+            languages.append(language)
+            alternates.append(f"{prefix}/?verb={escaped}")
+        result.append(WebsiteInfo(main_url, lastmod, languages, alternates))
     return result
 
 
 def generate_sitemap(url_list):
-    urlset = etree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+    namespaces = {
+        "xhtml": "http://www.w3.org/1999/xhtml",
+    }
+    # for prefix, uri in namespaces.items():
+    #    etree.register_namespace(prefix, uri)
+
+    urlset = etree.Element(
+        "urlset",
+        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9",
+        nsmap=namespaces
+    )
 
     # Iterate over URLs
-    for url in url_list:
+    for website_info in url_list:
         # Create a new element for each URL
         url_element = etree.SubElement(urlset, "url")
         loc = etree.SubElement(url_element, "loc")
-        loc.text = url
+        loc.text = website_info.main_url
 
         lastmod = etree.SubElement(url_element, "lastmod")
-        lastmod.text = "2024-01-14"
+        lastmod.text = website_info.lastmod
 
         changefreq = etree.SubElement(url_element, "changefreq")
         changefreq.text = "monthly"
+
+        alternates_count = len(website_info.alternates)
+        for i in range(alternates_count):
+            language = website_info.languages[i]
+            alternate = website_info.alternates[i]
+            xhtml_link = etree.SubElement(
+                url_element,
+                "{http://www.w3.org/1999/xhtml}link",
+                rel="alternate",
+                hreflang=language,
+                href=alternate
+            )
 
         # priority = etree.SubElement(url_element, "priority")
         # priority.text = "0.5"  # Example priority
@@ -68,13 +109,21 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Modify scrapped viewer page to produce a prerendered version.")
-    parser.add_argument("--url-prefix", type=str, required=True, help="URL prefix, goes before HTML file name")
+    parser.add_argument("--ru-url-prefix", type=str, required=True, help="URL prefix for Russian version, goes before HTML file name")
+    parser.add_argument("--en-url-prefix", type=str, required=True, help="URL prefix for English version, goes before HTML file name")
     parser.add_argument("--input-directory", "-i", type=str, required=True, help="Directory with HTML pages to put into sitemap")
+    parser.add_argument("--spa-last-mod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as lastmod for SPA URLs")
     args = parser.parse_args()
 
+    prefix_by_language = dict(
+        ru=args.ru_url_prefix,
+        en=args.en_url_prefix,
+    )
+    main_language = "ru"
+
     html_names = collect_html_names(args.input_directory)
-    urls = make_ssr_urls(args.url_prefix, html_names)
-    urls += make_spa_urls(args.url_prefix, html_names)
+    urls = make_ssr_urls(prefix_by_language[main_language], html_names, "2024-01-14")
+    urls += make_spa_urls(prefix_by_language, main_language, html_names, args.spa_last_mod)
     generate_sitemap(urls)
 
 
