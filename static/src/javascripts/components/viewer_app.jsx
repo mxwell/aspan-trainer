@@ -388,16 +388,25 @@ class ViewerApp extends React.Component {
         }
     }
 
+    reloadToState(verb, sentenceType, forceExceptional) {
+        const url = buildViewerUrl(verb, sentenceType, forceExceptional);
+        window.location.href = url;
+    }
+
     onSentenceTypeSelect(e) {
-        this.setState({ sentenceType: e.target.value });
+        const sentenceType = e.target.value;
+        if (this.state.tenses.length == 0 || this.state.lastEntered != this.state.verb) {
+            this.setState({ sentenceType });
+        } else {
+            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional);
+        }
     }
 
     onSubmit(e) {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
         if (RELOAD_ON_SUBMIT) {
-            const url = buildViewerUrl(this.state.lastEntered, this.state.sentenceType, forceExceptional);
-            window.location.href = url;
+            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional);
         } else {
             let tenses = generateVerbForms(this.state.lastEntered, "", forceExceptional, this.state.sentenceType);
             this.setState({ tenses });
