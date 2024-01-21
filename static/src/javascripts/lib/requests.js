@@ -48,7 +48,7 @@ function encodeQueryData(data) {
 
 function makeSuggestRequest(lastEntered, successCallback, errorCallback, context) {
     const query = encodeQueryData({part: lastEntered});
-    const url = `suggest?${query}`;
+    const url = `/suggest?${query}`;
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala");
 }
 
