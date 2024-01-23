@@ -4,6 +4,7 @@ import {
 } from '../lib/aspan';
 import {
     I18N_LANG_KZ,
+    I18N_LANG_RU,
     i18n
 } from '../lib/i18n';
 import { getRandomInt, pickRandom } from '../lib/random';
@@ -38,6 +39,7 @@ const SENTENCE_TYPES = [
  */
 const RELOAD_ON_SUBMIT = true;
 const ENABLE_SUGGEST = false;
+const ENABLE_TRANSLATIONS = true;
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
 
@@ -557,8 +559,10 @@ class ViewerApp extends React.Component {
         let currentFocus = this.state.currentFocus;
 
         let items = [];
+        let showTranslations = ENABLE_TRANSLATIONS && this.props.lang == I18N_LANG_RU;
         for (var i = 0; i < suggestions.length; ++i) {
-            let verb = suggestions[i].data.base;
+            let data = suggestions[i].data;
+            let verb = data.base;
             let texts = suggestions[i].text;
             let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
             if (i == currentFocus) {
@@ -567,6 +571,7 @@ class ViewerApp extends React.Component {
                 divClasses += " bg-white text-gray-700";
             }
             let parts = [];
+            let textFragments = [];
             for (var j = 0; j < texts.length; ++j) {
                 let text = texts[j];
                 if (text.hl) {
@@ -574,8 +579,17 @@ class ViewerApp extends React.Component {
                 } else {
                     parts.push(<span key={parts.length}>{text.text}</span>);
                 }
+                textFragments.push(text.text);
             }
-            parts.push(<i key={parts.length}>→ {verb}</i>)
+            if (verb != textFragments.join("")) {
+                parts.push(<span key={parts.length}>→ {verb}</span>);
+            }
+            if (showTranslations) {
+                let ruwkt = data.ruwkt;
+                if (ruwkt) {
+                    parts.push(<i className="text-gray-500" key={parts.length}> ≈ {ruwkt.join(", ")}</i>);
+                }
+            }
             items.push(
                 <div
                     onClick={(e) => { this.onSuggestionClick(verb, e) }}
