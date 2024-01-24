@@ -179,7 +179,7 @@ class ViewerApp extends React.Component {
         this.onQuizCompletion = this.onQuizCompletion.bind(this);
     }
 
-    makeState(verb, forceExceptional, lastEntered, sentenceType, tenses, warning, showVerbSwitcher) {
+    makeState(verb, forceExceptional, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         let quizState = this.buildSideQuizState(collapse, verb);
@@ -190,6 +190,7 @@ class ViewerApp extends React.Component {
             warning: warning,
             showVerbSwitcher: showVerbSwitcher,
             sentenceType: sentenceType,
+            translation: translation,
             tenses: tenses,
             examples: pickExamples(verb, 2),
             collapse: collapse,
@@ -206,6 +207,7 @@ class ViewerApp extends React.Component {
             /* forceExceptional */ false,
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
+            /* translation */ null,
             /* tenses */ [],
             /* warning */ null,
             /* exceptionWarning */ null,
@@ -226,6 +228,7 @@ class ViewerApp extends React.Component {
         }
         const forceExceptional = params.exception == "true"
         const sentenceType = parseSentenceType(params.sentence_type);
+        var translation = null;
         var tenses = [];
         var warning = null;
         var showVerbSwitcher = false;
@@ -245,6 +248,7 @@ class ViewerApp extends React.Component {
             forceExceptional,
             /* lastEntered */ verb,
             sentenceType,
+            translation,
             tenses,
             warning,
             showVerbSwitcher,
@@ -516,6 +520,23 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderTranslation() {
+        let translation = this.state.translation;
+        if (translation == null) {
+            return null;
+        }
+        return (
+            <div className="text-3xl lg:text-sm lg:mt-5 mx-3 lg:mx-5 p-5 bg-blue-100 text-gray-700">
+                <span className="italic pl-5">
+                    {translation.text}
+                </span>
+                <span className="pl-5 text-2xl lg:text-xs" title={translation.src_title}>
+                    <a href={translation.src_link} target="blank_">[↗]</a>
+                </span>
+            </div>
+        );
+    }
+
     renderTenses() {
         if (this.state.tenses.length == 0) {
             return this.renderImage();
@@ -719,6 +740,7 @@ class ViewerApp extends React.Component {
                         />
                     </form>
                     {this.renderWarning()}
+                    {this.renderTranslation()}
                     {this.renderTenses()}
                 </div>
                 {this.renderQuiz()}
