@@ -39,7 +39,7 @@ const SENTENCE_TYPES = [
  */
 const RELOAD_ON_SUBMIT = true;
 const ENABLE_SUGGEST = false;
-const ENABLE_TRANSLATIONS = true;
+const ENABLE_TRANSLATIONS = false;
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
 
@@ -163,7 +163,6 @@ function pickExamples(chosenVerb, exampleCount) {
 class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
-        this.state = this.readUrlState() || this.defaultState();
 
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -171,12 +170,16 @@ class ViewerApp extends React.Component {
         this.onSuggestionClick = this.onSuggestionClick.bind(this);
         this.handleSuggestResponse = this.handleSuggestResponse.bind(this);
         this.handleSuggestError = this.handleSuggestError.bind(this);
+        this.handleTranslateResponse = this.handleTranslateResponse.bind(this);
+        this.handleTranslateError = this.handleTranslateError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         this.onQuizSelection = this.onQuizSelection.bind(this);
         this.onQuizCompletion = this.onQuizCompletion.bind(this);
+
+        this.state = this.readUrlState() || this.defaultState();
     }
 
     makeState(verb, forceExceptional, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
@@ -228,12 +231,13 @@ class ViewerApp extends React.Component {
         }
         const forceExceptional = params.exception == "true"
         const sentenceType = parseSentenceType(params.sentence_type);
-        var translation = null;
         var tenses = [];
         var warning = null;
         var showVerbSwitcher = false;
         try {
-            tenses = generateVerbForms(verb.toLowerCase(), "", forceExceptional, sentenceType);
+            const verbL = verb.toLowerCase();
+            this.requestTranslation(verbL);
+            tenses = generateVerbForms(verbL, "", forceExceptional, sentenceType);
             setPageTitle(verb);
             if (checkOptionalExceptionVerb(verb)) {
                 warning = this.i18n("chooseVerbExceptionOrNot");
@@ -248,7 +252,7 @@ class ViewerApp extends React.Component {
             forceExceptional,
             /* lastEntered */ verb,
             sentenceType,
-            translation,
+            /* translation */ null,
             tenses,
             warning,
             showVerbSwitcher,
@@ -323,6 +327,44 @@ class ViewerApp extends React.Component {
             }
         }
         this.setState({ lastEntered });
+    }
+
+    async handleTranslateResponse(context, responseJsonPromise) {
+        let response = await responseJsonPromise;
+        let verb = context.verb;
+        let parts = [];
+        for (let i = 0; i < response.length; ++i) {
+            let item = response[i].data;
+            let ruwkt = item.ruwkt;
+            if (item.base == verb && ruwkt) {
+                for (let j = 0; j < ruwkt.length; ++j) {
+                    parts.push(ruwkt[j]);
+                }
+                break;
+            }
+        }
+        const translation = {
+            meanings: parts,
+            src_link: `https://ru.wiktionary.org/wiki/${verb}`,
+            src_title: "Викисловарь",
+        };
+        this.setState({ translation });
+    }
+
+    async handleTranslateError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from suggest: ${responseText}, verb for translation was ${context.verb}.`);
+    }
+
+    requestTranslation(verb) {
+        if (this.props.lang == I18N_LANG_RU && verb.length > 0) {
+            makeSuggestRequest(
+                verb,
+                this.handleTranslateResponse,
+                this.handleTranslateError,
+                { verb }
+            );
+        }
     }
 
     moveActiveSuggestion(posChange) {
@@ -520,19 +562,39 @@ class ViewerApp extends React.Component {
         );
     }
 
-    renderTranslation() {
-        let translation = this.state.translation;
+    renderTranslationEntry(translation) {
         if (translation == null) {
             return null;
+        } else if (translation.meanings.length == 0) {
+            return this.i18n("no_translation");
+        } else {
+            return translation.meanings.join(", ");
         }
-        return (
-            <div className="text-3xl lg:text-sm lg:mt-5 mx-3 lg:mx-5 p-5 bg-blue-100 text-gray-700">
-                <span className="italic pl-5">
-                    {translation.text}
-                </span>
+    }
+
+    renderTranslationSource(translation) {
+        if (translation == null || translation.meanings.length == 0) {
+            return null;
+        } else {
+            return (
                 <span className="pl-5 text-2xl lg:text-xs" title={translation.src_title}>
                     <a href={translation.src_link} target="blank_">[↗]</a>
                 </span>
+            );
+        }
+    }
+
+    renderTranslation() {
+        if (!ENABLE_TRANSLATIONS || this.props.lang != I18N_LANG_RU || this.state.verb.length == 0) {
+            return null;
+        }
+        let translation = this.state.translation;
+        return (
+            <div className="text-3xl lg:text-sm lg:mt-5 mx-3 lg:mx-5 p-5 bg-blue-100 text-gray-700">
+                <span className="italic pl-5">
+                    {this.renderTranslationEntry(translation)}
+                </span>
+                {this.renderTranslationSource(translation)}
             </div>
         );
     }

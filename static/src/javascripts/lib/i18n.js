@@ -109,6 +109,10 @@ function prepareTranslations() {
         "Switch to the regular verb",
         "Переключиться на обычный глагол"
     );
+    setEnRu(map, "no_translation",
+        "No translation found",
+        "Перевод не найден"
+    );
 
     /* side quiz */
     setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");
