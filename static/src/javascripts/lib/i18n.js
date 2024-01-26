@@ -109,9 +109,13 @@ function prepareTranslations() {
         "Switch to the regular verb",
         "Переключиться на обычный глагол"
     );
+    setEnRu(map, "translation_by_wiktionary",
+        "Translation by Wiktionary",
+        "Перевод Викисловаря",
+    )
     setEnRu(map, "no_translation",
-        "No translation found",
-        "Перевод не найден"
+        "no translation found",
+        "перевод не найден"
     );
 
     /* side quiz */

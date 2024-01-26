@@ -573,7 +573,7 @@ class ViewerApp extends React.Component {
     }
 
     renderTranslationSource(translation) {
-        if (translation == null || translation.meanings.length == 0) {
+        if (translation == null) {
             return null;
         } else {
             return (
@@ -590,12 +590,13 @@ class ViewerApp extends React.Component {
         }
         let translation = this.state.translation;
         return (
-            <div className="text-3xl lg:text-sm lg:mt-5 mx-3 lg:mx-5 p-5 bg-blue-100 text-gray-700">
+            <fieldset className="text-3xl lg:text-base lg:mt-5 mx-3 lg:mx-5 p-5 text-gray-700 border-2 border-gray-500">
+                <legend className="ml-5 px-3 text-sm lg:text-xs text-gray-500">{this.i18n("translation_by_wiktionary")}</legend>
                 <span className="italic pl-5">
                     {this.renderTranslationEntry(translation)}
                 </span>
                 {this.renderTranslationSource(translation)}
-            </div>
+            </fieldset>
         );
     }
 
