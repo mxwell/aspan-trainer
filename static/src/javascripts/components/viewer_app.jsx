@@ -646,6 +646,10 @@ class ViewerApp extends React.Component {
         let showTranslations = ENABLE_TRANSLATIONS && this.props.lang == I18N_LANG_RU;
         for (var i = 0; i < suggestions.length; ++i) {
             let data = suggestions[i].data;
+            let isTranslatedVerb = data.translation == true;
+            if (isTranslatedVerb && !showTranslations) {
+                continue;
+            }
             let verb = data.base;
             let texts = suggestions[i].text;
             let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
@@ -666,9 +670,10 @@ class ViewerApp extends React.Component {
                 textFragments.push(text.text);
             }
             if (verb != textFragments.join("")) {
-                parts.push(<span key={parts.length}>→ {verb}</span>);
+                let arrow = isTranslatedVerb ? "⇢" : "→";
+                parts.push(<span key={parts.length}> {arrow} {verb}</span>);
             }
-            if (showTranslations) {
+            if (showTranslations && !isTranslatedVerb) {
                 let ruwkt = data.ruwkt;
                 if (ruwkt) {
                     parts.push(<i className="text-gray-500" key={parts.length}> ≈ {ruwkt.join(", ")}</i>);
