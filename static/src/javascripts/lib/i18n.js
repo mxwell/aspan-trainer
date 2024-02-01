@@ -2,7 +2,7 @@ const UI_LANG_KEY = "KAZGRAM_UI_LANG";
 
 const I18N_LANG_EN = "en";
 const I18N_LANG_RU = "ru";
-const I18N_LANG_KZ = "kz";
+const I18N_LANG_KZ = "kk";
 
 var TEXT_TRANSLATIONS = null;
 
@@ -25,12 +25,7 @@ function setEnRuKz(map, key, en, ru, kz) {
     ]));
 }
 
-function prepareTranslations() {
-    const map = new Map();
-
-    setEnRu(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса");
-    setEnRu(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс");
-
+function prepareCommonTranslations(map) {
     /* topic names */
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
@@ -45,6 +40,58 @@ function prepareTranslations() {
     setEnRuKz(map, "optativeMood", "Optative mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
+    setEnRu(map, "chooseVerbExceptionOrNot",
+        "The verb has two meanings with one behaving regularly and other behaving like an exception",
+        "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение.",
+    );
+}
+
+function prepareViewerOnlyTranslations(map) {
+    /* viewer texts */
+    setEnRuKz(map, "hintEnterVerb",
+        "Enter verb",
+        "Введите глагол",
+        "Етістік енгізіңіз",
+    );
+    setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
+    setEnRuKz(map, "or", "or", "или", "әлде");
+    setEnRu(map, "failed_recognize_verb",
+        "Failed to recognize initial form of Kazakh verb",
+        "Не удалось разпознать начальную форму казахского глагола",
+    );
+    setEnRu(map, "switch_to_exception",
+        "Switch to the exception verb",
+        "Переключиться на глагол-исключение",
+    );
+    setEnRu(map, "switch_to_regular",
+        "Switch to the regular verb",
+        "Переключиться на обычный глагол",
+    );
+    setEnRu(map, "wiktionary_title",
+        "Wiktionary",
+        "Викисловарь",
+    );
+    setEnRu(map, "translation_by_wiktionary",
+        "Translation by Wiktionary",
+        "Перевод Викисловаря",
+    )
+    setEnRu(map, "no_translation",
+        "no translation found",
+        "перевод не найден",
+    );
+
+    /* side quiz */
+    setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");
+    setEnRu(map, "what_verb_form",
+        "What is the verb form?",
+        "Что это за форма глагола?",
+    );
+}
+
+function prepareQuizOnlyTranslations(map) {
+    setEnRu(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса");
+    setEnRu(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс");
+
     /* verb quiz details */
     setEnRu(map, "DifficultyLevel", "Difficulty level", "Уровень сложности");
     setEnRu(map, "easy", "Easy (one-click)", "Лёгкий (один клик)");
@@ -56,10 +103,7 @@ function prepareTranslations() {
     setEnRu(map, "Negative", "Negative", "Отрицательное");
     setEnRu(map, "Question", "Question", "Вопросительное");
     setEnRu(map, "StartQuiz", "Start quiz", "Начать тест");
-    setEnRu(map, "chooseVerbExceptionOrNot",
-        "The verb has two meanings with one behaving regularly and other behaving like an exception",
-        "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение."
-    );
+
     setEnRu(map, "RegularVerb", "Regular verb", "Обычный глагол");
     setEnRu(map, "ExceptionVerb", "Exception verb", "Глагол-исключение");
     setEnRu(map, "EnteredVerbNotPassed",
@@ -95,36 +139,14 @@ function prepareTranslations() {
     setEnRu(map, "buttonChangeTopic", "Change topic", "Поменять тему");
     setEnRu(map, "inviteToSurvey", "We'll be glad to hear back. Fill in ", "Будем рады получить обратную связь. Пройдите ");
     setEnRu(map, "linkShortSurvey", "the short survey", "короткий опрос");
+}
 
-    /* viewer texts */
-    setEnRuKz(map, "hintEnterVerb", "Enter verb", "Введите глагол", "Етістік енгізіңіз");
-    setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
-    setEnRuKz(map, "or", "or", "или", "әлде");
-    setEnRu(map, "failed_recognize_verb", "Failed to recognize initial form of Kazakh verb", "Не удалось разпознать начальную форму казахского глагола");
-    setEnRu(map, "switch_to_exception",
-        "Switch to the exception verb",
-        "Переключиться на глагол-исключение"
-    );
-    setEnRu(map, "switch_to_regular",
-        "Switch to the regular verb",
-        "Переключиться на обычный глагол"
-    );
-    setEnRu(map, "wiktionary_title",
-        "Wiktionary",
-        "Викисловарь"
-    );
-    setEnRu(map, "translation_by_wiktionary",
-        "Translation by Wiktionary",
-        "Перевод Викисловаря",
-    )
-    setEnRu(map, "no_translation",
-        "no translation found",
-        "перевод не найден"
-    );
+function prepareTranslations() {
+    const map = new Map();
 
-    /* side quiz */
-    setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");
-    setEnRu(map, "what_verb_form", "What is the verb form?", "Что это за форма глагола?");
+    prepareCommonTranslations(map);
+    prepareViewerOnlyTranslations(map);
+    prepareQuizOnlyTranslations(map);
 
     return map;
 }
