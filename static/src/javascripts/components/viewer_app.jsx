@@ -3,6 +3,7 @@ import {
     PHRASAL_PART_TYPE
 } from '../lib/aspan';
 import {
+    I18N_LANG_EN,
     I18N_LANG_KZ,
     I18N_LANG_RU,
     i18n
@@ -335,18 +336,19 @@ class ViewerApp extends React.Component {
         let parts = [];
         for (let i = 0; i < response.length; ++i) {
             let item = response[i].data;
-            let ruwkt = item.ruwkt;
-            if (item.base == verb && ruwkt) {
-                for (let j = 0; j < ruwkt.length; ++j) {
-                    parts.push(ruwkt[j]);
+            let glosses = this.extractGlosses(item);
+            if (item.base == verb && glosses) {
+                for (let j = 0; j < glosses.length; ++j) {
+                    parts.push(glosses[j]);
                 }
                 break;
             }
         }
+        const wiktionaryLang = (this.props.lang == I18N_LANG_RU) ? "ru" : "en";
         const translation = {
             meanings: parts,
-            src_link: `https://ru.wiktionary.org/wiki/${verb}`,
-            src_title: "Викисловарь",
+            src_link: `https://${wiktionaryLang}.wiktionary.org/wiki/${verb}`,
+            src_title: this.i18n("wiktionary_title"),
         };
         this.setState({ translation });
     }
@@ -357,7 +359,7 @@ class ViewerApp extends React.Component {
     }
 
     requestTranslation(verb) {
-        if (this.props.lang == I18N_LANG_RU && verb.length > 0) {
+        if (ENABLE_SUGGEST && ENABLE_TRANSLATIONS && verb.length > 0) {
             makeSuggestRequest(
                 verb,
                 this.handleTranslateResponse,
@@ -585,7 +587,7 @@ class ViewerApp extends React.Component {
     }
 
     renderTranslation() {
-        if (!ENABLE_TRANSLATIONS || this.props.lang != I18N_LANG_RU || this.state.verb.length == 0) {
+        if (!ENABLE_TRANSLATIONS || this.state.verb.length == 0) {
             return null;
         }
         let translation = this.state.translation;
@@ -634,6 +636,17 @@ class ViewerApp extends React.Component {
         );
     }
 
+    extractGlosses(data) {
+        let lang = this.props.lang;
+        if (lang == I18N_LANG_RU) {
+            return data.ruwkt;
+        } else if (lang == I18N_LANG_EN) {
+            return data.enwkt;
+        } else {
+            return null;
+        }
+    }
+
     renderSuggestions() {
         let suggestions = this.state.suggestions;
         if (suggestions.length == 0) {
@@ -643,11 +656,10 @@ class ViewerApp extends React.Component {
         let currentFocus = this.state.currentFocus;
 
         let items = [];
-        let showTranslations = ENABLE_TRANSLATIONS && this.props.lang == I18N_LANG_RU;
         for (var i = 0; i < suggestions.length; ++i) {
             let data = suggestions[i].data;
-            let isTranslatedVerb = data.translation == true;
-            if (isTranslatedVerb && !showTranslations) {
+            let isTranslatedVerb = data.translation && data.translation.length > 0;
+            if (isTranslatedVerb && !ENABLE_TRANSLATIONS) {
                 continue;
             }
             let verb = data.base;
@@ -673,10 +685,10 @@ class ViewerApp extends React.Component {
                 let arrow = isTranslatedVerb ? "⇢" : "→";
                 parts.push(<span key={parts.length}> {arrow} {verb}</span>);
             }
-            if (showTranslations && !isTranslatedVerb) {
-                let ruwkt = data.ruwkt;
-                if (ruwkt) {
-                    parts.push(<i className="text-gray-500" key={parts.length}> ≈ {ruwkt.join(", ")}</i>);
+            if (ENABLE_TRANSLATIONS && !isTranslatedVerb) {
+                let glosses = this.extractGlosses(data);
+                if (glosses) {
+                    parts.push(<i className="text-gray-500" key={parts.length}> ≈ {glosses.join(", ")}</i>);
                 }
             }
             items.push(

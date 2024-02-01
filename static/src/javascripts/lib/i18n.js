@@ -109,6 +109,10 @@ function prepareTranslations() {
         "Switch to the regular verb",
         "Переключиться на обычный глагол"
     );
+    setEnRu(map, "wiktionary_title",
+        "Wiktionary",
+        "Викисловарь"
+    );
     setEnRu(map, "translation_by_wiktionary",
         "Translation by Wiktionary",
         "Перевод Викисловаря",
