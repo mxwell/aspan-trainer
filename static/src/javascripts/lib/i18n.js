@@ -40,9 +40,10 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "optativeMood", "Optative mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
-    setEnRu(map, "chooseVerbExceptionOrNot",
+    setEnRuKZ(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
         "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение.",
+        "Етістіктің екі мағынасы бар, біріншісі қарапайым әдіспен жіктелсе, екіншісі ережеден тыс арқылы жіктеледі."
     );
 }
 
@@ -55,90 +56,99 @@ function prepareViewerOnlyTranslations(map) {
     );
     setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
     setEnRuKz(map, "or", "or", "или", "әлде");
-    setEnRu(map, "failed_recognize_verb",
+    setEnRuKz(map, "failed_recognize_verb",
         "Failed to recognize initial form of Kazakh verb",
         "Не удалось разпознать начальную форму казахского глагола",
+        "Етістіктің басқы тұлғасы анықталынбады"
     );
-    setEnRu(map, "switch_to_exception",
+    setEnRuKz(map, "switch_to_exception",
         "Switch to the exception verb",
         "Переключиться на глагол-исключение",
+        "Ережеден тыс етістікке ауысу"
     );
-    setEnRu(map, "switch_to_regular",
+    setEnRuKz(map, "switch_to_regular",
         "Switch to the regular verb",
         "Переключиться на обычный глагол",
+        "Қарапайым етістікке ауысу"
     );
-    setEnRu(map, "wiktionary_title",
+    setEnRuKz(map, "wiktionary_title",
         "Wiktionary",
         "Викисловарь",
+        "Уикисөздік",
     );
-    setEnRu(map, "translation_by_wiktionary",
+    setEnRuKz(map, "translation_by_wiktionary",
         "Translation by Wiktionary",
         "Перевод Викисловаря",
+        "Уикисіөздіктегі аудармасы",
     )
-    setEnRu(map, "no_translation",
+    setEnRuKz(map, "no_translation",
         "no translation found",
         "перевод не найден",
+        "аударма табылмады"
     );
 
     /* side quiz */
-    setEnRu(map, "side_quiz", "Fast quiz", "Экспресс-тест");
-    setEnRu(map, "what_verb_form",
+    setEnRuKz(map, "side_quiz", "Fast quiz", "Экспресс-тест");
+    setEnRuKz(map, "what_verb_form",
         "What is the verb form?",
         "Что это за форма глагола?",
+        "Бұл қандай етістік түрі?"
     );
 }
 
 function prepareQuizOnlyTranslations(map) {
-    setEnRu(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса");
-    setEnRu(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс");
+    setEnRuKz(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса", "Бетбейне тілін өзгерту");
+    setEnRuKz(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс", "Қазақша бетбейне қолдану");
 
     /* verb quiz details */
-    setEnRu(map, "DifficultyLevel", "Difficulty level", "Уровень сложности");
-    setEnRu(map, "easy", "Easy (one-click)", "Лёгкий (один клик)");
-    setEnRu(map, "hard", "Hard (type answer)", "Сложный (печать ответа)");
-    setEnRu(map, "SentenceType", "Sentence type", "Тип предложения");
-    setEnRu(map, "Verb", "Verb", "Глагол");
-    setEnRu(map, "AuxVerb", "Auxiliary verb", "Вспомогательный глагол");
-    setEnRu(map, "Statement", "Statement", "Утвердительное");
-    setEnRu(map, "Negative", "Negative", "Отрицательное");
-    setEnRu(map, "Question", "Question", "Вопросительное");
-    setEnRu(map, "StartQuiz", "Start quiz", "Начать тест");
+    setEnRuKz(map, "DifficultyLevel", "Difficulty level", "Уровень сложности","Күрделілік деңгейі");
+    setEnRuKz(map, "easy", "Easy (one-click)", "Лёгкий (один клик)", "Оңай (бір шерту)");
+    setEnRuKz(map, "hard", "Hard (type answer)", "Сложный (печать ответа)", "Қиын (жазып беру)");
+    setEnRuKz(map, "SentenceType", "Sentence type", "Тип предложения", "Сөйлем түрі");
+    setEnRuKz(map, "Verb", "Verb", "Глагол", "Етістік");
+    setEnRuKz(map, "AuxVerb", "Auxiliary verb", "Вспомогательный глагол", "Көмекші етістік");
+    setEnRuKz(map, "Statement", "Statement", "Утвердительное", "Болымды");
+    setEnRuKz(map, "Negative", "Negative", "Отрицательное", "Болымсыз");
+    setEnRuKz(map, "Question", "Question", "Вопросительное", "Сұраулы");
+    setEnRuKz(map, "StartQuiz", "Start quiz", "Начать тест", "Тестті бастау");
 
-    setEnRu(map, "RegularVerb", "Regular verb", "Обычный глагол");
-    setEnRu(map, "ExceptionVerb", "Exception verb", "Глагол-исключение");
-    setEnRu(map, "EnteredVerbNotPassed",
+    setEnRuKz(map, "RegularVerb", "Regular verb", "Обычный глагол", "Қарапайым етістік");
+    setEnRuKz(map, "ExceptionVerb", "Exception verb", "Глагол-исключение", "Ережеден тыс етістік");
+    setEnRuKz(map, "EnteredVerbNotPassed",
         "The verb didn't pass the check. Please, enter a correct verb.",
         "Глагол не прошёл проверку. Пожалуйста, введите корректный глагол."
+        "Етістік тексерістен өтпеді. Өтініш, дұрыс етістік енгізіңіз."
     );
-    setEnRu(map, "IncompatibleAuxVerb",
+    setEnRuKz(map, "IncompatibleAuxVerb",
         "The auxiliary verb is not compatible with the main verb. Please, change you choice.",
         "Вспомогательный глагол не совместим с главным глаголом. Пожалуйста, измените ваш выбор."
+        "Көмекші етістік негізгі етістікпен сәйкестенбейді. Өтініш, таңдауыңызды өзгертіңіз."
     );
 
     /* quiz texts */
-    setEnRu(map, "feedbackCorrect", "Correct", "Верно");
-    setEnRu(map, "feedbackWrongAndHereIsCorrect", "Wrong! Correct answer:", "Неверно! Правильный ответ:");
-    setEnRu(map, "buttonSubmit", "Submit", "Отправить");
-    setEnRu(map, "statement", "statement", "утвердительное");
-    setEnRu(map, "negative", "negative", "отрицательное");
-    setEnRu(map, "question", "question", "вопросительное");
-    setEnRu(map, "quizSentenceOfVerb", "sentence with the verb", "предложение с глаголом");
-    setEnRu(map, "quizForFirstPerson", "for first person", "для первого лица");
-    setEnRu(map, "quizForSecondPerson", "for second person", "для второго лица");
-    setEnRu(map, "quizForSecondPolitePerson", "for second person (polite addressing)", "для второго лица (вежливое обращение)");
-    setEnRu(map, "quizForThirdPerson", "for third person", "для третьего лица");
-    setEnRu(map, "quizForSingularNumber", "in singular number", "в единственном числе");
-    setEnRu(map, "quizForPluralNumber", "in plural number", "во множественном числе");
+    setEnRuKz(map, "feedbackCorrect", "Correct", "Верно", "Дұрыс");
+    setEnRuKz(map, "feedbackWrongAndHereIsCorrect", "Wrong! Correct answer:", "Неверно! Правильный ответ:", "Бұрыс! Дұрыс жауабы:");
+    setEnRuKz(map, "buttonSubmit", "Submit", "Отправить", "Жіберу");
+    setEnRuKz(map, "statement", "statement", "утвердительное", "болымды");
+    setEnRuKz(map, "negative", "negative", "отрицательное", "болымсыз");
+    setEnRuKz(map, "question", "question", "вопросительное", "сұраулы");
+    setEnRuKz(map, "quizSentenceOfVerb", "sentence with the verb", "предложение с глаголом", "етістігі бар сөйлем");
+    setEnRuKz(map, "quizForFirstPerson", "for first person", "для первого лица", "бірінші жақ");
+    setEnRuKz(map, "quizForSecondPerson", "for second person", "для второго лица", "екінші жақ (анайы)");
+    setEnRuKz(map, "quizForSecondPolitePerson", "for second person (polite addressing)", "для второго лица (вежливое обращение)", "екінші жақ (сыпайы)");
+    setEnRuKz(map, "quizForThirdPerson", "for third person", "для третьего лица", "үшінші жақ");
+    setEnRuKz(map, "quizForSingularNumber", "in singular number", "в единственном числе", "жекеше түрде");
+    setEnRuKz(map, "quizForPluralNumber", "in plural number", "во множественном числе", "көпше түрде");
 
     /* final form */
-    setEnRu(map, "quizDone", "Quiz is done! Correct responses:", "Тест завершён! Правильные ответы:");
-    setEnRu(map, "columnExpected", "Expected", "Ожидалось");
-    setEnRu(map, "columnYourAnswers", "Your answers", "Ваши ответы");
-    setEnRu(map, "buttonRestartQuiz", "Restart the quiz", "Перезапустить тест");
-    setEnRu(map, "buttonContinueTopic", "Continue with the topic", "Продолжить тему");
-    setEnRu(map, "buttonChangeTopic", "Change topic", "Поменять тему");
-    setEnRu(map, "inviteToSurvey", "We'll be glad to hear back. Fill in ", "Будем рады получить обратную связь. Пройдите ");
-    setEnRu(map, "linkShortSurvey", "the short survey", "короткий опрос");
+    setEnRuKz(map, "quizDone", "Quiz is done! Correct responses:", "Тест завершён! Правильные ответы:", "Тест аяқталды! Дұрыс жауаптар:");
+    setEnRuKz(map, "columnExpected", "Expected", "Ожидалось", "Күтілді");
+    setEnRuKz(map, "columnYourAnswers", "Your answers", "Ваши ответы", "Жауаптарыңыз");
+    setEnRuKz(map, "buttonRestartQuiz", "Restart the quiz", "Перезапустить тест", "Тестті жалғастыру");
+    setEnRuKz(map, "buttonContinueTopic", "Continue with the topic", "Продолжить тему", "Тақырыпты жалғастыру");
+    setEnRuKz(map, "buttonChangeTopic", "Change topic", "Поменять тему", "Тақырыпты ауыстыру");
+    setEnRuKz(map, "inviteToSurvey", "We'll be glad to hear back. Fill in ", "Будем рады получить обратную связь. Пройдите ", "Кері байланысты қуана аламыз. Толтырыңыз ");
+    setEnRuKz(map, "linkShortSurvey", "the short survey", "короткий опрос", "шағын сауалнама");
 }
 
 function prepareTranslations() {
