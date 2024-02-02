@@ -40,7 +40,7 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "optativeMood", "Optative mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
 
-    setEnRuKZ(map, "chooseVerbExceptionOrNot",
+    setEnRuKz(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
         "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение.",
         "Етістіктің екі мағынасы бар, біріншісі қарапайым әдіспен жіктелсе, екіншісі ережеден тыс арқылы жіктеледі."
