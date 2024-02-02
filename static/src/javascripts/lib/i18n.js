@@ -79,7 +79,7 @@ function prepareViewerOnlyTranslations(map) {
     setEnRuKz(map, "translation_by_wiktionary",
         "Translation by Wiktionary",
         "Перевод Викисловаря",
-        "Уикисіөздіктегі аудармасы",
+        "Уикисөздіктегі аудармасы",
     )
     setEnRuKz(map, "no_translation",
         "no translation found",
