@@ -1,6 +1,6 @@
-mixin a_viewer_page(title, description, contact_us, yt_channel, tg_group, powered, js_path, cur_lang, other_lang, third_lang, other_lang_link, third_lang_link)
+mixin a_viewer_page(title, lang_code, description, contact_us, yt_channel, tg_group, powered, js_path, cur_lang, other_lang, third_lang, other_lang_link, third_lang_link)
     doctype html
-    html(lang="ru")
+    html(lang= lang_code)
         head
             meta(charset="utf8")
             meta(property="og:title", content= title)
