@@ -1,5 +1,5 @@
 import React from "react";
-import { I18N_LANG_KZ, i18n } from '../lib/i18n';
+import { I18N_LANG_KK, i18n } from '../lib/i18n';
 import { closeButton } from './close_button';
 import { checkCustomVerb, checkPresentContPair } from '../lib/quiz';
 import { renderOptionsWithI18nKeys, renderOptionsWithNames } from "../lib/react_util";
@@ -102,7 +102,7 @@ class VerbQuizDetails extends React.Component {
                     {closeButton({onClick: this.props.onTopicCancel})}
                 </div>
                 <div class="flex justify-center">
-                    <h3 class="text-3xl text-blue-700 text-bold p-2">{i18n(this.props.topic, I18N_LANG_KZ)}</h3>
+                    <h3 class="text-3xl text-blue-700 text-bold p-2">{i18n(this.props.topic, I18N_LANG_KK)}</h3>
                 </div>
                 <form onSubmit={this.handleStartQuiz} class="bg-white border-4 rounded px-8 pt-6 pb-8 mb-4 flex flex-col">
                     <div class="w-full flex justify-between pb-2">

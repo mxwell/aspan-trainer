@@ -2,7 +2,7 @@ const UI_LANG_KEY = "KAZGRAM_UI_LANG";
 
 const I18N_LANG_EN = "en";
 const I18N_LANG_RU = "ru";
-const I18N_LANG_KZ = "kk";
+const I18N_LANG_KK = "kk";
 
 var TEXT_TRANSLATIONS = null;
 
@@ -17,11 +17,11 @@ function setEnRu(map, key, en, ru) {
     ]));
 }
 
-function setEnRuKz(map, key, en, ru, kz) {
+function setEnRuKz(map, key, en, ru, kk) {
     setEntries(map, key, new Map([
         [I18N_LANG_EN, en],
         [I18N_LANG_RU, ru],
-        [I18N_LANG_KZ, kz],
+        [I18N_LANG_KK, kk],
     ]));
 }
 
@@ -116,13 +116,13 @@ function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "ExceptionVerb", "Exception verb", "Глагол-исключение", "Ережеден тыс етістік");
     setEnRuKz(map, "EnteredVerbNotPassed",
         "The verb didn't pass the check. Please, enter a correct verb.",
-        "Глагол не прошёл проверку. Пожалуйста, введите корректный глагол."
-        "Етістік тексерістен өтпеді. Өтініш, дұрыс етістік енгізіңіз."
+        "Глагол не прошёл проверку. Пожалуйста, введите корректный глагол.",
+        "Етістік тексерістен өтпеді. Өтініш, дұрыс етістік енгізіңіз.",
     );
     setEnRuKz(map, "IncompatibleAuxVerb",
         "The auxiliary verb is not compatible with the main verb. Please, change you choice.",
-        "Вспомогательный глагол не совместим с главным глаголом. Пожалуйста, измените ваш выбор."
-        "Көмекші етістік негізгі етістікпен сәйкестенбейді. Өтініш, таңдауыңызды өзгертіңіз."
+        "Вспомогательный глагол не совместим с главным глаголом. Пожалуйста, измените ваш выбор.",
+        "Көмекші етістік негізгі етістікпен сәйкестенбейді. Өтініш, таңдауыңызды өзгертіңіз.",
     );
 
     /* quiz texts */
@@ -226,7 +226,7 @@ function initUiLangSwitcher() {
 export {
     I18N_LANG_EN,
     I18N_LANG_RU,
-    I18N_LANG_KZ,
+    I18N_LANG_KK,
     i18n,
     storeUiLang,
     retrieveUiLang,

@@ -4,7 +4,7 @@ import {
 } from '../lib/aspan';
 import {
     I18N_LANG_EN,
-    I18N_LANG_KZ,
+    I18N_LANG_KK,
     I18N_LANG_RU,
     i18n
 } from '../lib/i18n';
@@ -194,6 +194,7 @@ class ViewerApp extends React.Component {
             warning: warning,
             showVerbSwitcher: showVerbSwitcher,
             sentenceType: sentenceType,
+            enableTranslation: this.checkTranslationEnabled(),
             translation: translation,
             tenses: tenses,
             examples: pickExamples(verb, 2),
@@ -218,6 +219,10 @@ class ViewerApp extends React.Component {
         );
     }
 
+    checkTranslationEnabled() {
+        return ENABLE_SUGGEST && ENABLE_TRANSLATIONS && (this.props.lang != I18N_LANG_KK);
+    }
+
     readUrlState() {
         if (isSsrPage()) {
             const verb = extractSsrVerb();
@@ -237,7 +242,9 @@ class ViewerApp extends React.Component {
         var showVerbSwitcher = false;
         try {
             const verbL = verb.toLowerCase();
-            this.requestTranslation(verbL);
+            if (this.checkTranslationEnabled()) {
+                this.requestTranslation(verbL);
+            }
             tenses = generateVerbForms(verbL, "", forceExceptional, sentenceType);
             setPageTitle(verb);
             if (checkOptionalExceptionVerb(verb)) {
@@ -359,7 +366,7 @@ class ViewerApp extends React.Component {
     }
 
     requestTranslation(verb) {
-        if (ENABLE_SUGGEST && ENABLE_TRANSLATIONS && verb.length > 0) {
+        if (verb.length > 0) {
             makeSuggestRequest(
                 verb,
                 this.handleTranslateResponse,
@@ -494,9 +501,12 @@ class ViewerApp extends React.Component {
         var content = null;
         var titleClasses = "text-red-400 border-b-2";
         if (!collapse || shown) {
+            let subtitle = (this.props.lang != I18N_LANG_KK)
+                ? (<h4 className="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>)
+                : null;
             content = (
                 <div className="pb-4 lg:py-6">
-                    <h4 className="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>
+                    {subtitle}
                     <table className="lg:w-full">
                         <tbody>
                             {this.renderFormRows(tenseForms)}
@@ -518,7 +528,7 @@ class ViewerApp extends React.Component {
                     className={"text-5xl lg:text-xl font-bold " + titleClasses}>
                     {icon}
                     <span>
-                        {i18n(tenseNameKey, I18N_LANG_KZ)}
+                        {i18n(tenseNameKey, I18N_LANG_KK)}
                     </span>
                 </h3>
                 {content}
@@ -587,7 +597,7 @@ class ViewerApp extends React.Component {
     }
 
     renderTranslation() {
-        if (!ENABLE_TRANSLATIONS || this.state.verb.length == 0) {
+        if (!this.state.enableTranslation || this.state.verb.length == 0) {
             return null;
         }
         let translation = this.state.translation;
@@ -642,6 +652,8 @@ class ViewerApp extends React.Component {
             return data.ruwkt;
         } else if (lang == I18N_LANG_EN) {
             return data.enwkt;
+        } else if (lang == I18N_LANG_KK) {
+            return data.enwkt;
         } else {
             return null;
         }
@@ -653,6 +665,7 @@ class ViewerApp extends React.Component {
             return null;
         }
 
+        let enableTranslation = this.state.enableTranslation;
         let currentFocus = this.state.currentFocus;
 
         let items = [];
