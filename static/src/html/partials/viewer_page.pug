@@ -12,12 +12,19 @@ mixin a_viewer_page(title, lang_code, description, contact_us, yt_channel, tg_gr
         body
             div.page-grid
                 header(class="bg-blue-800 text-white p-1 flex justify-between")
-                    div(class="ml-2 md:mx-8 my-1")
-                        a(class="text-4xl lg:text-2xl text-bold", href="?")
-                            = title
-                            <sup class="text-red-400">β</sup>
-                        p(class="sm:invisible lg:visible text-xs lg:text-sm text-yellow-300")
-                            = description
+                    div(class="ml-2 md:mx-8 my-1 flex")
+                        div(class="pr-2")
+                            button(id="ham_btn")
+                                img(class="ham_icon", src="../images/menu.svg")
+                            div(id="ham_menu_content", class="absolute hidden")
+                                a(href="#")
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-2xl lg:text-xl py-1 px-2") About
+                        div
+                            a(class="text-4xl lg:text-2xl text-bold", href="?")
+                                = title
+                                <sup class="text-red-400">β</sup>
+                            p(class="invisible lg:visible text-xs lg:text-sm text-yellow-300")
+                                = description
                     div(class="relative mr-2 md:mx-8 my-1 py-3 md:py-2")
                         button(id="lang_switcher_btn", class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
                             = cur_lang
@@ -28,7 +35,6 @@ mixin a_viewer_page(title, lang_code, description, contact_us, yt_channel, tg_gr
                             a(href= third_lang_link)
                                 button(class="bg-blue-800 border-2 border-gray-300 text-2xl lg:text-xl py-1 px-2")
                                     = third_lang
-
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")
