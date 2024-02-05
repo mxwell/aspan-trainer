@@ -211,9 +211,17 @@ function clearUiLang() {
     window.localStorage.removeItem(UI_LANG_KEY);
 }
 
-function toggleLangSwitcher() {
+function toggleLangSwitcher(e) {
+    e.stopPropagation();
     const langSwitcherContent = document.getElementById("lang_switcher_content");
     if (langSwitcherContent) {
+        langSwitcherContent.classList.toggle("hidden");
+    }
+}
+
+function clickElseWhere() {
+    const langSwitcherContent = document.getElementById("lang_switcher_content");
+    if (langSwitcherContent && !langSwitcherContent.classList.contains("hidden")) {
         langSwitcherContent.classList.toggle("hidden");
     }
 }
@@ -221,6 +229,10 @@ function toggleLangSwitcher() {
 function initUiLangSwitcher() {
     const langSwitcherButton = document.getElementById("lang_switcher_btn");
     langSwitcherButton.addEventListener('click', toggleLangSwitcher);
+    const grid = document.getElementsByClassName("page-grid");
+    if (grid.length == 1) {
+        grid[0].addEventListener("click", clickElseWhere);
+    }
 }
 
 export {
