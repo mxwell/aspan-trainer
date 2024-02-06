@@ -1,0 +1,21 @@
+include viewer_page
+mixin a_viewer_page_ru()
+    -
+      var l10n = {
+        langCode: "ru",
+        title: "Kazakh Verb",
+        description: "Таблицы форм казахских глаголов – времена и наклонения",
+        contactUs: "Наши контакты:",
+        ytChannel: "Канал Youtube",
+        tgGroup: "Группа Telegram",
+        powered: "Работает на Aspan",
+        firstLang: "РУС",
+        secondLang: "ENG",
+        thirdLang: "ҚАЗ",
+        secondRoot: "/en",
+        thirdRoot: "/kk",
+        titleAbout: "О сайте",
+        linkAbout: "./about_ru.pug",
+      }
+    +a_viewer_page(l10n, "../javascripts/viewer.jsx")
+        block

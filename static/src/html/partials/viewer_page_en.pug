@@ -1,0 +1,21 @@
+include viewer_page
+mixin a_viewer_page_en()
+    -
+      var l10n = {
+        langCode: "en",
+        title: "Kazakh Verb",
+        description: "Tables of Kazakh verb forms, tenses and moods",
+        contactUs: "Contact us:",
+        ytChannel: "Youtube channel",
+        tgGroup: "Telegram group",
+        powered: "Powered by Aspan",
+        firstLang: "ENG",
+        secondLang: "РУС",
+        thirdLang: "ҚАЗ",
+        secondRoot: "/",
+        thirdRoot: "/kk",
+        titleAbout: "About",
+        linkAbout: "./about_en.pug",
+      }
+    +a_viewer_page(l10n, "../javascripts/viewer_en.jsx")
+        block

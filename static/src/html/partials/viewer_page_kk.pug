@@ -1,0 +1,21 @@
+include viewer_page
+mixin a_viewer_page_kk()
+    -
+      var l10n = {
+        langCode: "kk",
+        title: "Kazakh Verb",
+        description: "Қазақ етістіктерінің кестесі",
+        contactUs: "Байланыс:",
+        ytChannel: "Youtube арнамыз",
+        tgGroup: "Telegram тобымыз",
+        powered: "Aspan арқылы жұмыс істейді",
+        firstLang: "ҚАЗ",
+        secondLang: "РУС",
+        thirdLang: "ENG",
+        secondRoot: "/",
+        thirdRoot: "/en",
+        titleAbout: "About",
+        linkAbout: "./about_kk.pug",
+      }
+    +a_viewer_page(l10n, "../javascripts/viewer_kk.jsx")
+        block

@@ -1,20 +1,3 @@
-include partials/viewer_page
--
-  var l10n = {
-    langCode: "kk",
-    title: "Kazakh Verb",
-    description: "Қазақ етістіктерінің кестесі",
-    contactUs: "Байланыс:",
-    ytChannel: "Youtube арнамыз",
-    tgGroup: "Telegram тобымыз",
-    powered: "Aspan арқылы жұмыс істейді",
-    firstLang: "ҚАЗ",
-    secondLang: "РУС",
-    thirdLang: "ENG",
-    secondRoot: "/",
-    thirdRoot: "/en",
-    titleAbout: "About",
-    linkAbout: "./kk/about.pug",
-  }
-+a_viewer_page(l10n, "../javascripts/viewer_kk.jsx")
+include partials/viewer_page_kk
++a_viewer_page_kk()
     div#viewer_root(class="md:flex md:justify-center")

@@ -9,7 +9,7 @@ KK_OUTPUT="${OUTPUT_DIR}/kk"
 rm -rf $OUTPUT_DIR/*
 
 # export NODE_ENV="development"
-parcel build static/src/html/{en,kk,ru}/about.pug
+parcel build static/src/html/about_{en,kk,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
 
 cp static/src/images/{bg1.png,expand_down.svg,expand_up.svg} $OUTPUT_DIR/
