@@ -1,4 +1,31 @@
 include partials/viewer_page_ru
 +a_viewer_page_ru()
-    h1 About the site
-    div Content goes here.
+    div(class="m-4")
+        h1(class="m-2 text-4xl") О сайте «Kazakh Verb»
+        p(class="m-2") Сайт Kazakh Verb решает задачу спряжения казахских глаголов.
+        p(class="m-2") Это решение видится полезным как для изучающих казахский язык, так и для носителей, желающих разобраться в тонких моментах.
+        p(class="m-2") В основе лежит программный код, который реализует общие правила грамматики, а также учитывает набор исключительных случаев.
+        h2(class="m-2 text-2xl") Источники
+        p(class="m-2") Важнейшие источники, использованные при реализации грамматической части сайта:
+        ul(class="ml-8 my-2 list-disc")
+            li Валяева Т. В.&nbsp;
+                a(class="text-green-600 underline", href="https://www.kaz-tili.kz/") Веб-сайт «Казахский язык. Просто о сложном»
+            li Романенко Е. И. «Казахская грамматика для русскоязычных»
+        h2(class="m-2 text-2xl") Значения глаголов
+        p(class="m-2") На сайте показываются значения глагола на русском, загруженные из&nbsp;
+            a(class="text-green-600 underline", href="https://ru.wiktionary.org") Викисловаря
+            span . Эти данные доступны по лицензии&nbsp;
+            a(class="text-green-600 underline", href="https://creativecommons.org/licenses/by-sa/4.0/deed.ru") CC BY-SA 4.0
+            span .
+        h2(class="m-2 text-2xl") Локализация
+        p(class="m-2") Интерфейс сайта доступен на английском, казахском и русском языках.
+        p(class="m-2") Автор казахской локализации:&nbsp;
+            a(class="text-green-600 underline", href="https://github.com/MuratKaribai") Mūrat Karıbai
+            span .
+        h2(class="m-2 text-2xl") Отказ от ответственности
+        p(class="m-2")
+            span Содержимое сайта предоставляется&nbsp;
+            strong как есть
+            span , возможны неточности. Приветствуются сообщения о найденных проблемах, например, через&nbsp;
+                a(class="text-green-600 underline", href="https://t.me/kazakhverb") группу в Telegram
+            span .

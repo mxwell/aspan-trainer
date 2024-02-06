@@ -1,4 +1,31 @@
 include partials/viewer_page_en
 +a_viewer_page_en()
-    h1 About the site
-    div Content goes here.
+    div(class="m-4")
+        h1(class="m-2 text-4xl") About «Kazakh Verb»
+        p(class="m-2") The website Kazakh Verb addresses the problem of Kazakh verb conjugation.
+        p(class="m-2") The solution might be useful to Kazakh language learners as well as native speakers willing to delve into intricacies.
+        p(class="m-2") It is based on program code which implements general grammar rules and handles a set of exceptional cases.
+        h2(class="m-2 text-2xl") References
+        p(class="m-2") The most important sources used while implementing the website's grammar part:
+        ul(class="ml-8 my-2 list-disc")
+            li Валяева Т. В.&nbsp;
+                a(class="text-green-600 underline", href="https://www.kaz-tili.kz/") The website «Казахский язык. Просто о сложном»
+            li Романенко Е. И. «Казахская грамматика для русскоязычных»
+        h2(class="m-2 text-2xl") Verb glosses
+        p(class="m-2") The website displays verb glosses in English imported from&nbsp;
+            a(class="text-green-600 underline", href="https://en.wiktionary.org") Wiktionary
+            span . The data are available under the license&nbsp;
+            a(class="text-green-600 underline", href="https://creativecommons.org/licenses/by-sa/4.0/") CC BY-SA 4.0
+            span .
+        h2(class="m-2 text-2xl") Localization
+        p(class="m-2") The website interface is available in English, Kazakh and Russian.
+        p(class="m-2") The Kazakh localization is authored by:&nbsp;
+            a(class="text-green-600 underline", href="https://github.com/MuratKaribai") Mūrat Karıbai
+            span .
+        h2(class="m-2 text-2xl") No guarantee
+        p(class="m-2")
+            span The website content is provided&nbsp;
+            strong as is
+            span , there might be inaccuracies. Problem reports are welcomed, e.g. through&nbsp;
+                a(class="text-green-600 underline", href="https://t.me/kazakhverb") the Telegram group
+            span .
