@@ -1,12 +1,12 @@
-mixin a_viewer_page(title, lang_code, description, l10n, contact_us, yt_channel, tg_group, powered, js_path, cur_lang, other_lang, third_lang, other_lang_link, third_lang_link)
+mixin a_viewer_page(l10n, js_path)
     doctype html
-    html(lang= lang_code)
+    html(lang= l10n.langCode)
         head
             meta(charset="utf8")
-            meta(property="og:title", content= title)
-            meta(property="og:description", content= description)
-            meta(property="og:site_name", content= title)
-            title= title
+            meta(property="og:title", content= l10n.title)
+            meta(property="og:description", content= l10n.description)
+            meta(property="og:site_name", content= l10n.title)
+            title= l10n.title
             link(rel="stylesheet", href="../css/page.pcss")
             link(rel="icon", href="../images/favicon.png", type="image/png")
         body
@@ -22,34 +22,34 @@ mixin a_viewer_page(title, lang_code, description, l10n, contact_us, yt_channel,
                                         = l10n.titleAbout
                         div
                             a(class="text-4xl lg:text-2xl text-bold", href="?")
-                                = title
+                                = l10n.title
                                 <sup class="text-red-400">β</sup>
                             p(class="invisible lg:visible text-xs lg:text-sm text-yellow-300")
-                                = description
+                                = l10n.description
                     div(class="relative mr-2 md:mx-8 my-1 py-3 md:py-2")
                         button(id="lang_switcher_btn", class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
-                            = cur_lang
+                            = l10n.firstLang
                         div(id="lang_switcher_content", class="absolute hidden")
-                            a(href= other_lang_link)
+                            a(href= l10n.secondRoot)
                                 button(class="bg-blue-800 border-2 border-gray-300 text-2xl lg:text-xl py-1 px-2")
-                                    = other_lang
-                            a(href= third_lang_link)
+                                    = l10n.secondLang
+                            a(href= l10n.thirdRoot)
                                 button(class="bg-blue-800 border-2 border-gray-300 text-2xl lg:text-xl py-1 px-2")
-                                    = third_lang
+                                    = l10n.thirdLang
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")
                     span © 2023-2024 Murat Khairulin
                     div(class="flex")
                         span(class="text-xl md:text-sm")
-                            = contact_us
+                            = l10n.contactUs
                         a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://www.youtube.com/@KazakhVerb", target="_blank")
-                            = yt_channel
+                            = l10n.ytChannel
                         span |
                         a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://t.me/kazakhverb", target="_blank")
-                            = tg_group
+                            = l10n.tgGroup
                     span(class="flex flex-col")
                         a(class="text-sm", href="https://github.com/mxwell/aspan")
-                            = powered
+                            = l10n.powered
             script(src= js_path)
             noscript() The web page requires Javascript enabled in the browser to work

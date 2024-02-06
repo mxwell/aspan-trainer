@@ -1,8 +1,20 @@
 include partials/viewer_page
 -
   var l10n = {
+    langCode: "en",
+    title: "Kazakh Verb",
+    description: "Tables of Kazakh verb forms, tenses and moods",
+    contactUs: "Contact us:",
+    ytChannel: "Youtube channel",
+    tgGroup: "Telegram group",
+    powered: "Powered by Aspan",
+    firstLang: "ENG",
+    secondLang: "РУС",
+    thirdLang: "ҚАЗ",
+    secondRoot: "/",
+    thirdRoot: "/kk",
     titleAbout: "About",
     linkAbout: "./en/about.pug",
   }
-+a_viewer_page("Kazakh Verb", "en", "Tables of Kazakh verb forms, tenses and moods", l10n, "Contact us:", "Youtube channel", "Telegram group", "Powered by Aspan", "../javascripts/viewer_en.jsx", "ENG", "РУС", "ҚАЗ", "/", "/kk")
++a_viewer_page(l10n, "../javascripts/viewer_en.jsx")
     div#viewer_root(class="md:flex md:justify-center")
