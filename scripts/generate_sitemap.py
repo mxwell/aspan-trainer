@@ -109,15 +109,17 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Modify scrapped viewer page to produce a prerendered version.")
-    parser.add_argument("--ru-url-prefix", type=str, required=True, help="URL prefix for Russian version, goes before HTML file name")
     parser.add_argument("--en-url-prefix", type=str, required=True, help="URL prefix for English version, goes before HTML file name")
+    parser.add_argument("--kk-url-prefix", type=str, required=True, help="URL prefix for Kazakh version, goes before HTML file name")
+    parser.add_argument("--ru-url-prefix", type=str, required=True, help="URL prefix for Russian version, goes before HTML file name")
     parser.add_argument("--input-directory", "-i", type=str, required=True, help="Directory with HTML pages to put into sitemap")
     parser.add_argument("--spa-last-mod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as lastmod for SPA URLs")
     args = parser.parse_args()
 
     prefix_by_language = dict(
-        ru=args.ru_url_prefix,
         en=args.en_url_prefix,
+        kk=args.kk_url_prefix,
+        ru=args.ru_url_prefix,
     )
     main_language = "ru"
 
