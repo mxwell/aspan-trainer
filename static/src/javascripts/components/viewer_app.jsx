@@ -641,6 +641,7 @@ class ViewerApp extends React.Component {
         }
         return (
             <div>
+                <h2 className="px-6 text-3xl lg:text-4xl italic text-gray-600">{`${this.i18n("conjugation_kz_verb")} «${this.state.verb}»`}</h2>
                 {groups}
             </div>
         );

@@ -86,7 +86,11 @@ function prepareViewerOnlyTranslations(map) {
         "перевод не найден",
         "аударма табылмады"
     );
-
+    setEnRuKz(map, "conjugation_kz_verb",
+        "Conjugation of Kazakh verb",
+        "Спряжение казахского глагола",
+        "Етістіктің жіктелуі",
+    );
     /* side quiz */
     setEnRuKz(map, "side_quiz", "Fast quiz", "Экспресс-тест");
     setEnRuKz(map, "what_verb_form",
