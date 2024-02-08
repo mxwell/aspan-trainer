@@ -731,7 +731,7 @@ class ViewerApp extends React.Component {
             <span
                 className="text-3xl lg:text-sm text-gray-600"
                 key={`example${items.length}`} >
-                {this.i18n("examples")}:
+                {this.i18n("examples")}:&nbsp;
             </span>
         );
         for (var i = 0; i < verbs.length; ++i) {
@@ -742,13 +742,13 @@ class ViewerApp extends React.Component {
                     <span
                         className="text-3xl lg:text-sm text-gray-600"
                         key={`example${items.length}`} >
-                        {this.i18n("or")}
+                        &nbsp;{this.i18n("or")}&nbsp;
                     </span>
                 )
             }
             items.push(
                 <a
-                    className="px-6 lg:px-2 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    className="px-2 lg:px-1 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
                     key={`example${items.length}`}
                     href={link} >
                     {verb}
