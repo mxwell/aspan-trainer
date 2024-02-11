@@ -216,3 +216,36 @@ export function createSideQuizTask(verb, forceExceptional, sentenceType) {
 export function checkOptionalExceptionVerb(verb) {
     return isVerbOptionalException(verb);
 }
+
+export function createFormByParams(verb, forceExceptional, sentenceType, tense, grammarPerson, grammarNumber) {
+    if (!checkOptionalExceptionVerb(verb) && forceExceptional) {
+        console.log(`Unnecessary forceExceptional flag for the selected verb: ${verb}`);
+        return null;
+    }
+    if (tense != "presentTransitive") {
+        console.log(`tense is not supported: ${tense}`);
+        return null;
+    }
+    const tenseId = CASE_KEYS.indexOf(tense);
+    if (tenseId < 0) {
+        console.log(`Unknown tense: ${tense}`);
+        return null;
+    }
+    if (GRAMMAR_PERSONS.indexOf(grammarPerson) < 0) {
+        console.log(`Unsupported grammar person: ${grammarPerson}`);
+        return null;
+    }
+    if (GRAMMAR_NUMBERS.indexOf(grammarNumber) < 0) {
+        console.log(`Unsupported grammar number: ${grammarNumber}`);
+        return null;
+    }
+    let verbBuilder = new VerbBuilder(verb, forceExceptional);
+    let phrasal = createFormById(
+        verbBuilder,
+        grammarPerson,
+        grammarNumber,
+        sentenceType,
+        tenseId,
+    );
+    return phrasal;
+}
