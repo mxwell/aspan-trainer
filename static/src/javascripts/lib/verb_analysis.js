@@ -1,5 +1,5 @@
 import {
-    PART_EXPANATION_TYPE,
+    PART_EXPLANATION_TYPE,
     PHRASAL_PART_TYPE,
 } from "./aspan";
 
@@ -43,15 +43,15 @@ function explainVerbBase(verbDictForm, part, output) {
     const explanationType = explanation.explanationType;
     const base = part.content;
     console.log(`explaining base: expl type ${explanationType}`)
-    if (explanationType == PART_EXPANATION_TYPE.VerbBaseStripU) {
+    if (explanationType == PART_EXPLANATION_TYPE.VerbBaseStripU) {
         output.push(buildTitle("Основа"));
         output.push(buildProgression([verbDictForm, base]));
-    } else if (explanationType == PART_EXPANATION_TYPE.VerbBaseLostIShort) {
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
         output.push(buildTitle("Основа"));
         let lost = "й";
         output.push(buildProgression([verbDictForm, `${base}${lost}`, base]));
         output.push(buildPlain(`Основа теряет '${lost}' из-за слияния с аффиксом`));
-    } else if (explanationType == PART_EXPANATION_TYPE.VerbBaseLostY) {
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostY) {
         output.push(buildTitle("Основа"));
         let lost = explanation.soft ? "і" : "ы";
         output.push(buildProgression([verbDictForm, `${base}${lost}`, base]));
