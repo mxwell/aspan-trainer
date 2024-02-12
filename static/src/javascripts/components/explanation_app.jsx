@@ -1,12 +1,8 @@
 import React from 'react';
-import { highlightPhrasal } from '../lib/highlight';
 import { parseSentenceType, SENTENCE_TYPES } from '../lib/sentence';
 import { parseParams } from '../lib/url'
 import {
-    PARAGRAPH_PLAIN,
-    PARAGRAPH_TITLE,
-    PARAGRAPH_PROGRESSION,
-    explainVerbPhrasal,
+    renderVerbPhrasalExplanation,
 } from '../lib/verb_analysis';
 import { createFormByParams } from '../lib/verb_forms';
 
@@ -80,51 +76,7 @@ class ExplanationApp extends React.Component {
                 <p>Nothing to explain</p>
             );
         }
-        const paragraphs = explainVerbPhrasal(verb, phrasal);
-        console.log(`Received explanation in ${paragraphs.length} paragraphs`);
-        let htmlParts = [];
-
-        for (let i = 0; i < paragraphs.length; ++i) {
-            const paragraph = paragraphs[i];
-            if (paragraph.paragraphType == PARAGRAPH_PLAIN) {
-                htmlParts.push(
-                    <p
-                        key={`p${htmlParts.length}`}>
-                        {paragraph.item}
-                    </p>
-                );
-            } else if (paragraph.paragraphType == PARAGRAPH_TITLE) {
-                htmlParts.push(
-                    <h3
-                        className="text-3xl"
-                        key={`p${htmlParts.length}`}>
-                        {paragraph.item}
-                    </h3>
-                );
-            } else if (paragraph.paragraphType == PARAGRAPH_PROGRESSION) {
-                htmlParts.push(
-                    <p
-                        key={`p${htmlParts.length}`}>
-                        {paragraph.items.join(" → ")}
-                    </p>
-                );
-            } else {
-                htmlParts.push(
-                    <p
-                        key={`p${htmlParts.length}`}>
-                        Unsupported paragraph type
-                    </p>
-                );
-            }
-        }
-
-        return (
-            <div>
-                <p>{highlightPhrasal(phrasal)}</p>
-                {htmlParts}
-            </div>
-        );
-
+        return renderVerbPhrasalExplanation(verb, phrasal);
     }
 
     render() {

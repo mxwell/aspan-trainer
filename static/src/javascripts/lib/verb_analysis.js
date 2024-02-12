@@ -1,75 +1,89 @@
+import React from 'react';
 import {
     PART_EXPLANATION_TYPE,
     PHRASAL_PART_TYPE,
 } from "./aspan";
+import { highlightPhrasal } from './highlight';
+import {
+    I18N_LANG_RU,
+    i18n
+} from './i18n';
 
-export const PARAGRAPH_PLAIN = "PARAGRAPH_PLAIN";
-export const PARAGRAPH_TITLE = "PARAGRAPH_TITLE";
-export const PARAGRAPH_CODE = "PARAGRAPH_CODE";
-export const PARAGRAPH_SELECT = "PARAGRAPH_SELECT";
-export const PARAGRAPH_PROGRESSION = "PARAGRAPH_PROGRESSION";
-
-class ExplanationParagraph {
-    /**
-     * Provide 'item' if the paragraph contains only a single string.
-     * Or provide 'items' if the paragraph includes many strings.
-     *
-     * Provide only one of them and leave another 'null'.
-     */
-    constructor(paragraphType, item, items) {
-        this.paragraphType = paragraphType;
-        this.item = item;
-        this.items = items;
-    }
+function addTitleParagraph(text, htmlParts) {
+    htmlParts.push(
+        <p
+            className="text-3xl"
+            key={`p${htmlParts.length}`}>
+            {text}
+        </p>
+    );
 }
 
-function buildPlain(text) {
-    return new ExplanationParagraph(PARAGRAPH_PLAIN, text, null);
+function addProgressionParagraph(items, htmlParts) {
+    htmlParts.push(
+        <p
+            key={`p${htmlParts.length}`}>
+            {items.join(" → ")}
+        </p>
+    );
 }
 
-function buildTitle(text) {
-    return new ExplanationParagraph(PARAGRAPH_TITLE, text, null);
+function addPlainParagraph(text, htmlParts) {
+    htmlParts.push(
+        <p
+            key={`p${htmlParts.length}`}>
+            {text}
+        </p>
+    );
 }
 
-function buildProgression(items) {
-    return new ExplanationParagraph(PARAGRAPH_PROGRESSION, null, items);
-}
-
-function explainVerbBase(verbDictForm, part, output) {
+function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
+    let lang = I18N_LANG_RU;
     let explanation = part.explanation;
     if (explanation == null) {
         return;
     }
     const explanationType = explanation.explanationType;
+    if (explanationType == null || explanationType.length == 0) {
+        return;
+    }
     const base = part.content;
     console.log(`explaining base: expl type ${explanationType}`)
+    addTitleParagraph(i18n("title_base", lang), htmlParts);
     if (explanationType == PART_EXPLANATION_TYPE.VerbBaseStripU) {
-        output.push(buildTitle("Основа"));
-        output.push(buildProgression([verbDictForm, base]));
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
-        output.push(buildTitle("Основа"));
-        let lost = "й";
-        output.push(buildProgression([verbDictForm, `${base}${lost}`, base]));
-        output.push(buildPlain(`Основа теряет '${lost}' из-за слияния с аффиксом`));
+        let loss = "й";
+        const items = [verbDictForm, `${base}${loss}`, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_loss_templ", lang)(loss);
+        addPlainParagraph(text, htmlParts);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostY) {
-        output.push(buildTitle("Основа"));
-        let lost = explanation.soft ? "і" : "ы";
-        output.push(buildProgression([verbDictForm, `${base}${lost}`, base]));
-        output.push(buildPlain(`Основа теряет '${lost}' из-за слияния с аффиксом`));
+        let loss = explanation.soft ? "і" : "ы";
+        const items = [verbDictForm, `${base}${loss}`, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_loss_templ", lang)(loss);
+        addPlainParagraph(text, htmlParts);
     }
 }
 
-export function explainVerbPhrasal(verbDictForm, phrasal) {
-    let output = [];
+export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
     let parts = phrasal.parts;
-    console.log(`explaining ${parts.length} parts`);
+    console.log(`Rendering explanation paragraphs for ${parts.length} part(s).`);
+    let htmlParts = [];
     for (let i = 0; i < parts.length; ++i) {
         let part = parts[i];
         let pt = part.partType;
         console.log(`explaining: i ${i}, pt ${pt}`);
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            explainVerbBase(verbDictForm, part, output);
+            renderVerbBaseExplanation(verbDictForm, part, htmlParts);
         }
     }
-    return output;
+    return (
+        <div>
+            <p>{highlightPhrasal(phrasal)}</p>
+            {htmlParts}
+        </div>
+    );
 }

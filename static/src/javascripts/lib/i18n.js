@@ -100,6 +100,17 @@ function prepareViewerOnlyTranslations(map) {
     );
 }
 
+function prepareExplanationOnlyTranslations(map) {
+    setEnRu(map, "title_base",
+        "Base",
+        "Основа",
+    );
+    setEnRu(map, "base_loss_templ",
+        (loss) => `The base loses '${loss}' because it is merged with the affix`,
+        (loss) => `Основа теряет '${loss}' из-за слияния с аффиксом`,
+    );
+}
+
 function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса", "Бетбейне тілін өзгерту");
     setEnRuKz(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс", "Қазақша бетбейне қолдану");
@@ -160,6 +171,7 @@ function prepareTranslations() {
 
     prepareCommonTranslations(map);
     prepareViewerOnlyTranslations(map);
+    prepareExplanationOnlyTranslations(map);
     prepareQuizOnlyTranslations(map);
 
     return map;
