@@ -109,6 +109,20 @@ function prepareExplanationOnlyTranslations(map) {
         (loss) => `The base loses '${loss}' because it is merged with the affix`,
         (loss) => `Основа теряет '${loss}' из-за слияния с аффиксом`,
     );
+
+    setEnRu(map, "title_tense_affix",
+        "Tense affix",
+        "Аффикс времени",
+    );
+    setEnRu(map, "affix_merge_with_base",
+        "Affix changes after merge with base",
+        "Аффикс меняется из-за слияния с основой",
+    );
+
+    setEnRu(map, "title_pers_affix",
+        "Personal affix",
+        "Личное окончание",
+    );
 }
 
 function prepareQuizOnlyTranslations(map) {

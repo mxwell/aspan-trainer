@@ -37,6 +37,32 @@ function addPlainParagraph(text, htmlParts) {
     );
 }
 
+function addVariantsTable(variants, highlight, highlightColor, htmlParts) {
+    let tableRows = [];
+    for (let i = 0; i < variants.length; ++i) {
+        let row = variants[i];
+        let cells = [];
+        for (let j = 0; j < row.length; ++j) {
+            let v = row[j];
+            let cellClass = (v == highlight) ? highlightColor : "";
+            cells.push(
+                <td
+                    className={`p-2 border-2 ${cellClass}`}
+                    key={j}>
+                    {row[j]}
+                </td>
+            );
+        }
+        tableRows.push(<tr key={i}>{cells}</tr>);
+    }
+    htmlParts.push(
+        <table
+            key={`t${htmlParts.length}`}>
+            <tbody>{tableRows}</tbody>
+        </table>
+    );
+}
+
 function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
     let lang = I18N_LANG_RU;
     let explanation = part.explanation;
@@ -68,6 +94,60 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
     }
 }
 
+const PRES_TRANSITIVE_AFFIXES = [["а", "е", "й"]];
+
+function renderVerbTenseAffixExplanation(part, htmlParts) {
+    let lang = I18N_LANG_RU;
+    let explanation = part.explanation;
+    if (explanation == null) {
+        return;
+    }
+    const explanationType = explanation.explanationType;
+    if (explanationType == null || explanationType.length == 0) {
+        return;
+    }
+    const affix = part.content;
+    console.log(`explaining tense affix: expl type ${explanationType}`);
+    addTitleParagraph(i18n("title_tense_affix", lang), htmlParts);
+    const highlightColor = "underline text-orange-600";
+    if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive) {
+        addVariantsTable(PRES_TRANSITIVE_AFFIXES, affix, highlightColor, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
+        addVariantsTable(PRES_TRANSITIVE_AFFIXES, "а", highlightColor, htmlParts);
+        const text = i18n("affix_merge_with_base", lang);
+        addPlainParagraph(text, htmlParts);
+        addProgressionParagraph(["а", affix], htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
+        addVariantsTable(PRES_TRANSITIVE_AFFIXES, "й", highlightColor, htmlParts);
+        const text = i18n("affix_merge_with_base", lang);
+        addPlainParagraph(text, htmlParts);
+        addProgressionParagraph(["й", affix], htmlParts);
+    }
+}
+
+const PERS_AFFIXES = [
+    ["мын", "мыз", "сың", "сыңдар", "сыз", "сыздар", "ды"],
+    ["мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
+];
+
+function renderVerbPersonalAffixExplanation(part, htmlParts) {
+    let lang = I18N_LANG_RU;
+    let explanation = part.explanation;
+    if (explanation == null) {
+        return;
+    }
+    const explanationType = explanation.explanationType;
+    if (explanationType == null || explanationType.length == 0) {
+        return;
+    }
+    const affix = part.content;
+    console.log(`explaining pers affix: expl type ${explanationType}`);
+    addTitleParagraph(i18n("title_pers_affix", lang), htmlParts);
+    if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
+        addVariantsTable(PERS_AFFIXES, affix, "underline text-indigo-600", htmlParts);
+    }
+}
+
 export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
     let parts = phrasal.parts;
     console.log(`Rendering explanation paragraphs for ${parts.length} part(s).`);
@@ -78,6 +158,10 @@ export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
         console.log(`explaining: i ${i}, pt ${pt}`);
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
             renderVerbBaseExplanation(verbDictForm, part, htmlParts);
+        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
+            renderVerbTenseAffixExplanation(part, htmlParts);
+        } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
+            renderVerbPersonalAffixExplanation(part, htmlParts);
         }
     }
     return (
