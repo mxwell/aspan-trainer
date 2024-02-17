@@ -217,7 +217,7 @@ export function checkOptionalExceptionVerb(verb) {
     return isVerbOptionalException(verb);
 }
 
-export function createFormByParams(verb, forceExceptional, sentenceType, tense, grammarPerson, grammarNumber) {
+export function createFormByParams(verb, forceExceptional, sentenceType, tense, personNumber) {
     if (!checkOptionalExceptionVerb(verb) && forceExceptional) {
         console.log(`Unnecessary forceExceptional flag for the selected verb: ${verb}`);
         return null;
@@ -231,19 +231,19 @@ export function createFormByParams(verb, forceExceptional, sentenceType, tense, 
         console.log(`Unknown tense: ${tense}`);
         return null;
     }
-    if (GRAMMAR_PERSONS.indexOf(grammarPerson) < 0) {
-        console.log(`Unsupported grammar person: ${grammarPerson}`);
+    if (GRAMMAR_PERSONS.indexOf(personNumber.person) < 0) {
+        console.log(`Unsupported grammar person: ${personNumber.person}`);
         return null;
     }
-    if (GRAMMAR_NUMBERS.indexOf(grammarNumber) < 0) {
-        console.log(`Unsupported grammar number: ${grammarNumber}`);
+    if (GRAMMAR_NUMBERS.indexOf(personNumber.number) < 0) {
+        console.log(`Unsupported grammar number: ${personNumber.number}`);
         return null;
     }
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
     let phrasal = createFormById(
         verbBuilder,
-        grammarPerson,
-        grammarNumber,
+        personNumber.person,
+        personNumber.number,
         sentenceType,
         tenseId,
     );

@@ -1,12 +1,16 @@
-import React from 'react';
-import { i18n } from '../lib/i18n';
-import { renderOptionsWithI18nKeys } from "../lib/react_util";
-import { parseSentenceType, SENTENCE_TYPES } from '../lib/sentence';
-import { parseParams } from '../lib/url'
+import React from "react";
+import { i18n } from "../lib/i18n";
+import { buildMapByPronoun } from "../lib/grammar_utils";
+import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_util";
+import { parseSentenceType, SENTENCE_TYPES } from "../lib/sentence";
+import { parseParams } from "../lib/url"
 import {
     renderVerbPhrasalExplanation,
-} from '../lib/verb_analysis';
-import { createFormByParams } from '../lib/verb_forms';
+} from "../lib/verb_analysis";
+import { createFormByParams } from "../lib/verb_forms";
+
+const MAP_BY_PRONOUN = buildMapByPronoun();
+const PRONOUNS = Array.from(MAP_BY_PRONOUN.keys());
 
 class ExplanationApp extends React.Component {
     constructor(props) {
@@ -15,20 +19,20 @@ class ExplanationApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onPronounSelect = this.onPronounSelect.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, grammarPerson, grammarNumber, phrasal) {
+    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal) {
         return {
             verb: verb,
             lastEntered: verb,
             forceExceptional: forceExceptional,
             sentenceType: sentenceType,
             tense: tense,
-            grammarPerson: grammarPerson,
-            grammarNumber: grammarNumber,
+            pronoun: pronoun,
             phrasal: phrasal,
         };
     }
@@ -39,8 +43,7 @@ class ExplanationApp extends React.Component {
             /* forceExceptional */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tense */ "",
-            /* grammarPerson */ "",
-            /* grammarNumber */ "",
+            /* pronoun */ PRONOUNS[0],
             /* phrasal */ null,
         );
     }
@@ -54,24 +57,25 @@ class ExplanationApp extends React.Component {
         const forceExceptional = params.exception == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
         const tense = params.tense;
-        const grammarPerson = params.person;
-        const grammarNumber = params.number;
+        const pronoun = params.pronoun || PRONOUNS[0];
+        const personNumber = MAP_BY_PRONOUN.get(pronoun);
 
         const phrasal = createFormByParams(
             verb,
             forceExceptional,
             sentenceType,
             tense,
-            grammarPerson,
-            grammarNumber,
+            personNumber,
         );
+        if (phrasal == null) {
+            console.log(`Failed to generate phrasal for verb: ${verb}`);
+        }
         return this.makeState(
             verb,
             forceExceptional,
             sentenceType,
             tense,
-            grammarPerson,
-            grammarNumber,
+            pronoun,
             phrasal,
         );
     }
@@ -84,15 +88,18 @@ class ExplanationApp extends React.Component {
         event.preventDefault();
 
         const verb = this.state.lastEntered;
+        const personNumber = MAP_BY_PRONOUN.get(this.state.pronoun);
 
         const phrasal = createFormByParams(
             verb,
             this.state.forceExceptional,
             this.state.sentenceType,
             this.state.tense,
-            this.state.grammarPerson,
-            this.state.grammarNumber,
+            personNumber,
         );
+        if (phrasal == null) {
+            console.log(`Failed to generate phrasal for verb: ${verb}`);
+        }
         this.setState({ verb, phrasal });
     }
 
@@ -103,6 +110,11 @@ class ExplanationApp extends React.Component {
 
     onKeyDown(event) {
         // TODO
+    }
+
+    onPronounSelect(event) {
+        const pronoun = event.target.value;
+        this.setState({ pronoun });
     }
 
     onSentenceTypeSelect(event) {
@@ -127,6 +139,13 @@ class ExplanationApp extends React.Component {
                             autoFocus />
                     </div>
                 </div>
+                <select
+                    required
+                    value={this.state.pronoun}
+                    onChange={this.onPronounSelect}
+                    className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                    {renderOptionsWithKeys(PRONOUNS)}
+                </select>
                 <select
                     required
                     value={this.state.sentenceType}

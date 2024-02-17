@@ -25,3 +25,21 @@ export function getSentenceTerminator(sentenceType) {
     }
     return "";
 }
+
+class PersonNumber {
+    constructor(person, number) {
+        this.person = person;
+        this.number = number;
+    }
+}
+
+export function buildMapByPronoun() {
+    let map = new Map();
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
+            map.set(pronoun, new PersonNumber(person, number));
+        }
+    }
+    return map;
+}
