@@ -9,6 +9,9 @@ import {
 } from "../lib/verb_analysis";
 import { createFormByParams } from "../lib/verb_forms";
 
+const TENSES = [
+    "presentTransitive",
+];
 const MAP_BY_PRONOUN = buildMapByPronoun();
 const PRONOUNS = Array.from(MAP_BY_PRONOUN.keys());
 
@@ -19,6 +22,7 @@ class ExplanationApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onTenseSelect = this.onTenseSelect.bind(this);
         this.onPronounSelect = this.onPronounSelect.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
 
@@ -42,7 +46,7 @@ class ExplanationApp extends React.Component {
             /* verb */ "",
             /* forceExceptional */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
-            /* tense */ "",
+            /* tense */ TENSES[0],
             /* pronoun */ PRONOUNS[0],
             /* phrasal */ null,
         );
@@ -56,7 +60,7 @@ class ExplanationApp extends React.Component {
         }
         const forceExceptional = params.exception == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
-        const tense = params.tense;
+        const tense = params.tense || TENSES[0];
         const pronoun = params.pronoun || PRONOUNS[0];
         const personNumber = MAP_BY_PRONOUN.get(pronoun);
 
@@ -112,6 +116,11 @@ class ExplanationApp extends React.Component {
         // TODO
     }
 
+    onTenseSelect(event) {
+        const tense = event.target.value;
+        this.setState({ tense });
+    }
+
     onPronounSelect(event) {
         const pronoun = event.target.value;
         this.setState({ pronoun });
@@ -124,8 +133,17 @@ class ExplanationApp extends React.Component {
 
     renderForm() {
         return (
-            <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
-                <div className="lg:px-2">
+            <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
+                <div>
+                    <select
+                        required
+                        value={this.state.tense}
+                        onChange={this.onTenseSelect}
+                        className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                        {renderOptionsWithI18nKeys(TENSES, this.props.lang)}
+                    </select>
+                </div>
+                <div className="lg:px-2 flex flex-col lg:flex-row">
                     <div className="relative">
                         <input
                             type="text"
@@ -138,26 +156,26 @@ class ExplanationApp extends React.Component {
                             className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                     </div>
+                    <select
+                        required
+                        value={this.state.pronoun}
+                        onChange={this.onPronounSelect}
+                        className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                        {renderOptionsWithKeys(PRONOUNS)}
+                    </select>
+                    <select
+                        required
+                        value={this.state.sentenceType}
+                        onChange={this.onSentenceTypeSelect}
+                        className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
+                        {renderOptionsWithI18nKeys(SENTENCE_TYPES, this.props.lang)}
+                    </select>
+                    <input
+                        type="submit"
+                        value={this.i18n("buttonSubmit")}
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                    />
                 </div>
-                <select
-                    required
-                    value={this.state.pronoun}
-                    onChange={this.onPronounSelect}
-                    className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
-                    {renderOptionsWithKeys(PRONOUNS)}
-                </select>
-                <select
-                    required
-                    value={this.state.sentenceType}
-                    onChange={this.onSentenceTypeSelect}
-                    className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
-                    {renderOptionsWithI18nKeys(SENTENCE_TYPES, this.props.lang)}
-                </select>
-                <input
-                    type="submit"
-                    value={this.i18n("buttonSubmit")}
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
-                />
             </form>
         );
     }
