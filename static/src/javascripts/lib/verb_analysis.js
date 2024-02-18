@@ -79,6 +79,7 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
     if (explanationType == PART_EXPLANATION_TYPE.VerbBaseStripU) {
         const items = [verbDictForm, base];
         addProgressionParagraph(items, htmlParts);
+        addPlainParagraph(i18n("base_strip_u", lang), htmlParts);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
         let loss = "й";
         const items = [verbDictForm, `${base}${loss}`, base];
@@ -90,6 +91,40 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
         const items = [verbDictForm, `${base}${loss}`, base];
         addProgressionParagraph(items, htmlParts);
         const text = i18n("base_loss_templ", lang)(loss);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedY) {
+        let gain = explanation.soft ? "і" : "ы";
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_gain_templ", lang)(gain);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShort) {
+        let gain = "й";
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_gain_templ", lang)(gain);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY) {
+        let gain = explanation.soft ? "йі" : "йы";
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_gain_templ", lang)(gain);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons) {
+        let gain = explanation.soft ? "і" : "ы";
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_gain_inside_templ", lang)(gain);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceB2U) {
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_replace_b_to_u", lang);
+        addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceLastCons) {
+        const items = [verbDictForm, base];
+        addProgressionParagraph(items, htmlParts);
+        const text = i18n("base_replace_last_cons", lang);
         addPlainParagraph(text, htmlParts);
     }
 }

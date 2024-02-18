@@ -105,9 +105,29 @@ function prepareExplanationOnlyTranslations(map) {
         "Base",
         "Основа",
     );
+    setEnRu(map, "base_strip_u",
+        "The base is formed by stripping 'у' or 'ю' at the end of the dictionary form",
+        "Основа формируется путём удаления 'у' или 'ю' на конце словарной формы",
+    );
     setEnRu(map, "base_loss_templ",
         (loss) => `The base loses '${loss}' because it is merged with the affix`,
         (loss) => `Основа теряет '${loss}' из-за слияния с аффиксом`,
+    );
+    setEnRu(map, "base_gain_templ",
+        (gain) => `This special verb gains '${gain}' to form the base`,
+        (gain) => `Этот особенный глагол приобретает '${gain}' для формирования основы`,
+    );
+    setEnRu(map, "base_gain_inside_templ",
+        (gain) => `This special verb gains '${gain}' inside the base ahead of the following consonant`,
+        (gain) => `Этот особенный глагол приобретает '${gain}' внутри основы перед последующей согласной`,
+    );
+    setEnRu(map, "base_replace_b_to_u",
+        "The base gets 'б' replaced with 'у' in the case of this particular tense",
+        "В основе заменяется 'б' на 'у' в случае этого конкретного времени",
+    );
+    setEnRu(map, "base_replace_last_cons",
+        "The base gets the last consonant replaced to sound better",
+        "Последняя согласная в основе заменяется для лучшего звучания",
     );
 
     setEnRu(map, "title_tense_affix",
