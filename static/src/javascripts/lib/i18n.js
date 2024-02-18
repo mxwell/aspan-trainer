@@ -130,6 +130,11 @@ function prepareExplanationOnlyTranslations(map) {
         "Последняя согласная в основе заменяется для лучшего звучания",
     );
 
+    setEnRu(map, "title_negation_particle",
+        "Negation particle",
+        "Отрицательная частица",
+    );
+
     setEnRu(map, "title_tense_affix",
         "Tense affix",
         "Аффикс времени",

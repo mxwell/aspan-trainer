@@ -129,6 +129,30 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
     }
 }
 
+const NEGATION_PARTICLES = [
+    ["ба", "ма", "па"],
+    ["бе", "ме", "пе"],
+];
+
+function renderVerbNegationExplanation(part, htmlParts) {
+    let lang = I18N_LANG_RU;
+    let explanation = part.explanation;
+    if (explanation == null) {
+        return;
+    }
+    const explanationType = explanation.explanationType;
+    if (explanationType == null || explanationType.length == 0) {
+        return;
+    }
+    const negation = part.content;
+    console.log(`explaining negation: expl type ${explanationType}`);
+    addTitleParagraph(i18n("title_negation_particle", lang), htmlParts);
+    if (explanationType == PART_EXPLANATION_TYPE.VerbNegationPostBase) {
+        const highlightColor = "underline text-red-600";
+        addVariantsTable(NEGATION_PARTICLES, negation, highlightColor, htmlParts);
+    }
+}
+
 const PRES_TRANSITIVE_AFFIXES = [["а", "е", "й"]];
 
 function renderVerbTenseAffixExplanation(part, htmlParts) {
@@ -193,6 +217,8 @@ export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
         console.log(`explaining: i ${i}, pt ${pt}`);
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
             renderVerbBaseExplanation(verbDictForm, part, htmlParts);
+        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
+            renderVerbNegationExplanation(part, htmlParts);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
             renderVerbTenseAffixExplanation(part, htmlParts);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
