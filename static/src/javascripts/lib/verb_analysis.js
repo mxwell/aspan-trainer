@@ -204,6 +204,8 @@ function renderVerbPersonalAffixExplanation(part, htmlParts) {
     addTitleParagraph(i18n("title_pers_affix", lang), htmlParts);
     if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
         addVariantsTable(PERS_AFFIXES, affix, "underline text-indigo-600", htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip) {
+        addPlainParagraph(i18n("pers_affix_question_skip", lang), htmlParts);
     }
 }
 
