@@ -129,7 +129,7 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
     }
 }
 
-const NEGATION_PARTICLES = [
+const NEGATION_OR_QUESTION_PARTICLES = [
     ["ба", "ма", "па"],
     ["бе", "ме", "пе"],
 ];
@@ -149,7 +149,7 @@ function renderVerbNegationExplanation(part, htmlParts) {
     addTitleParagraph(i18n("title_negation_particle", lang), htmlParts);
     if (explanationType == PART_EXPLANATION_TYPE.VerbNegationPostBase) {
         const highlightColor = "underline text-red-600";
-        addVariantsTable(NEGATION_PARTICLES, negation, highlightColor, htmlParts);
+        addVariantsTable(NEGATION_OR_QUESTION_PARTICLES, negation, highlightColor, htmlParts);
     }
 }
 
@@ -209,6 +209,22 @@ function renderVerbPersonalAffixExplanation(part, htmlParts) {
     }
 }
 
+function renderQuestionParticleExplanation(part, htmlParts) {
+    let lang = I18N_LANG_RU;
+    let explanation = part.explanation;
+    if (explanation == null) {
+        return;
+    }
+    const explanationType = explanation.explanationType;
+    if (explanationType == null || explanationType.length == 0) {
+        return;
+    }
+    const particle = part.content;
+    console.log(`explaining question particle: expl type ${explanationType}`);
+    addTitleParagraph(i18n("title_question_particle", lang), htmlParts);
+    addVariantsTable(NEGATION_OR_QUESTION_PARTICLES, particle, "underline", htmlParts);
+}
+
 export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
     let parts = phrasal.parts;
     console.log(`Rendering explanation paragraphs for ${parts.length} part(s).`);
@@ -225,6 +241,8 @@ export function renderVerbPhrasalExplanation(verbDictForm, phrasal) {
             renderVerbTenseAffixExplanation(part, htmlParts);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
             renderVerbPersonalAffixExplanation(part, htmlParts);
+        } else if (pt == PHRASAL_PART_TYPE.QuestionParticle) {
+            renderQuestionParticleExplanation(part, htmlParts);
         }
     }
     return (

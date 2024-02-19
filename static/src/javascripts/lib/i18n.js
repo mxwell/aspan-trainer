@@ -152,6 +152,11 @@ function prepareExplanationOnlyTranslations(map) {
         "This tense has empty personal affix for interrogative 3rd person",
         "В этом времени пустое личное окончание для вопросительной формы 3-го лица",
     );
+
+    setEnRu(map, "title_question_particle",
+        "Question particle",
+        "Вопросительная частица",
+    );
 }
 
 function prepareQuizOnlyTranslations(map) {
