@@ -104,6 +104,11 @@ function renderVerbBaseExplanation(verbDictForm, part, htmlParts) {
         addProgressionParagraph(items, htmlParts);
         const text = i18n("base_gain_templ", lang)(gain);
         addPlainParagraph(text, htmlParts);
+    } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY) {
+        let gain1 = "й";
+        let gain2 = explanation.soft ? "і" : "ы";
+        addProgressionParagraph([verbDictForm, `${base}${gain2}`, base], htmlParts);
+        addPlainParagraph(i18n("base_gain_and_loss_templ", lang)(`${gain1}${gain2}`, gain2), htmlParts);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY) {
         let gain = explanation.soft ? "йі" : "йы";
         const items = [verbDictForm, base];

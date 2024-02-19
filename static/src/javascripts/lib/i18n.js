@@ -117,6 +117,10 @@ function prepareExplanationOnlyTranslations(map) {
         (gain) => `This special verb gains '${gain}' to form the base`,
         (gain) => `Этот особенный глагол приобретает '${gain}' для формирования основы`,
     );
+    setEnRu(map, "base_gain_and_loss_templ",
+        (gain, loss) => `The base gains '${gain}' but loses '${loss}' due to the merge with the affix`,
+        (gain, loss) => `Основа приобретает '${gain}', но теряет '${loss}' из-за слияния с аффиксом`,
+    );
     setEnRu(map, "base_gain_inside_templ",
         (gain) => `This special verb gains '${gain}' inside the base ahead of the following consonant`,
         (gain) => `Этот особенный глагол приобретает '${gain}' внутри основы перед последующей согласной`,
