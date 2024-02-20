@@ -2,12 +2,96 @@ import React from 'react';
 import {
     PART_EXPLANATION_TYPE,
     PHRASAL_PART_TYPE,
+    Phrasal,
 } from "./aspan";
 import { highlightPhrasal } from './highlight';
 import {
     I18N_LANG_RU,
     i18n
 } from './i18n';
+
+class Progression {
+    constructor(states) {
+        this.states = states;
+    }
+    totalStates() {
+        return this.states.length;
+    }
+    getState(index, htmlParts) {
+        let items = this.states.slice(0, index);
+        htmlParts.push(
+            <p
+                key={`p${htmlParts.length}`}>
+                {items.join(" → ")}
+            </p>
+        );
+    }
+}
+
+function findItemInTable(table, item) {
+    for (let i = 0; i < table.length; ++i) {
+        let row = table[i];
+        for (let j = 0; j < row.length; ++j) {
+            if (row[j] == item) {
+                return i * row.length + j;
+            }
+        }
+    }
+    return -1;
+}
+
+class VariantsTable {
+    constructor(table, highlightPos, highlightColor) {
+        this.table = table;
+        this.highlightPos = highlightPos;
+        this.highlightColor = highlightColor;
+    }
+    totalStates() {
+        return 2 + this.highlightPos;
+    }
+    getState(index, htmlParts) {
+        let highlight = Math.min(this.highlightPos, index - 1);
+        let tableRows = [];
+        let pos = 0;
+        for (let i = 0; i < this.table.length; ++i) {
+            let row = this.table[i];
+            let cells = [];
+            for (let j = 0; j < row.length; ++j) {
+                let cellClass = (pos == highlight) ? highlightColor : "";
+                cells.push(
+                    <td
+                        className={`p-2 border-2 ${cellClass}`}
+                        key={j}>
+                        {row[j]}
+                    </td>
+                );
+                pos += 1;
+            }
+            tableRows.push(<tr key={i}>{cells}</tr>);
+        }
+        htmlParts.push(
+            <table
+                key={`t${htmlParts.length}`}>
+                <tbody>{tableRows}</tbody>
+            </table>
+        );
+    }
+}
+
+class PhrasalExplanation {
+    constructor(phrasal) {
+        this.phrasal = phrasal;
+        this.parts = [];
+    }
+}
+
+class PhrasalAnimationState {
+    constructor(phrasal) {
+        this.partIndex = 0;
+        this.paragraphIndex = 0;
+        this.stateIndex = 0;
+    }
+}
 
 function addTitleParagraph(text, htmlParts) {
     htmlParts.push(
