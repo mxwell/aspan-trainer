@@ -193,17 +193,15 @@ export function renderPhrasalExplanation(explanation, state) {
     for (let partIndex = 0; partIndex <= state.partIndex; ++partIndex) {
         let shownParagraphs = (partIndex < state.partIndex) ? explanation.parts[partIndex].length : (state.paragraphIndex + 1);
         for (let paragraphIndex = 0; paragraphIndex < shownParagraphs; ++paragraphIndex) {
+            // console.log(`render part ${partIndex}, paragraph ${paragraphIndex}`);
             let paragraph = explanation.parts[partIndex][paragraphIndex];
-            let shownStates = (
-                (partIndex < state.partIndex || paragraphIndex < state.paragraphIndex)
-                ? paragraph.totalStates()
-                : (state.stateIndex + 1)
+            let stateIndex = (
+                (partIndex < state.partIndex || paragraphIndex + 1 < shownParagraphs)
+                ? (paragraph.totalStates() - 1)
+                : state.stateIndex
             );
-            console.log(`Part ${partIndex}: rendering paragraph ${paragraphIndex} with ${shownStates} states.`);
-            for (let stateIndex = 0; stateIndex < shownStates; ++stateIndex) {
-                console.log(`type of paragraph: ${typeof paragraph}`);
-                paragraph.getState(stateIndex, htmlParts);
-            }
+            // console.log(`render part ${partIndex}, paragraph ${paragraphIndex}, state ${stateIndex}`);
+            paragraph.getState(stateIndex, htmlParts);
         }
     }
     return (
