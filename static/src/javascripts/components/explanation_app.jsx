@@ -5,7 +5,9 @@ import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_u
 import { parseSentenceType, SENTENCE_TYPES } from "../lib/sentence";
 import { parseParams } from "../lib/url"
 import {
-    renderVerbPhrasalExplanation,
+    PhrasalAnimationState,
+    buildVerbPhrasalExplanation,
+    renderPhrasalExplanation,
 } from "../lib/verb_analysis";
 import { createFormByParams } from "../lib/verb_forms";
 
@@ -29,7 +31,7 @@ class ExplanationApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal) {
+    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal, explanation, animationState) {
         return {
             verb: verb,
             lastEntered: verb,
@@ -38,6 +40,8 @@ class ExplanationApp extends React.Component {
             tense: tense,
             pronoun: pronoun,
             phrasal: phrasal,
+            explanation: explanation,
+            animationState: animationState,
         };
     }
 
@@ -49,7 +53,48 @@ class ExplanationApp extends React.Component {
             /* tense */ TENSES[0],
             /* pronoun */ PRONOUNS[0],
             /* phrasal */ null,
+            /* explanation */ null,
+            /* animationState */ null,
         );
+    }
+
+    startAnimation() {
+        let start = null;
+        const maxIdleSeconds = 10;
+        const advancePeriod = 0.5;
+        const animate = timestamp => {
+            if (!start) {
+                start = timestamp;
+            }
+            const progressSeconds = (timestamp - start) / 1000;
+            if (progressSeconds > advancePeriod) {
+                console.log(`timestamp: ${timestamp}, seconds since advance: ${progressSeconds}`);
+            }
+
+            const explanation = this.state.explanation;
+            const prevState = this.state.animationState;
+            if (prevState == null || !prevState.valid(explanation)) {
+                console.log("Complete or invalid animation state");
+                if (progressSeconds < maxIdleSeconds) {
+                    window.requestAnimationFrame(animate);
+                } else {
+                    console.log("Animation stopped due to timeout");
+                }
+                return;
+            }
+            if (progressSeconds > advancePeriod) {
+                const nextState = prevState.advance(explanation);
+                if (nextState == null) {
+                    console.log("Animation stopped due to completion");
+                    return;
+                }
+                this.setState({ animationState: nextState });
+                console.log("Advanced animation state");
+                start = timestamp;
+            }
+            window.requestAnimationFrame(animate);
+        };
+        window.requestAnimationFrame(animate);
     }
 
     readUrlState() {
@@ -71,8 +116,20 @@ class ExplanationApp extends React.Component {
             tense,
             personNumber,
         );
+        const explanation = (
+            phrasal != null
+            ? buildVerbPhrasalExplanation(verb, phrasal)
+            : null
+        );
+        const animationState = (
+            explanation != null
+            ? new PhrasalAnimationState()
+            : null
+        );
         if (phrasal == null) {
             console.log(`Failed to generate phrasal for verb: ${verb}`);
+        } else {
+            this.startAnimation();
         }
         return this.makeState(
             verb,
@@ -81,6 +138,8 @@ class ExplanationApp extends React.Component {
             tense,
             pronoun,
             phrasal,
+            explanation,
+            animationState,
         );
     }
 
@@ -101,10 +160,27 @@ class ExplanationApp extends React.Component {
             this.state.tense,
             personNumber,
         );
+        const explanation = (
+            phrasal != null
+            ? buildVerbPhrasalExplanation(verb, phrasal)
+            : null
+        );
+        const animationState = (
+            explanation != null
+            ? new PhrasalAnimationState()
+            : null
+        );
+        this.setState({
+            verb,
+            phrasal,
+            explanation,
+            animationState,
+        });
         if (phrasal == null) {
             console.log(`Failed to generate phrasal for verb: ${verb}`);
+        } else {
+            this.startAnimation();
         }
-        this.setState({ verb, phrasal });
     }
 
     onChange(event) {
@@ -181,14 +257,14 @@ class ExplanationApp extends React.Component {
     }
 
     renderExplanation() {
-        const verb = this.state.verb;
-        const phrasal = this.state.phrasal;
-        if (verb == null || phrasal == null) {
+        const explanation = this.state.explanation;
+        const animationState = this.state.animationState;
+        if (explanation == null || animationState == null) {
             return (
                 <p>Nothing to explain</p>
             );
         }
-        return renderVerbPhrasalExplanation(verb, phrasal);
+        return renderPhrasalExplanation(explanation, animationState);
     }
 
     render() {
