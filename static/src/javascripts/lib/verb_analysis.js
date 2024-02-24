@@ -190,10 +190,14 @@ export class PhrasalAnimationState {
 
 export function renderPhrasalExplanation(explanation, state) {
     let htmlParts = [];
-    for (let partIndex = 0; partIndex <= state.partIndex; ++partIndex) {
-        let shownParagraphs = (partIndex < state.partIndex) ? explanation.parts[partIndex].length : (state.paragraphIndex + 1);
+    const partsCount = explanation.parts.length;
+    const shownParts = Math.min(state.partIndex + 1, partsCount);
+    let complete = false;
+    for (let partIndex = 0; partIndex < shownParts; ++partIndex) {
+        const paragraphsCount = explanation.parts[partIndex].length;
+        let shownParagraphs = (partIndex < state.partIndex) ? paragraphsCount : (state.paragraphIndex + 1);
         for (let paragraphIndex = 0; paragraphIndex < shownParagraphs; ++paragraphIndex) {
-            // console.log(`render part ${partIndex}, paragraph ${paragraphIndex}`);
+            // console.log(`render part ${partIndex}/${explanation.phrasal.parts.length}, paragraph ${paragraphIndex}`);
             let paragraph = explanation.parts[partIndex][paragraphIndex];
             let stateIndex = (
                 (partIndex < state.partIndex || paragraphIndex + 1 < shownParagraphs)
@@ -202,7 +206,18 @@ export function renderPhrasalExplanation(explanation, state) {
             );
             // console.log(`render part ${partIndex}, paragraph ${paragraphIndex}, state ${stateIndex}`);
             paragraph.getState(stateIndex, htmlParts);
+            if (partIndex + 1 == partsCount && paragraphIndex + 1 == paragraphsCount && stateIndex + 1 == paragraph.totalStates()) {
+                complete = true;
+            }
         }
+    }
+    if (!complete) {
+        htmlParts.push(
+            <p
+                key={`p${htmlParts.length}`}>
+                ...
+            </p>
+        );
     }
     return (
         <div>

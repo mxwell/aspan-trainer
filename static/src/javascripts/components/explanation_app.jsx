@@ -31,7 +31,7 @@ class ExplanationApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal, explanation, animationState) {
+    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal, explanation, animationState, paused) {
         return {
             verb: verb,
             lastEntered: verb,
@@ -42,6 +42,7 @@ class ExplanationApp extends React.Component {
             phrasal: phrasal,
             explanation: explanation,
             animationState: animationState,
+            paused: paused,
         };
     }
 
@@ -55,6 +56,7 @@ class ExplanationApp extends React.Component {
             /* phrasal */ null,
             /* explanation */ null,
             /* animationState */ null,
+            /* paused */ true,
         );
     }
 
@@ -65,6 +67,10 @@ class ExplanationApp extends React.Component {
         const animate = timestamp => {
             if (!start) {
                 start = timestamp;
+            }
+            if (this.state.paused) {
+                console.log("Animation paused");
+                return;
             }
             const progressSeconds = (timestamp - start) / 1000;
             if (progressSeconds > advancePeriod) {
@@ -87,8 +93,9 @@ class ExplanationApp extends React.Component {
                 if (nextState == null) {
                     console.log("Animation stopped due to completion");
                     return;
+                } else {
+                    this.setState({ animationState: nextState });
                 }
-                this.setState({ animationState: nextState });
                 console.log("Advanced animation state");
                 start = timestamp;
             }
@@ -140,6 +147,7 @@ class ExplanationApp extends React.Component {
             phrasal,
             explanation,
             animationState,
+            animationState == null,
         );
     }
 
@@ -170,11 +178,13 @@ class ExplanationApp extends React.Component {
             ? new PhrasalAnimationState()
             : null
         );
+        const paused = animationState == null;
         this.setState({
             verb,
             phrasal,
             explanation,
             animationState,
+            paused,
         });
         if (phrasal == null) {
             console.log(`Failed to generate phrasal for verb: ${verb}`);
@@ -185,7 +195,8 @@ class ExplanationApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
-        this.setState({ lastEntered });
+        const paused = true;
+        this.setState({ lastEntered, paused });
     }
 
     onKeyDown(event) {
@@ -194,17 +205,20 @@ class ExplanationApp extends React.Component {
 
     onTenseSelect(event) {
         const tense = event.target.value;
-        this.setState({ tense });
+        const paused = true;
+        this.setState({ tense, paused });
     }
 
     onPronounSelect(event) {
         const pronoun = event.target.value;
-        this.setState({ pronoun });
+        const paused = true;
+        this.setState({ pronoun, paused });
     }
 
     onSentenceTypeSelect(event) {
         const sentenceType = event.target.value;
-        this.setState({ sentenceType });
+        const paused = true;
+        this.setState({ sentenceType, paused });
     }
 
     renderForm() {
