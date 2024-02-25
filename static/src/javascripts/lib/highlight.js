@@ -13,6 +13,19 @@ function addPartClasses(auxColorPrefix, colorPrefix, aux, partClasses) {
     }
 }
 
+export function partBackgroundColor(partType) {
+    if (partType == PHRASAL_PART_TYPE.VerbBase) {
+        return "bg-teal-200";
+    } else if (partType == PHRASAL_PART_TYPE.VerbTenseAffix) {
+        return "bg-orange-200";
+    } else if (partType == PHRASAL_PART_TYPE.VerbPersonalAffix) {
+        return "bg-indigo-200";
+    } else if (partType == PHRASAL_PART_TYPE.VerbNegation) {
+        return "bg-red-100";
+    }
+    return "bg-gray-200";
+}
+
 export function highlightPhrasal(phrasal, shownParts = -1) {
     let htmlParts = [];
     let parts = phrasal.parts;

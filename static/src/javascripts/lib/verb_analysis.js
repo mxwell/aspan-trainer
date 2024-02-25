@@ -4,7 +4,7 @@ import {
     PHRASAL_PART_TYPE,
     Phrasal,
 } from "./aspan";
-import { highlightPhrasal } from './highlight';
+import { highlightPhrasal, partBackgroundColor } from './highlight';
 import {
     I18N_LANG_RU,
     i18n
@@ -19,11 +19,11 @@ class Title {
     }
     getState(index, htmlParts) {
         htmlParts.push(
-            <p
-                className="text-3xl"
+            <h2
+                className="text-3xl text-gray-600"
                 key={`p${htmlParts.length}`}>
                 {this.text}
-            </p>
+            </h2>
         );
     }
 }
@@ -194,6 +194,7 @@ export function renderPhrasalExplanation(explanation, state) {
     const shownParts = Math.min(state.partIndex + 1, partsCount);
     let complete = false;
     for (let partIndex = 0; partIndex < shownParts; ++partIndex) {
+        let htmlParagraphs = [];
         const paragraphsCount = explanation.parts[partIndex].length;
         let shownParagraphs = (partIndex < state.partIndex) ? paragraphsCount : (state.paragraphIndex + 1);
         for (let paragraphIndex = 0; paragraphIndex < shownParagraphs; ++paragraphIndex) {
@@ -205,11 +206,20 @@ export function renderPhrasalExplanation(explanation, state) {
                 : state.stateIndex
             );
             // console.log(`render part ${partIndex}, paragraph ${paragraphIndex}, state ${stateIndex}`);
-            paragraph.getState(stateIndex, htmlParts);
+            paragraph.getState(stateIndex, htmlParagraphs);
             if (partIndex + 1 == partsCount && paragraphIndex + 1 == paragraphsCount && stateIndex + 1 == paragraph.totalStates()) {
                 complete = true;
             }
         }
+        let blockClasses = ["m-4", "p-4", "rounded-2xl"];
+        blockClasses.push(partBackgroundColor(explanation.phrasal.parts[partIndex].partType));
+        htmlParts.push(
+            <div
+                className={blockClasses.join(" ")}
+                >
+                {htmlParagraphs}
+            </div>
+        );
     }
     let highlightShownParts = -1;
     let phrasalContinuation = null;
@@ -218,6 +228,7 @@ export function renderPhrasalExplanation(explanation, state) {
         phrasalContinuation = <span>...</span>;
         htmlParts.push(
             <p
+                className="text-center"
                 key={`p${htmlParts.length}`}>
                 ...
             </p>
