@@ -211,17 +211,25 @@ export function renderPhrasalExplanation(explanation, state) {
             }
         }
     }
+    let highlightShownParts = -1;
+    let phrasalContinuation = null;
     if (!complete) {
+        highlightShownParts = shownParts - 1;
+        phrasalContinuation = <span>...</span>;
         htmlParts.push(
             <p
                 key={`p${htmlParts.length}`}>
                 ...
             </p>
         );
+
     }
     return (
         <div>
-            <p>{highlightPhrasal(explanation.phrasal)}</p>
+            <h2 className="text-5xl text-center">
+                {highlightPhrasal(explanation.phrasal, highlightShownParts)}
+                {phrasalContinuation}
+            </h2>
             {htmlParts}
         </div>
     );

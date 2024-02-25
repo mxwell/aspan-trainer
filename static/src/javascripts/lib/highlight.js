@@ -13,12 +13,13 @@ function addPartClasses(auxColorPrefix, colorPrefix, aux, partClasses) {
     }
 }
 
-export function highlightPhrasal(phrasal) {
+export function highlightPhrasal(phrasal, shownParts = -1) {
     let htmlParts = [];
     let parts = phrasal.parts;
     var firstRegular = true;
     var firstAux = true;
-    for (let i = 0; i < parts.length; ++i) {
+    const maxParts = shownParts == -1 ? parts.length : shownParts;
+    for (let i = 0; i < maxParts; ++i) {
         let part = parts[i];
         let pt = part.partType;
         let partClasses = [];

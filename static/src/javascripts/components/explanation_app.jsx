@@ -285,7 +285,6 @@ class ExplanationApp extends React.Component {
         return (
             <div>
                 {this.renderForm()}
-                <h1>Explanation in {this.props.lang}</h1>
                 {this.renderExplanation()}
             </div>
         );
