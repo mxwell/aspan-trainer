@@ -15,6 +15,10 @@ import {
     i18n
 } from './i18n';
 
+export const SPEED_SLOW = 0.8;
+export const SPEED_NORMAL = 0.5;
+export const SPEED_FAST = 0.2;
+
 class Title {
     constructor(text) {
         this.text = text;
@@ -30,6 +34,9 @@ class Title {
                 {this.text}
             </h2>
         );
+    }
+    getSpeed(index) {
+        return SPEED_NORMAL;
     }
 }
 
@@ -48,6 +55,9 @@ class PlainParagraph {
             </p>
         );
     }
+    getSpeed(index) {
+        return SPEED_NORMAL;
+    }
 }
 
 class Progression {
@@ -56,6 +66,9 @@ class Progression {
         this.highlightColor = highlightColor;
     }
     totalStates() {
+        /**
+         * Show states one by one and then highlight the last one.
+         */
         return this.states.length + 1;
     }
     getState(index, htmlParts) {
@@ -90,6 +103,9 @@ class Progression {
             </p>
         );
     }
+    getSpeed(index) {
+        return SPEED_NORMAL;
+    }
 }
 
 function findItemInTable(table, item) {
@@ -111,6 +127,11 @@ class VariantsTable {
         this.highlightColor = highlightColor;
     }
     totalStates() {
+        /**
+         * The first step is to show the whole table.
+         * Then iterate through the table and highlight the selected item.
+         * Stop at the chosen highlight position.
+         */
         return 2 + this.highlightPos;
     }
     getState(index, htmlParts) {
@@ -139,6 +160,12 @@ class VariantsTable {
                 <tbody>{tableRows}</tbody>
             </table>
         );
+    }
+    getSpeed(index) {
+        if (0 < index && index < this.highlightPos + 1) {
+            return SPEED_FAST;
+        }
+        return SPEED_NORMAL;
     }
 }
 
@@ -217,6 +244,17 @@ export class PhrasalAnimationState {
             return this.nextParagraph(explanation);
         }
         return this;
+    }
+    getSpeed(explanation) {
+        if (!this.valid(explanation)) {
+            return SPEED_NORMAL;
+        }
+        let paragraphs = explanation.parts[this.partIndex];
+        if (this.paragraphIndex >= paragraphs.length) {
+            return SPEED_NORMAL;
+        }
+        let paragraph = paragraphs[this.paragraphIndex];
+        return paragraph.getSpeed(this.stateIndex);
     }
 }
 

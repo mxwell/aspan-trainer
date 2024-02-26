@@ -5,6 +5,7 @@ import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_u
 import { parseSentenceType, SENTENCE_TYPES } from "../lib/sentence";
 import { parseParams } from "../lib/url"
 import {
+    SPEED_NORMAL,
     PhrasalAnimationState,
     buildVerbPhrasalExplanation,
     renderPhrasalExplanation,
@@ -63,7 +64,7 @@ class ExplanationApp extends React.Component {
     startAnimation() {
         let start = null;
         const maxIdleSeconds = 10;
-        const advancePeriod = 0.5;
+        let advancePeriod = SPEED_NORMAL;
         const animate = timestamp => {
             if (!start) {
                 start = timestamp;
@@ -98,6 +99,7 @@ class ExplanationApp extends React.Component {
                 }
                 console.log("Advanced animation state");
                 start = timestamp;
+                advancePeriod = nextState.getSpeed(explanation);
             }
             window.requestAnimationFrame(animate);
         };
