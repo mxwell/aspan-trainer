@@ -4,7 +4,12 @@ import {
     PHRASAL_PART_TYPE,
     Phrasal,
 } from "./aspan";
-import { highlightPhrasal, partBackgroundColor } from './highlight';
+import {
+    VERB_BASE_COLOR,
+    VERB_TENSE_AFFIX_COLOR,
+    highlightPhrasal,
+    partBackgroundColor,
+} from './highlight';
 import {
     I18N_LANG_RU,
     i18n
@@ -46,18 +51,42 @@ class PlainParagraph {
 }
 
 class Progression {
-    constructor(states) {
+    constructor(states, highlightColor) {
         this.states = states;
+        this.highlightColor = highlightColor;
     }
     totalStates() {
-        return this.states.length;
+        return this.states.length + 1;
     }
     getState(index, htmlParts) {
         let items = this.states.slice(0, index + 1);
+        let spans = [];
+        const highlightIndex = (
+            (index >= this.states.length)
+            ? (this.states.length - 1)
+            : -1
+        );
+        for (let i = 0; i < items.length; ++i) {
+            if (i > 0) {
+                spans.push(<span key={spans.length}> → </span>);
+            }
+            const spanClass = (
+                (i == highlightIndex)
+                ? `text-xl ${this.highlightColor}`
+                : ""
+            );
+            spans.push(
+                <span
+                    className={spanClass}
+                    key={spans.length}>
+                    {items[i]}
+                </span>
+            );
+        }
         htmlParts.push(
             <p
                 key={`p${htmlParts.length}`}>
-                {items.join(" → ")}
+                {spans}
             </p>
         );
     }
@@ -133,8 +162,11 @@ class PhrasalExplanation {
     addPlainParagraph(text) {
         this.addParagraph(new PlainParagraph(text));
     }
-    addProgression(states) {
-        this.addParagraph(new Progression(states));
+    addProgression(states, highlightColor) {
+        if (!highlightColor) {
+            throw new Error("highlightColor is required for Progression");
+        }
+        this.addParagraph(new Progression(states, highlightColor));
     }
     addVariantsTable(table, highlight, highlightColor) {
         let highlightPos = findItemInTable(table, highlight);
@@ -216,6 +248,7 @@ export function renderPhrasalExplanation(explanation, state) {
         htmlParts.push(
             <div
                 className={blockClasses.join(" ")}
+                key={htmlParts.length}
                 >
                 {htmlParagraphs}
             </div>
@@ -316,57 +349,57 @@ function buildVerbBaseExplanation(verbDictForm, part, explanation) {
     explanation.addTitle(i18n("title_base", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbBaseStripU) {
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         explanation.addPlainParagraph(i18n("base_strip_u", lang));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
         let loss = "й";
         const items = [verbDictForm, `${base}${loss}`, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_loss_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostY) {
         let loss = meta.soft ? "і" : "ы";
         const items = [verbDictForm, `${base}${loss}`, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_loss_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedY) {
         let gain = meta.soft ? "і" : "ы";
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShort) {
         let gain = "й";
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY) {
         let gain1 = "й";
         let gain2 = meta.soft ? "і" : "ы";
-        explanation.addProgression([verbDictForm, `${base}${gain2}`, base]);
+        explanation.addProgression([verbDictForm, `${base}${gain2}`, base], VERB_BASE_COLOR);
         explanation.addPlainParagraph(i18n("base_gain_and_loss_templ", lang)(`${gain1}${gain2}`, gain2));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY) {
         let gain = meta.soft ? "йі" : "йы";
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons) {
         let gain = meta.soft ? "і" : "ы";
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_gain_inside_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceB2U) {
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_replace_b_to_u", lang);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceLastCons) {
         const items = [verbDictForm, base];
-        explanation.addProgression(items);
+        explanation.addProgression(items, VERB_BASE_COLOR);
         const text = i18n("base_replace_last_cons", lang);
         explanation.addPlainParagraph(text);
     }
@@ -508,11 +541,11 @@ function buildVerbTenseAffixExplanation(part, explanation) {
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
         explanation.addVariantsTable(PRES_TRANSITIVE_AFFIXES, "а", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression(["а", affix]);
+        explanation.addProgression(["а", affix], VERB_TENSE_AFFIX_COLOR);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
         explanation.addVariantsTable(PRES_TRANSITIVE_AFFIXES, "й", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression(["й", affix]);
+        explanation.addProgression(["й", affix], VERB_TENSE_AFFIX_COLOR);
     }
 }
 

@@ -26,6 +26,9 @@ export function partBackgroundColor(partType) {
     return "bg-gray-200";
 }
 
+export const VERB_BASE_COLOR = "text-teal-800";
+export const VERB_TENSE_AFFIX_COLOR = "text-orange-800";
+
 export function highlightPhrasal(phrasal, shownParts = -1) {
     let htmlParts = [];
     let parts = phrasal.parts;
@@ -45,9 +48,9 @@ export function highlightPhrasal(phrasal, shownParts = -1) {
             firstAux = false;
         }
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            addPartClasses("text-teal-800", "text-teal-600", part.aux, partClasses);
+            addPartClasses(VERB_BASE_COLOR, "text-teal-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
-            addPartClasses("text-orange-800", "text-orange-600", part.aux, partClasses);
+            addPartClasses(VERB_TENSE_AFFIX_COLOR, "text-orange-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
             addPartClasses("text-indigo-800", "text-indigo-600", part.aux, partClasses);
         } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
