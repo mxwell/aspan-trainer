@@ -9,6 +9,7 @@ import {
     PhrasalAnimationState,
     buildVerbPhrasalExplanation,
     renderPhrasalExplanation,
+    makeAnimationState,
 } from "../lib/verb_analysis";
 import { createFormByParams } from "../lib/verb_forms";
 
@@ -28,11 +29,15 @@ class ExplanationApp extends React.Component {
         this.onTenseSelect = this.onTenseSelect.bind(this);
         this.onPronounSelect = this.onPronounSelect.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
+        this.onAnimationChange = this.onAnimationChange.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, pronoun, phrasal, explanation, animationState, paused) {
+    makeState(verb, forceExceptional, sentenceType, tense, pronoun, animation, phrasal, explanation, animationState, paused) {
+        if (typeof animation != "boolean") {
+            throw new Error("animation param must be boolean");
+        }
         return {
             verb: verb,
             lastEntered: verb,
@@ -40,6 +45,7 @@ class ExplanationApp extends React.Component {
             sentenceType: sentenceType,
             tense: tense,
             pronoun: pronoun,
+            animation: animation,
             phrasal: phrasal,
             explanation: explanation,
             animationState: animationState,
@@ -54,6 +60,7 @@ class ExplanationApp extends React.Component {
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tense */ TENSES[0],
             /* pronoun */ PRONOUNS[0],
+            /* animation */ false,
             /* phrasal */ null,
             /* explanation */ null,
             /* animationState */ null,
@@ -109,35 +116,31 @@ class ExplanationApp extends React.Component {
     readUrlState() {
         const params = parseParams();
         const verb = params.verb;
-        if (verb == null || verb.length <= 0) {
-            return null;
-        }
         const forceExceptional = params.exception == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
         const tense = params.tense || TENSES[0];
         const pronoun = params.pronoun || PRONOUNS[0];
         const personNumber = MAP_BY_PRONOUN.get(pronoun);
+        const animation = params.animation == "true";
 
-        const phrasal = createFormByParams(
-            verb,
-            forceExceptional,
-            sentenceType,
-            tense,
-            personNumber,
+        const phrasal = (
+            verb != null
+            ? createFormByParams(
+                verb,
+                forceExceptional,
+                sentenceType,
+                tense,
+                personNumber,
+            )
+            : null
         );
         const explanation = (
             phrasal != null
             ? buildVerbPhrasalExplanation(verb, phrasal)
             : null
         );
-        const animationState = (
-            explanation != null
-            ? new PhrasalAnimationState()
-            : null
-        );
-        if (phrasal == null) {
-            console.log(`Failed to generate phrasal for verb: ${verb}`);
-        } else {
+        const animationState = makeAnimationState(explanation, animation);
+        if (animation) {
             this.startAnimation();
         }
         return this.makeState(
@@ -146,6 +149,7 @@ class ExplanationApp extends React.Component {
             sentenceType,
             tense,
             pronoun,
+            animation,
             phrasal,
             explanation,
             animationState,
@@ -175,12 +179,8 @@ class ExplanationApp extends React.Component {
             ? buildVerbPhrasalExplanation(verb, phrasal)
             : null
         );
-        const animationState = (
-            explanation != null
-            ? new PhrasalAnimationState()
-            : null
-        );
-        const paused = animationState == null;
+        const animationState = makeAnimationState(explanation, this.state.animation);
+        const paused = animationState == null || !this.state.animation;
         this.setState({
             verb,
             phrasal,
@@ -188,9 +188,7 @@ class ExplanationApp extends React.Component {
             animationState,
             paused,
         });
-        if (phrasal == null) {
-            console.log(`Failed to generate phrasal for verb: ${verb}`);
-        } else {
+        if (!paused) {
             this.startAnimation();
         }
     }
@@ -221,6 +219,11 @@ class ExplanationApp extends React.Component {
         const sentenceType = event.target.value;
         const paused = true;
         this.setState({ sentenceType, paused });
+    }
+
+    onAnimationChange(event) {
+        const animation = event.target.checked;
+        this.setState({ animation });
     }
 
     renderForm() {
@@ -267,6 +270,19 @@ class ExplanationApp extends React.Component {
                         value={this.i18n("buttonSubmit")}
                         className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
                     />
+                </div>
+                <div>
+                    <input
+                        className="ml-4"
+                        type="checkbox"
+                        checked={this.state.animation}
+                        onChange={this.onAnimationChange}
+                        id="animation" name="animation" />
+                    <label
+                        htmlFor="animation"
+                        className="text-gray-800 text-2xl lg:text-xl ml-2">
+                        Animation
+                    </label>
                 </div>
             </form>
         );

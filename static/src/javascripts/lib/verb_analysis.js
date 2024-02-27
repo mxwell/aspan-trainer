@@ -258,6 +258,26 @@ export class PhrasalAnimationState {
     }
 }
 
+function makeFinalState(explanation) {
+    let state = new PhrasalAnimationState();
+    state.partIndex = explanation.parts.length - 1;
+    const paragraphs = explanation.parts[state.partIndex];
+    state.paragraphIndex = paragraphs.length - 1;
+    const paragraph = paragraphs[state.paragraphIndex];
+    state.stateIndex = paragraph.totalStates() - 1;
+    return state;
+}
+
+export function makeAnimationState(explanation, animationFlag) {
+    if (explanation == null) {
+        return null;
+    }
+    if (animationFlag) {
+        return new PhrasalAnimationState();
+    }
+    return makeFinalState(explanation);
+}
+
 export function renderPhrasalExplanation(explanation, state) {
     let htmlParts = [];
     const partsCount = explanation.parts.length;
