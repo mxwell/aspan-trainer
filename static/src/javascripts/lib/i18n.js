@@ -143,6 +143,18 @@ function prepareExplanationOnlyTranslations(map) {
         "Tense affix",
         "Аффикс времени",
     );
+    setEnRu(map, "after_consonant_hard",
+        "Follows a consonant and a hard base",
+        "Следует за согласной и твёрдой основой",
+    );
+    setEnRu(map, "after_consonant_soft",
+        "Follows a consonant and a soft base",
+        "Следует за согласной и мягкой основой",
+    );
+    setEnRu(map, "after_vowel",
+        "Follows a vowel",
+        "Следует за гласной",
+    );
     setEnRu(map, "affix_merge_with_base",
         "Affix changes after merge with base",
         "Аффикс меняется из-за слияния с основой",

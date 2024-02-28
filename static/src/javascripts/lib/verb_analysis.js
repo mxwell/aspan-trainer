@@ -169,6 +169,71 @@ class VariantsTable {
     }
 }
 
+function findItemInAnnotatedTable(table, item) {
+    for (let i = 0; i < table.length; ++i) {
+        let row = table[i];
+        if (row.length != 2) {
+            throw new Error("Annotated table row must have 2 items");
+        }
+        if (row[1] == item) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * A table of the following structure:
+ *
+ * | Annotation 1 | variant_1 |
+ * | Annotation 2 | variant_2 |
+ */
+class AnnotatedVariantsTable {
+    constructor(table, lang, highlightRow, highlightColor) {
+        this.table = table;
+        this.lang = lang;
+        this.highlightRow = highlightRow;
+        this.highlightColor = highlightColor;
+    }
+    totalStates() {
+        return this.table.length + this.highlightRow + 1;
+    }
+    getState(index, htmlParts) {
+        const rowsToShow = Math.min(this.table.length, index + 1);
+        let tableRows = [];
+        const highlightRow = index - this.table.length;
+        for (let i = 0; i < rowsToShow; ++i) {
+            let row = this.table[i];
+            let cellClass = (i == highlightRow) ? this.highlightColor : "";
+            tableRows.push(
+                <tr key={tableRows.length}>
+                    <td
+                        className="p-2 border-2">
+                        {i18n(row[0], this.lang)}
+                    </td>
+                    <td
+                        className={`p-2 border-2 ${cellClass}`}>
+                        {row[1]}
+                    </td>
+                </tr>
+            );
+        }
+        htmlParts.push(
+            <table
+                className="my-2"
+                key={`t${htmlParts.length}`}>
+                <tbody>{tableRows}</tbody>
+            </table>
+        );
+    }
+    getSpeed(index) {
+        if (index > this.table.length) {
+            return SPEED_FAST;
+        }
+        return SPEED_NORMAL;
+    }
+}
+
 class PhrasalExplanation {
     constructor(phrasal) {
         this.phrasal = phrasal;
@@ -198,6 +263,13 @@ class PhrasalExplanation {
     addVariantsTable(table, highlight, highlightColor) {
         let highlightPos = findItemInTable(table, highlight);
         this.addParagraph(new VariantsTable(table, highlightPos, highlightColor));
+    }
+    addAnnotatedVariantsTable(table, lang, highlight, highlightColor) {
+        const highlightRow = findItemInAnnotatedTable(table, highlight);
+        if (highlightRow < 0) {
+            throw new Error(`Item ${highlight} not found in annotated table`);
+        }
+        this.addParagraph(new AnnotatedVariantsTable(table, lang, highlightRow, highlightColor));
     }
 }
 
@@ -433,7 +505,11 @@ function buildVerbNegationExplanation(part, explanation) {
     }
 }
 
-const PRES_TRANSITIVE_AFFIXES = [["а", "е", "й"]];
+const ANNOTATED_PRES_TRANS_AFFIXES = [
+    ["after_consonant_hard", "а"],
+    ["after_consonant_soft", "е"],
+    ["after_vowel", "й"],
+];
 
 function buildVerbTenseAffixExplanation(part, explanation) {
     let lang = I18N_LANG_RU;
@@ -451,13 +527,13 @@ function buildVerbTenseAffixExplanation(part, explanation) {
     explanation.addTitle(i18n("title_tense_affix", lang));
     const highlightColor = "underline text-orange-600";
     if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive) {
-        explanation.addVariantsTable(PRES_TRANSITIVE_AFFIXES, affix, highlightColor);
+        explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, affix, highlightColor);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
-        explanation.addVariantsTable(PRES_TRANSITIVE_AFFIXES, "а", highlightColor);
+        explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "а", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
         explanation.addProgression(["а", affix], VERB_TENSE_AFFIX_COLOR);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
-        explanation.addVariantsTable(PRES_TRANSITIVE_AFFIXES, "й", highlightColor);
+        explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "й", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
         explanation.addProgression(["й", affix], VERB_TENSE_AFFIX_COLOR);
     }
