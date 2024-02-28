@@ -328,11 +328,11 @@ export function renderPhrasalExplanation(explanation, state) {
     }
     return (
         <div>
+            {htmlParts}
             <h2 className="text-5xl text-center">
                 {highlightPhrasal(explanation.phrasal, highlightShownParts)}
                 {phrasalContinuation}
             </h2>
-            {htmlParts}
         </div>
     );
 }
