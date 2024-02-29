@@ -204,15 +204,18 @@ class AnnotatedVariantsTable {
         const highlightRow = index - this.table.length;
         for (let i = 0; i < rowsToShow; ++i) {
             let row = this.table[i];
+            let rowClass = (i == highlightRow) ? "text-black" : "text-gray-600";
             let cellClass = (i == highlightRow) ? this.highlightColor : "";
             tableRows.push(
-                <tr key={tableRows.length}>
+                <tr
+                    className={rowClass}
+                    key={tableRows.length}>
                     <td
-                        className="p-2 border-2">
+                        className="px-6 py-1 border-2 border-gray-600">
                         {i18n(row[0], this.lang)}
                     </td>
                     <td
-                        className={`p-2 border-2 ${cellClass}`}>
+                        className={`px-6 py-1 border-2 border-gray-600 ${cellClass}`}>
                         {row[1]}
                     </td>
                 </tr>
@@ -220,7 +223,7 @@ class AnnotatedVariantsTable {
         }
         htmlParts.push(
             <table
-                className="my-2"
+                className="my-2 bg-white"
                 key={`t${htmlParts.length}`}>
                 <tbody>{tableRows}</tbody>
             </table>

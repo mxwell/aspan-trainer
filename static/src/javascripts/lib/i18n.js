@@ -145,15 +145,15 @@ function prepareExplanationOnlyTranslations(map) {
     );
     setEnRu(map, "after_consonant_hard",
         "Follows a consonant and a hard base",
-        "Следует за согласной и твёрдой основой",
+        "Следует за согласным звуком и твёрдой основой",
     );
     setEnRu(map, "after_consonant_soft",
         "Follows a consonant and a soft base",
-        "Следует за согласной и мягкой основой",
+        "Следует за согласным звуком и мягкой основой",
     );
     setEnRu(map, "after_vowel",
         "Follows a vowel",
-        "Следует за гласной",
+        "Следует за гласным звуком",
     );
     setEnRu(map, "affix_merge_with_base",
         "Affix changes after merge with base",
