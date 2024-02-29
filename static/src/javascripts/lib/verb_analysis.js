@@ -237,6 +237,99 @@ class AnnotatedVariantsTable {
     }
 }
 
+/**
+ * A table of the following structure:
+ *                  | column annotation 1 | column annotation 2 |
+ * row annotation 1 | variant_1_1         | variant_1_2         |
+ * row annotation 2 | variant_2_1         | variant_2_2         |
+ */
+class DoublyAnnotatedTable {
+    constructor(table, lang, highlightRow, highlightColumn, highlightColor) {
+        this.table = table;
+        this.lang = lang;
+        this.highlightRow = highlightRow;
+        this.highlightColumn = highlightColumn;
+        this.highlightColor = highlightColor;
+    }
+    totalStates() {
+        return this.table.length + this.highlightRow + this.highlightColumn - 1;
+    }
+    getState(index, htmlParts) {
+        const R = this.table.length;
+        const HR = this.highlightRow;
+        const rowsToShow = Math.min(R, index + 1);
+        let tableRows = [];
+        const highlightRow = (
+            (index < R)
+            ? -1
+            : (
+                (index < R + HR)
+                ? (index - R + 1)
+                : HR
+            )
+        );
+        const highlightColumn = (
+            (index < R)
+            ? -1
+            : (
+                (index < R + HR)
+                ? 1
+                : (index - R - HR + 2)
+            )
+        );
+        // console.log(`DAT: index ${index}, highlightRow: ${highlightRow}, highlightColumn: ${highlightColumn}`);
+        for (let i = 0; i < rowsToShow; ++i) {
+            let row = this.table[i];
+            let cells = [];
+            for (let j = 0; j < row.length; ++j) {
+                let cellClass = "text-gray-600";
+                let cellText = row[j];
+                if (i == 0) {
+                    if (j == 0) {
+                        cellClass = "invisible";
+                        cellText = i18n(cellText, this.lang);
+                    } else if (j == highlightColumn) {
+                        cellClass = "text-black";
+                    }
+                } else if (j == 0) {
+                    cellText = i18n(cellText, this.lang);
+                    if (i == highlightRow) {
+                        cellClass = "text-black";
+                    }
+                } else if (i == highlightRow && j == highlightColumn) {
+                    cellClass = this.highlightColor;
+                }
+                cells.push(
+                    <td
+                        className={`px-6 py-1 border-2 border-gray-600 ${cellClass}`}
+                        key={cells.length}>
+                        {cellText}
+                    </td>
+                );
+            }
+            tableRows.push(
+                <tr
+                    key={tableRows.length}>
+                    {cells}
+                </tr>
+            );
+        }
+        htmlParts.push(
+            <table
+                className="my-2 bg-white"
+                key={htmlParts.length}>
+                <tbody>{tableRows}</tbody>
+            </table>
+        );
+    }
+    getSpeed(index) {
+        if (index >= this.table.length) {
+            return SPEED_FAST;
+        }
+        return SPEED_NORMAL;
+    }
+}
+
 class PhrasalExplanation {
     constructor(phrasal) {
         this.phrasal = phrasal;
@@ -273,6 +366,26 @@ class PhrasalExplanation {
             throw new Error(`Item ${highlight} not found in annotated table`);
         }
         this.addParagraph(new AnnotatedVariantsTable(table, lang, highlightRow, highlightColor));
+    }
+    addDoublyAnnotatedTable(table, lang, highlight, highlightColor) {
+        let highlightRow = -1;
+        let highlightColumn = -1;
+        for (let i = 0; i < table.length; ++i) {
+            let row = table[i];
+            for (let j = 0; j < row.length; ++j) {
+                if (row[j] == highlight) {
+                    if (highlightRow >= 0) {
+                        throw new Error(`Item ${highlight} found more than once in doubly annotated table`);
+                    }
+                    highlightRow = i;
+                    highlightColumn = j;
+                }
+            }
+        }
+        if (highlightRow < 0) {
+            throw new Error(`Item ${highlight} not found in doubly annotated table`);
+        }
+        this.addParagraph(new DoublyAnnotatedTable(table, lang, highlightRow, highlightColumn, highlightColor));
     }
 }
 
@@ -542,9 +655,14 @@ function buildVerbTenseAffixExplanation(part, explanation) {
     }
 }
 
-const PERS_AFFIXES = [
-    ["мын", "мыз", "сың", "сыңдар", "сыз", "сыздар", "ды"],
-    ["мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
+/*
+ * The first item is a placeholder for the column to be of the right width from the animation start.
+ * It should be invisible.
+ */
+const ANNOTATED_PERS_AFFIXES = [
+    ["after_hard", "мен", "біз", "сен", "сендер", "Сіз", "Сіздер", "ол / олар"],
+    ["after_hard", "мын", "мыз", "сың", "сыңдар", "сыз", "сыздар", "ды"],
+    ["after_soft", "мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
 ];
 
 function buildVerbPersonalAffixExplanation(part, explanation) {
@@ -562,7 +680,7 @@ function buildVerbPersonalAffixExplanation(part, explanation) {
     explanation.addPart();
     explanation.addTitle(i18n("title_pers_affix", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
-        explanation.addVariantsTable(PERS_AFFIXES, affix, "underline text-indigo-600");
+        explanation.addDoublyAnnotatedTable(ANNOTATED_PERS_AFFIXES, lang, affix, "underline text-indigo-600");
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip) {
         explanation.addPlainParagraph(i18n("pers_affix_question_skip", lang));
     }

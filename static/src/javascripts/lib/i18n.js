@@ -164,6 +164,14 @@ function prepareExplanationOnlyTranslations(map) {
         "Personal affix",
         "Личное окончание",
     );
+    setEnRu(map, "after_hard",
+        "Follows a hard syllable",
+        "Следует за твёрдым слогом",
+    );
+    setEnRu(map, "after_soft",
+        "Follows a soft syllable",
+        "Следует за мягким слогом",
+    );
     setEnRu(map, "pers_affix_question_skip",
         "This tense has empty personal affix for interrogative 3rd person",
         "В этом времени пустое личное окончание для вопросительной формы 3-го лица",
