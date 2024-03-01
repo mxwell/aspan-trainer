@@ -181,6 +181,18 @@ function prepareExplanationOnlyTranslations(map) {
         "Question particle",
         "Вопросительная частица",
     );
+    setEnRu(map, "after_mnnzhz",
+        "Follows [мнңжз]",
+        "Следует за [мнңжз]",
+    );
+    setEnRu(map, "after_unvoiced_bvgd",
+        "Follows unvoiced and [бвгд]",
+        "Следует за глухими и [бвгд]",
+    );
+    setEnRu(map, "after_vowels_lruy",
+        "Follows vowels and [лруй]",
+        "Следует за гласными и [лруй]",
+    );
 }
 
 function prepareQuizOnlyTranslations(map) {

@@ -244,9 +244,10 @@ class AnnotatedVariantsTable {
  * row annotation 2 | variant_2_1         | variant_2_2         |
  */
 class DoublyAnnotatedTable {
-    constructor(table, lang, highlightRow, highlightColumn, highlightColor) {
+    constructor(table, lang, i18nTopRow, highlightRow, highlightColumn, highlightColor) {
         this.table = table;
         this.lang = lang;
+        this.i18nTopRow = i18nTopRow;
         this.highlightRow = highlightRow;
         this.highlightColumn = highlightColumn;
         this.highlightColor = highlightColor;
@@ -290,6 +291,13 @@ class DoublyAnnotatedTable {
                         cellText = i18n(cellText, this.lang);
                     } else if (j == highlightColumn) {
                         cellClass = "text-black";
+                        if (this.i18nTopRow) {
+                            cellText = i18n(cellText, this.lang);
+                        }
+                    } else {
+                        if (this.i18nTopRow) {
+                            cellText = i18n(cellText, this.lang);
+                        }
                     }
                 } else if (j == 0) {
                     cellText = i18n(cellText, this.lang);
@@ -367,7 +375,7 @@ class PhrasalExplanation {
         }
         this.addParagraph(new AnnotatedVariantsTable(table, lang, highlightRow, highlightColor));
     }
-    addDoublyAnnotatedTable(table, lang, highlight, highlightColor) {
+    addDoublyAnnotatedTable(table, lang, i18nTopRow, highlight, highlightColor) {
         let highlightRow = -1;
         let highlightColumn = -1;
         for (let i = 0; i < table.length; ++i) {
@@ -385,7 +393,7 @@ class PhrasalExplanation {
         if (highlightRow < 0) {
             throw new Error(`Item ${highlight} not found in doubly annotated table`);
         }
-        this.addParagraph(new DoublyAnnotatedTable(table, lang, highlightRow, highlightColumn, highlightColor));
+        this.addParagraph(new DoublyAnnotatedTable(table, lang, i18nTopRow, highlightRow, highlightColumn, highlightColor));
     }
 }
 
@@ -602,6 +610,16 @@ const NEGATION_OR_QUESTION_PARTICLES = [
     ["бе", "ме", "пе"],
 ];
 
+/*
+ * The first item is a placeholder for the column to be of the right width from the animation start.
+ * It should be invisible.
+ */
+const ANNOTATED_QUESTION_PARTICLES = [
+    ["after_hard", "after_mnnzhz", "after_unvoiced_bvgd", "after_vowels_lruy"],
+    ["after_hard", "ба", "па", "ма"],
+    ["after_soft", "бе", "пе", "ме"],
+];
+
 function buildVerbNegationExplanation(part, explanation) {
     let lang = I18N_LANG_RU;
     let meta = part.explanation;
@@ -617,7 +635,7 @@ function buildVerbNegationExplanation(part, explanation) {
     explanation.addPart();
     explanation.addTitle(i18n("title_negation_particle", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbNegationPostBase) {
-        explanation.addVariantsTable(NEGATION_OR_QUESTION_PARTICLES, negation, "underline text-red-600");
+        explanation.addDoublyAnnotatedTable(ANNOTATED_QUESTION_PARTICLES, lang, true, negation, "underline text-red-600");
     }
 }
 
@@ -680,7 +698,7 @@ function buildVerbPersonalAffixExplanation(part, explanation) {
     explanation.addPart();
     explanation.addTitle(i18n("title_pers_affix", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
-        explanation.addDoublyAnnotatedTable(ANNOTATED_PERS_AFFIXES, lang, affix, "underline text-indigo-600");
+        explanation.addDoublyAnnotatedTable(ANNOTATED_PERS_AFFIXES, lang, false, affix, "underline text-indigo-600");
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip) {
         explanation.addPlainParagraph(i18n("pers_affix_question_skip", lang));
     }
@@ -700,7 +718,7 @@ function buildQuestionParticleExplanation(part, explanation) {
     console.log(`explaining question particle: expl type ${explanationType}`);
     explanation.addPart();
     explanation.addTitle(i18n("title_question_particle", lang));
-    explanation.addVariantsTable(NEGATION_OR_QUESTION_PARTICLES, particle, "underline");
+    explanation.addDoublyAnnotatedTable(ANNOTATED_QUESTION_PARTICLES, lang, true, particle, "underline");
 }
 
 export function buildVerbPhrasalExplanation(verbDictForm, phrasal) {
