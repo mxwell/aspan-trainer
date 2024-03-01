@@ -29,8 +29,8 @@ class Title {
     getState(index, htmlParts) {
         htmlParts.push(
             <h2
-                className="text-3xl text-gray-600"
-                key={`p${htmlParts.length}`}>
+                className="text-center text-xl text-gray-800"
+                key={htmlParts.length}>
                 {this.text}
             </h2>
         );
@@ -474,7 +474,7 @@ export function makeAnimationState(explanation, animationFlag) {
     return makeFinalState(explanation);
 }
 
-export function renderPhrasalExplanation(explanation, state) {
+export function renderPhrasalExplanation(explanation, state, phrasalFirst) {
     let htmlParts = [];
     const partsCount = explanation.parts.length;
     const shownParts = Math.min(state.partIndex + 1, partsCount);
@@ -522,13 +522,19 @@ export function renderPhrasalExplanation(explanation, state) {
         );
 
     }
+    const phrasalHtml = (
+        <h2 className="text-5xl text-center">
+            {highlightPhrasal(explanation.phrasal, highlightShownParts)}
+            {phrasalContinuation}
+        </h2>
+    );
+    const phrasalAbove = phrasalFirst ? phrasalHtml : null;
+    const phrasalBelow = phrasalFirst ? null : phrasalHtml;
     return (
         <div>
+            {phrasalAbove}
             {htmlParts}
-            <h2 className="text-5xl text-center">
-                {highlightPhrasal(explanation.phrasal, highlightShownParts)}
-                {phrasalContinuation}
-            </h2>
+            {phrasalBelow}
         </div>
     );
 }

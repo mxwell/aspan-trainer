@@ -101,6 +101,46 @@ function prepareViewerOnlyTranslations(map) {
 }
 
 function prepareExplanationOnlyTranslations(map) {
+    setEnRu(map, "verb_form_explanation",
+        "Verb form explanation",
+        "Разбор глагольной формы",
+    );
+    setEnRu(map, "of_verb",
+        "of the verb",
+        "глагола",
+    );
+    setEnRu(map, "sentence",
+        "sentence",
+        "предложение",
+    );
+    setEnRu(map, "gp_First",
+        "First person",
+        "Первое лицо",
+    );
+    setEnRu(map, "gp_Second",
+        "Second person",
+        "Второе лицо",
+    );
+    setEnRu(map, "gp_SecondPolite",
+        "Second person (polite address)",
+        "Второе лицо (вежливое обращение)",
+    );
+    setEnRu(map, "gp_Third",
+        "Third person",
+        "Третье лицо"
+    );
+    setEnRu(map, "gn_Singular",
+        "Singular",
+        "Единственное число",
+    );
+    setEnRu(map, "gn_Plural",
+        "Plural",
+        "Множественное число",
+    );
+    setEnRu(map, "nothing_explain",
+        "Nothing to explain",
+        "Нечего разбирать",
+    );
     setEnRu(map, "title_base",
         "Base",
         "Основа",

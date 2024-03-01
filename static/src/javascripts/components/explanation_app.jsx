@@ -1,6 +1,10 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildMapByPronoun } from "../lib/grammar_utils";
+import {
+    buildMapByPronoun,
+    getNomPronounByPersonNumber,
+    PersonNumber,
+} from "../lib/grammar_utils";
 import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_util";
 import { parseSentenceType, SENTENCE_TYPES } from "../lib/sentence";
 import { parseParams } from "../lib/url"
@@ -12,12 +16,39 @@ import {
     makeAnimationState,
 } from "../lib/verb_analysis";
 import { createFormByParams } from "../lib/verb_forms";
+import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
 
 const TENSES = [
     "presentTransitive",
 ];
 const MAP_BY_PRONOUN = buildMapByPronoun();
 const PRONOUNS = Array.from(MAP_BY_PRONOUN.keys());
+const DEFAULT_PERSON_NUMBER = MAP_BY_PRONOUN.get(PRONOUNS[0]);
+
+function parseTense(s) {
+    if (TENSES.includes(s)) {
+        return s;
+    }
+    return TENSES[0];
+}
+
+function parsePerson(s) {
+    for (const person of GRAMMAR_PERSONS) {
+        if (person == s) {
+            return person;
+        }
+    }
+    return GRAMMAR_PERSONS[0];
+}
+
+function parseNumber(s) {
+    for (const number of GRAMMAR_NUMBERS) {
+        if (number == s) {
+            return number;
+        }
+    }
+    return GRAMMAR_NUMBERS[0];
+}
 
 class ExplanationApp extends React.Component {
     constructor(props) {
@@ -25,7 +56,6 @@ class ExplanationApp extends React.Component {
 
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.onKeyDown = this.onKeyDown.bind(this);
         this.onTenseSelect = this.onTenseSelect.bind(this);
         this.onPronounSelect = this.onPronounSelect.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
@@ -34,7 +64,7 @@ class ExplanationApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, pronoun, animation, phrasal, explanation, animationState, paused) {
+    makeState(verb, forceExceptional, sentenceType, tense, personNumber, animation, phrasal, explanation, animationState, paused, showForm) {
         if (typeof animation != "boolean") {
             throw new Error("animation param must be boolean");
         }
@@ -44,27 +74,29 @@ class ExplanationApp extends React.Component {
             forceExceptional: forceExceptional,
             sentenceType: sentenceType,
             tense: tense,
-            pronoun: pronoun,
+            personNumber: personNumber,
             animation: animation,
             phrasal: phrasal,
             explanation: explanation,
             animationState: animationState,
             paused: paused,
+            showForm: showForm,
         };
     }
 
     defaultState() {
         return this.makeState(
-            /* verb */ "",
+            /* verb */ null,
             /* forceExceptional */ false,
             /* sentenceType */ SENTENCE_TYPES[0],
             /* tense */ TENSES[0],
-            /* pronoun */ PRONOUNS[0],
+            /* personNumber */ DEFAULT_PERSON_NUMBER,
             /* animation */ false,
             /* phrasal */ null,
             /* explanation */ null,
             /* animationState */ null,
             /* paused */ true,
+            /* showForm */ false,
         );
     }
 
@@ -116,29 +148,35 @@ class ExplanationApp extends React.Component {
     readUrlState() {
         const params = parseParams();
         const verb = params.verb;
+        if (verb == null || verb.length == 0) {
+            console.log("No verb in URL");
+            return null;
+        }
+
         const forceExceptional = params.exception == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
-        const tense = params.tense || TENSES[0];
-        const pronoun = params.pronoun || PRONOUNS[0];
-        const personNumber = MAP_BY_PRONOUN.get(pronoun);
-        const animation = params.animation == "true";
+        const tense = parseTense(params.tense);
 
-        const phrasal = (
-            verb != null
-            ? createFormByParams(
-                verb,
-                forceExceptional,
-                sentenceType,
-                tense,
-                personNumber,
-            )
-            : null
+        const person = parsePerson(params.person);
+        const number = parseNumber(params.number);
+        const pronoun = getNomPronounByPersonNumber(person, number);
+        const personNumber = new PersonNumber(person, number, pronoun);
+
+        const animation = params.animation == "true";
+        const form = params.form == "true";
+
+        const phrasal = createFormByParams(
+            verb,
+            forceExceptional,
+            sentenceType,
+            tense,
+            personNumber,
         );
-        const explanation = (
-            phrasal != null
-            ? buildVerbPhrasalExplanation(verb, phrasal)
-            : null
-        );
+        if (phrasal == null) {
+            console.log("Invalid phrasal form");
+            return null;
+        }
+        const explanation = buildVerbPhrasalExplanation(verb, phrasal);
         const animationState = makeAnimationState(explanation, animation);
         if (animation) {
             this.startAnimation();
@@ -148,12 +186,13 @@ class ExplanationApp extends React.Component {
             forceExceptional,
             sentenceType,
             tense,
-            pronoun,
+            personNumber,
             animation,
             phrasal,
             explanation,
             animationState,
             animationState == null,
+            form,
         );
     }
 
@@ -164,15 +203,14 @@ class ExplanationApp extends React.Component {
     onSubmit(event) {
         event.preventDefault();
 
-        const verb = this.state.lastEntered;
-        const personNumber = MAP_BY_PRONOUN.get(this.state.pronoun);
+        const verb = this.state.lastEntered || null;
 
         const phrasal = createFormByParams(
             verb,
             this.state.forceExceptional,
             this.state.sentenceType,
             this.state.tense,
-            personNumber,
+            this.state.personNumber,
         );
         const explanation = (
             phrasal != null
@@ -199,10 +237,6 @@ class ExplanationApp extends React.Component {
         this.setState({ lastEntered, paused });
     }
 
-    onKeyDown(event) {
-        // TODO
-    }
-
     onTenseSelect(event) {
         const tense = event.target.value;
         const paused = true;
@@ -211,8 +245,9 @@ class ExplanationApp extends React.Component {
 
     onPronounSelect(event) {
         const pronoun = event.target.value;
+        const personNumber = MAP_BY_PRONOUN.get(pronoun);
         const paused = true;
-        this.setState({ pronoun, paused });
+        this.setState({ personNumber, paused });
     }
 
     onSentenceTypeSelect(event) {
@@ -226,7 +261,37 @@ class ExplanationApp extends React.Component {
         this.setState({ animation });
     }
 
+    renderDetails() {
+        const tense = this.state.tense;
+        const verb = this.state.verb;
+        if (tense == null || verb == null || verb.length == 0) {
+            return null;
+        }
+        const personNumber = this.state.personNumber;
+
+        const localizedTense = this.i18n(tense);
+        const localizedOfVerb = this.i18n("of_verb");
+        const tenseOfVerb = `${localizedTense} ${localizedOfVerb} «${verb}»`;
+
+        const localizedSentenceType = this.i18n(this.state.sentenceType);
+        const sentenceWord = this.i18n("sentence");
+        const localizedPerson = this.i18n(`gp_${personNumber.person}`);
+        const localizedNumber = this.i18n(`gn_${personNumber.number}`);
+
+        const otherDetails = `${localizedSentenceType} ${sentenceWord}. ${localizedPerson}. ${localizedNumber}`;
+
+        return (
+            <div className="px-6">
+                <p>{tenseOfVerb}</p>
+                <p>{otherDetails}</p>
+            </div>
+        );
+    }
+
     renderForm() {
+        if (!this.state.showForm) {
+            return this.renderDetails();
+        }
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                 <div>
@@ -246,14 +311,13 @@ class ExplanationApp extends React.Component {
                             maxLength="100"
                             value={this.state.lastEntered}
                             onChange={this.onChange}
-                            onKeyDown={this.onKeyDown}
                             placeholder={this.i18n("hintEnterVerb")}
                             className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                     </div>
                     <select
                         required
-                        value={this.state.pronoun}
+                        value={this.state.personNumber.pronoun}
                         onChange={this.onPronounSelect}
                         className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
                         {renderOptionsWithKeys(PRONOUNS)}
@@ -293,15 +357,21 @@ class ExplanationApp extends React.Component {
         const animationState = this.state.animationState;
         if (explanation == null || animationState == null) {
             return (
-                <p>Nothing to explain</p>
+                <p className="px-6">
+                    {this.i18n("nothing_explain")}
+                </p>
             );
         }
-        return renderPhrasalExplanation(explanation, animationState);
+        const phrasalFirst = !this.state.showForm;
+        return renderPhrasalExplanation(explanation, animationState, phrasalFirst);
     }
 
     render() {
         return (
             <div>
+                <h1 className="px-6 text-3xl lg:text-4xl italic text-gray-600">
+                    {this.i18n("verb_form_explanation")}
+                </h1>
                 {this.renderForm()}
                 {this.renderExplanation()}
             </div>

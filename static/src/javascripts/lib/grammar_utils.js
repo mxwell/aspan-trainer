@@ -19,6 +19,10 @@ export function getPronounByParams(pronounType, person, number) {
     return PRONOUN_BY_PERSON_NUMBER[person][number];
 }
 
+export function getNomPronounByPersonNumber(person, number) {
+    return getPronounByParams(NOMINATIVE_PRONOUN, person, number);
+}
+
 export function getSentenceTerminator(sentenceType) {
     if (sentenceType == "Question") {
         return "?";
@@ -26,10 +30,11 @@ export function getSentenceTerminator(sentenceType) {
     return "";
 }
 
-class PersonNumber {
-    constructor(person, number) {
+export class PersonNumber {
+    constructor(person, number, pronoun = null) {
         this.person = person;
         this.number = number;
+        this.pronoun = pronoun;
     }
 }
 
@@ -38,7 +43,7 @@ export function buildMapByPronoun() {
     for (const person of GRAMMAR_PERSONS) {
         for (const number of GRAMMAR_NUMBERS) {
             const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
-            map.set(pronoun, new PersonNumber(person, number));
+            map.set(pronoun, new PersonNumber(person, number, pronoun));
         }
     }
     return map;
