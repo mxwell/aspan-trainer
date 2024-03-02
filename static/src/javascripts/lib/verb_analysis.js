@@ -11,7 +11,6 @@ import {
     partBackgroundColor,
 } from './highlight';
 import {
-    I18N_LANG_RU,
     i18n
 } from './i18n';
 
@@ -348,8 +347,8 @@ class PhrasalExplanation {
         this.parts.push([]);
     }
     addParagraph(part) {
-        console.log(`Adding part of type: ${typeof part}`);
-        console.log(`with states ${part.totalStates()}`);
+        // console.log(`Adding part of type: ${typeof part}`);
+        // console.log(`with states ${part.totalStates()}`);
         this.parts[this.parts.length - 1].push(part);
     }
     addTitle(text) {
@@ -539,8 +538,7 @@ export function renderPhrasalExplanation(explanation, state, phrasalFirst) {
     );
 }
 
-function buildVerbBaseExplanation(verbDictForm, part, explanation) {
-    let lang = I18N_LANG_RU;
+function buildVerbBaseExplanation(verbDictForm, part, lang, explanation) {
     let meta = part.explanation;
     if (meta == null) {
         return;
@@ -626,8 +624,7 @@ const ANNOTATED_QUESTION_PARTICLES = [
     ["after_soft", "бе", "пе", "ме"],
 ];
 
-function buildVerbNegationExplanation(part, explanation) {
-    let lang = I18N_LANG_RU;
+function buildVerbNegationExplanation(part, lang, explanation) {
     let meta = part.explanation;
     if (meta == null) {
         return;
@@ -651,8 +648,7 @@ const ANNOTATED_PRES_TRANS_AFFIXES = [
     ["after_vowel", "й"],
 ];
 
-function buildVerbTenseAffixExplanation(part, explanation) {
-    let lang = I18N_LANG_RU;
+function buildVerbTenseAffixExplanation(part, lang, explanation) {
     let meta = part.explanation;
     if (meta == null) {
         return;
@@ -689,8 +685,7 @@ const ANNOTATED_PERS_AFFIXES = [
     ["after_soft", "мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
 ];
 
-function buildVerbPersonalAffixExplanation(part, explanation) {
-    let lang = I18N_LANG_RU;
+function buildVerbPersonalAffixExplanation(part, lang, explanation) {
     let meta = part.explanation;
     if (meta == null) {
         return;
@@ -710,8 +705,7 @@ function buildVerbPersonalAffixExplanation(part, explanation) {
     }
 }
 
-function buildQuestionParticleExplanation(part, explanation) {
-    let lang = I18N_LANG_RU;
+function buildQuestionParticleExplanation(part, lang, explanation) {
     let meta = part.explanation;
     if (meta == null) {
         return;
@@ -727,23 +721,23 @@ function buildQuestionParticleExplanation(part, explanation) {
     explanation.addDoublyAnnotatedTable(ANNOTATED_QUESTION_PARTICLES, lang, true, particle, "underline");
 }
 
-export function buildVerbPhrasalExplanation(verbDictForm, phrasal) {
+export function buildVerbPhrasalExplanation(verbDictForm, phrasal, lang) {
     let explanation = new PhrasalExplanation(phrasal);
     let parts = phrasal.parts;
     for (let i = 0; i < parts.length; ++i) {
         let part = parts[i];
         let pt = part.partType;
-        console.log(`explaining: i ${i}, pt ${pt}`);
+        // console.log(`explaining: i ${i}, pt ${pt}`);
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            buildVerbBaseExplanation(verbDictForm, part, explanation);
+            buildVerbBaseExplanation(verbDictForm, part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
-            buildVerbNegationExplanation(part, explanation);
+            buildVerbNegationExplanation(part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
-            buildVerbTenseAffixExplanation(part, explanation);
+            buildVerbTenseAffixExplanation(part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
-            buildVerbPersonalAffixExplanation(part, explanation);
+            buildVerbPersonalAffixExplanation(part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.QuestionParticle) {
-            buildQuestionParticleExplanation(part, explanation);
+            buildQuestionParticleExplanation(part, lang, explanation);
         }
     }
     return explanation;

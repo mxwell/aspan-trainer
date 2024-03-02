@@ -176,7 +176,7 @@ class ExplanationApp extends React.Component {
             console.log("Invalid phrasal form");
             return null;
         }
-        const explanation = buildVerbPhrasalExplanation(verb, phrasal);
+        const explanation = buildVerbPhrasalExplanation(verb, phrasal, this.props.lang);
         const animationState = makeAnimationState(explanation, animation);
         if (animation) {
             this.startAnimation();
@@ -214,7 +214,7 @@ class ExplanationApp extends React.Component {
         );
         const explanation = (
             phrasal != null
-            ? buildVerbPhrasalExplanation(verb, phrasal)
+            ? buildVerbPhrasalExplanation(verb, phrasal, this.props.lang)
             : null
         );
         const animationState = makeAnimationState(explanation, this.state.animation);
