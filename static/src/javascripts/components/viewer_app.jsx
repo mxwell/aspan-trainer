@@ -486,7 +486,15 @@ class ViewerApp extends React.Component {
         let verb = this.state.verb;
         let sentenceType = this.state.tensesSentenceType;
         let personNumber = PERSON_NUMBER_LIST[persoNumberIndex];
-        let url = buildExplanationUrl(verb, tense, sentenceType, personNumber.person, personNumber.number, lang);
+        let url = buildExplanationUrl(
+            verb,
+            tense,
+            sentenceType,
+            this.state.forceExceptional,
+            personNumber.person,
+            personNumber.number,
+            lang
+        );
         return (
             <td>
                 <a href={url}>[↗]</a>

@@ -29,7 +29,7 @@ function extractSsrVerb() {
     return decodeURI(path.substring(slash + 1, ext)).replace(/_/g, " ");
 }
 
-function buildExplanationUrl(verb, tense, sentenceType, person, number, lang) {
+function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person, number, lang) {
     let params = [
         `verb=${encodeURI(verb)}`,
         `tense=${tense}`,
@@ -37,6 +37,9 @@ function buildExplanationUrl(verb, tense, sentenceType, person, number, lang) {
         `person=${person}`,
         `number=${number}`
     ];
+    if (forceExceptional) {
+        params.push("exception=true");
+    }
     const path = `/explanation_${lang}.html`;
     return `${path}?${params.join("&")}`;
 }
