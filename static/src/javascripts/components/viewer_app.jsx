@@ -12,6 +12,7 @@ import { getRandomInt, pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
 import { makeSuggestRequest } from '../lib/requests';
 import {
+    buildExplanationUrl,
     buildViewerUrl,
     extractSsrVerb,
     isSsrPage,
@@ -23,6 +24,7 @@ import {
     generateVerbForms,
 } from '../lib/verb_forms';
 import SideQuiz from './side_quiz';
+import { buildPersonNumberList } from '../lib/grammar_utils';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -63,6 +65,7 @@ const PRESET_VIEWER_VERBS = [
     /* end with мнң */
     "еріну", "үйрену", "қуану",
 ];
+const PERSON_NUMBER_LIST = buildPersonNumberList();
 
 function parseSentenceType(s) {
     if (s != null) {
@@ -197,6 +200,7 @@ class ViewerApp extends React.Component {
             enableTranslation: this.checkTranslationEnabled(),
             translation: translation,
             tenses: tenses,
+            tensesSentenceType: sentenceType,
             examples: pickExamples(verb, 2),
             collapse: collapse,
             shown: shown,
@@ -466,11 +470,31 @@ class ViewerApp extends React.Component {
             this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional);
         } else {
             let tenses = generateVerbForms(this.state.lastEntered, "", forceExceptional, this.state.sentenceType);
-            this.setState({ tenses });
+            let tensesSentenceType = this.state.sentenceType;
+            this.setState({ tenses, tensesSentenceType });
         }
     }
 
-    renderFormRows(tenseForms) {
+    buildExplanationLinkCell(tense, persoNumberIndex) {
+        const lang = this.props.lang;
+        if (lang == I18N_LANG_KK) {
+            return null;
+        }
+        if (tense != "presentTransitive") {
+            return null;
+        }
+        let verb = this.state.verb;
+        let sentenceType = this.state.tensesSentenceType;
+        let personNumber = PERSON_NUMBER_LIST[persoNumberIndex];
+        let url = buildExplanationUrl(verb, tense, sentenceType, personNumber.person, personNumber.number, lang);
+        return (
+            <td>
+                <a href={url}>[↗]</a>
+            </td>
+        );
+    }
+
+    renderFormRows(tenseForms, tense) {
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
@@ -480,6 +504,7 @@ class ViewerApp extends React.Component {
                     key={`row_${rows.length}`} >
                     <td>{form.pronoun}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
+                    {this.buildExplanationLinkCell(tense, i)}
                 </tr>
             );
         }
@@ -509,7 +534,7 @@ class ViewerApp extends React.Component {
                     {subtitle}
                     <table className="lg:w-full">
                         <tbody>
-                            {this.renderFormRows(tenseForms)}
+                            {this.renderFormRows(tenseForms, tenseForms.tenseNameKey)}
                         </tbody>
                     </table>
                 </div>

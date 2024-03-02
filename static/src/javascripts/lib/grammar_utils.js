@@ -48,3 +48,14 @@ export function buildMapByPronoun() {
     }
     return map;
 }
+
+export function buildPersonNumberList() {
+    let list = [];
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
+            list.push(new PersonNumber(person, number, pronoun));
+        }
+    }
+    return list;
+}
