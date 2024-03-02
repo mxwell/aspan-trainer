@@ -1,5 +1,5 @@
 include viewer_page
-mixin a_viewer_page_en()
+mixin a_viewer_page_en(react_app_path)
     -
       var l10n = {
         langCode: "en",
@@ -17,5 +17,5 @@ mixin a_viewer_page_en()
         titleAbout: "About",
         linkAbout: "./about_en.pug",
       }
-    +a_viewer_page(l10n, "../javascripts/viewer_en.jsx")
+    +a_viewer_page(l10n, react_app_path)
         block
