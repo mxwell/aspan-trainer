@@ -14,6 +14,7 @@ import { makeSuggestRequest } from '../lib/requests';
 import {
     buildExplanationUrl,
     buildViewerUrl,
+    buildViewerUrl2,
     extractSsrVerb,
     isSsrPage,
     parseParams
@@ -450,7 +451,7 @@ class ViewerApp extends React.Component {
     }
 
     reloadToState(verb, sentenceType, forceExceptional) {
-        const url = buildViewerUrl(verb, sentenceType, forceExceptional);
+        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang);
         window.location.href = url;
     }
 
@@ -581,10 +582,11 @@ class ViewerApp extends React.Component {
         if (!this.state.showVerbSwitcher) {
             return null;
         }
-        const oppositeUrl = buildViewerUrl(
+        const oppositeUrl = buildViewerUrl2(
             this.state.verb,
             this.state.sentenceType,
-            !this.state.forceExceptional
+            !this.state.forceExceptional,
+            this.props.lang,
         );
         const textKey = this.state.forceExceptional ? "switch_to_regular" : "switch_to_exception";
         return (
@@ -769,7 +771,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            const link = buildViewerUrl(verb, SENTENCE_TYPES[0], false);
+            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang);
             if (i > 0) {
                 items.push(
                     <span
