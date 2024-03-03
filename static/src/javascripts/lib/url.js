@@ -1,3 +1,5 @@
+import { I18N_LANG_RU } from "./i18n";
+
 function parseParams() {
     const search = location.search;
     if (search.length <= 0 || !search.startsWith("?")) {
@@ -29,6 +31,10 @@ function extractSsrVerb() {
     return decodeURI(path.substring(slash + 1, ext)).replace(/_/g, " ");
 }
 
+function buildUrl(path, params) {
+    return `${path}?${params.join("&")}`;
+}
+
 function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person, number, lang) {
     let params = [
         `verb=${encodeURI(verb)}`,
@@ -41,7 +47,7 @@ function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person
         params.push("exception=true");
     }
     const path = `/explanation_${lang}.html`;
-    return `${path}?${params.join("&")}`;
+    return buildUrl(path, params);
 }
 
 function buildViewerUrl(verb, sentenceType, forceExceptional) {
@@ -60,9 +66,26 @@ function buildViewerUrl(verb, sentenceType, forceExceptional) {
     return path;
 }
 
+function buildViewerUrl2(verb, sentenceType, forceExceptional, lang) {
+    let params = [
+        `verb=${encodeURI(verb)}`,
+        `sentence_type=${sentenceType}`,
+    ];
+    if (forceExceptional) {
+        params.push("exception=true");
+    }
+    const path = (
+        (lang == I18N_LANG_RU)
+        ? "/"
+        : `/${lang}/`
+    );
+    return buildUrl(path, params);
+}
+
 export {
     buildExplanationUrl,
     buildViewerUrl,
+    buildViewerUrl2,
     extractSsrVerb,
     isSsrPage,
     parseParams,

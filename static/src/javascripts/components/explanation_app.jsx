@@ -7,7 +7,7 @@ import {
 } from "../lib/grammar_utils";
 import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_util";
 import { parseSentenceType, SENTENCE_TYPES } from "../lib/sentence";
-import { parseParams } from "../lib/url"
+import { buildViewerUrl2, parseParams } from "../lib/url"
 import {
     SPEED_NORMAL,
     PhrasalAnimationState,
@@ -17,6 +17,7 @@ import {
 } from "../lib/verb_analysis";
 import { createFormByParams } from "../lib/verb_forms";
 import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
+import { closeButton } from "./close_button";
 
 const TENSES = [
     "presentTransitive",
@@ -60,6 +61,7 @@ class ExplanationApp extends React.Component {
         this.onPronounSelect = this.onPronounSelect.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onAnimationChange = this.onAnimationChange.bind(this);
+        this.onClose = this.onClose.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
@@ -261,6 +263,11 @@ class ExplanationApp extends React.Component {
         this.setState({ animation });
     }
 
+    onClose(event) {
+        const viewerUrl = buildViewerUrl2(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.props.lang);
+        window.location.href = viewerUrl;
+    }
+
     renderDetails() {
         const tense = this.state.tense;
         const verb = this.state.verb;
@@ -369,9 +376,12 @@ class ExplanationApp extends React.Component {
     render() {
         return (
             <div>
-                <h1 className="px-6 text-3xl lg:text-4xl italic text-gray-600">
-                    {this.i18n("verb_form_explanation")}
-                </h1>
+                <div className="flex justify-between">
+                    <h1 className="px-6 text-3xl lg:text-4xl italic text-gray-600">
+                        {this.i18n("verb_form_explanation")}
+                    </h1>
+                    {closeButton({ onClick: this.onClose })}
+                </div>
                 {this.renderForm()}
                 {this.renderExplanation()}
             </div>
