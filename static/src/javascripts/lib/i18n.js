@@ -39,6 +39,11 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "imperativeMood", "Imperative mood", "Повелительное наклонение", "Бұйрық рай");
     setEnRuKz(map, "optativeMood", "Optative mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
+    setEnRuKz(map, "participle", "Participle", "Причастие", "Есімше");
+    setEnRuKz(map, "pastParticiple", "Past participle", "Причастие прошедшего времени", "Өткен шақ есімше");
+    setEnRuKz(map, "presentParticiple", "Present participle", "Причастие настоящего времени", "Осы шақ есімше")
+    setEnRuKz(map, "futureParticiple", "Future participle", "Причастие будущего времени", "Келер шақ есімше");
+
 
     setEnRuKz(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",

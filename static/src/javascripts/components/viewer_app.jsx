@@ -22,6 +22,7 @@ import {
 import {
     checkOptionalExceptionVerb,
     createSideQuizTask,
+    generateParticipleForms,
     generateVerbForms,
 } from '../lib/verb_forms';
 import SideQuiz from './side_quiz';
@@ -507,11 +508,12 @@ class ViewerApp extends React.Component {
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
+            const labelText = form.pronoun || this.i18n(form.formKey);
             rows.push(
                 <tr
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
-                    <td>{form.pronoun}</td>
+                    <td>{labelText}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
                     {this.buildExplanationLinkCell(tense, i)}
                 </tr>

@@ -12,8 +12,9 @@ import {
 import { getRandomInt, pickRandom } from './random';
 
 class VerbForm {
-    constructor(pronoun, verbPhrase) {
+    constructor(pronoun, formKey, verbPhrase) {
         this.pronoun = pronoun;
+        this.formKey = formKey;
         this.verbPhrase = verbPhrase;
     }
 }
@@ -42,10 +43,20 @@ function createForms(tenseNameKey, groupNameKey, pronounType, caseFn) {
         for (const number of GRAMMAR_NUMBERS) {
             const verbPhrase = caseFn(person, number);
             const pronoun = getPronounByParams(pronounType, person, number);
-            forms.push(new VerbForm(pronoun, verbPhrase));
+            forms.push(new VerbForm(pronoun, null, verbPhrase));
         }
     }
     return new TenseForms(tenseNameKey, groupNameKey, forms);
+}
+
+export function generateParticipleForms(verb, forceExceptional, sentenceType) {
+    let verbBuilder = new VerbBuilder(verb, forceExceptional);
+
+    let forms = [];
+    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType)))
+    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType)));
+    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType)));
+    return new TenseForms("participle", "participle", forms);
 }
 
 export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType) {
@@ -128,6 +139,7 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.canClause(person, number, sentenceType, shak),
     ));
+    tenses.push(generateParticipleForms(verb, forceExceptional, sentenceType));
     return tenses;
 }
 
