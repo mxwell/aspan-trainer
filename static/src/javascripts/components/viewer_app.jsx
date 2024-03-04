@@ -247,7 +247,7 @@ class ViewerApp extends React.Component {
         var warning = null;
         var showVerbSwitcher = false;
         try {
-            const verbL = verb.toLowerCase();
+            const verbL = verb.trim().toLowerCase();
             if (this.checkTranslationEnabled()) {
                 this.requestTranslation(verbL);
             }
