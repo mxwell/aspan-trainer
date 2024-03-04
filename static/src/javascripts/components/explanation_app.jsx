@@ -15,7 +15,7 @@ import {
     renderPhrasalExplanation,
     makeAnimationState,
 } from "../lib/verb_analysis";
-import { createFormByParams } from "../lib/verb_forms";
+import { createFormByParams, normalizeVerb } from "../lib/verb_forms";
 import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
 import { closeButton } from "./close_button";
 
@@ -167,8 +167,10 @@ class ExplanationApp extends React.Component {
         const animation = params.animation == "true";
         const form = params.form == "true";
 
+        const verbL = normalizeVerb(verb);
+
         const phrasal = createFormByParams(
-            verb,
+            verbL,
             forceExceptional,
             sentenceType,
             tense,
@@ -178,7 +180,7 @@ class ExplanationApp extends React.Component {
             console.log("Invalid phrasal form");
             return null;
         }
-        const explanation = buildVerbPhrasalExplanation(verb, phrasal, this.props.lang);
+        const explanation = buildVerbPhrasalExplanation(verbL, phrasal, this.props.lang);
         const animationState = makeAnimationState(explanation, animation);
         if (animation) {
             this.startAnimation();
@@ -206,9 +208,10 @@ class ExplanationApp extends React.Component {
         event.preventDefault();
 
         const verb = this.state.lastEntered || null;
+        const verbL = normalizeVerb(verb);
 
         const phrasal = createFormByParams(
-            verb,
+            verbL,
             this.state.forceExceptional,
             this.state.sentenceType,
             this.state.tense,
@@ -216,7 +219,7 @@ class ExplanationApp extends React.Component {
         );
         const explanation = (
             phrasal != null
-            ? buildVerbPhrasalExplanation(verb, phrasal, this.props.lang)
+            ? buildVerbPhrasalExplanation(verbL, phrasal, this.props.lang)
             : null
         );
         const animationState = makeAnimationState(explanation, this.state.animation);

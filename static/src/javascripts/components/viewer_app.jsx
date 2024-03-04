@@ -24,6 +24,7 @@ import {
     createSideQuizTask,
     generateParticipleForms,
     generateVerbForms,
+    normalizeVerb,
 } from '../lib/verb_forms';
 import SideQuiz from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
@@ -247,7 +248,7 @@ class ViewerApp extends React.Component {
         var warning = null;
         var showVerbSwitcher = false;
         try {
-            const verbL = verb.trim().toLowerCase();
+            const verbL = normalizeVerb(verb);
             if (this.checkTranslationEnabled()) {
                 this.requestTranslation(verbL);
             }
