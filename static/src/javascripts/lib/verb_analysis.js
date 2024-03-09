@@ -28,7 +28,7 @@ class Title {
     getState(index, htmlParts) {
         htmlParts.push(
             <h2
-                className="text-center text-xl text-gray-800"
+                className="text-center text-4xl lg:text-xl text-gray-800"
                 key={htmlParts.length}>
                 {this.text}
             </h2>
@@ -49,7 +49,8 @@ class PlainParagraph {
     getState(index, htmlParts) {
         htmlParts.push(
             <p
-                key={`p${htmlParts.length}`}>
+                key={`p${htmlParts.length}`}
+                className="text-2xl lg:text-base">
                 {this.text}
             </p>
         );
@@ -80,12 +81,12 @@ class Progression {
         );
         for (let i = 0; i < items.length; ++i) {
             if (i > 0) {
-                spans.push(<span key={spans.length}> → </span>);
+                spans.push(<span key={spans.length} className="text-2xl lg:text-base"> → </span>);
             }
             const spanClass = (
                 (i == highlightIndex)
-                ? `text-xl ${this.highlightColor}`
-                : ""
+                ? `text-3xl lg:text-xl ${this.highlightColor}`
+                : "text-2xl lg:text-base"
             );
             spans.push(
                 <span
@@ -210,11 +211,11 @@ class AnnotatedVariantsTable {
                     className={rowClass}
                     key={tableRows.length}>
                     <td
-                        className="px-6 py-1 border-2 border-gray-600">
+                        className="px-1 lg:px-6 py-1 border-2 border-gray-600">
                         {i18n(row[0], this.lang)}
                     </td>
                     <td
-                        className={`px-6 py-1 border-2 border-gray-600 ${cellClass}`}>
+                        className={`px-2 lg:px-6 py-1 border-2 border-gray-600 ${cellClass}`}>
                         {row[1]}
                     </td>
                 </tr>
@@ -222,7 +223,7 @@ class AnnotatedVariantsTable {
         }
         htmlParts.push(
             <table
-                className="my-2 bg-white"
+                className="my-2 bg-white text-2xl lg:text-base"
                 key={`t${htmlParts.length}`}>
                 <tbody>{tableRows}</tbody>
             </table>
@@ -308,7 +309,7 @@ class DoublyAnnotatedTable {
                 }
                 cells.push(
                     <td
-                        className={`px-6 py-1 border-2 border-gray-600 ${cellClass}`}
+                        className={`px-1 lg:px-6 py-1 border-2 border-gray-600 ${cellClass}`}
                         key={cells.length}>
                         {cellText}
                     </td>
