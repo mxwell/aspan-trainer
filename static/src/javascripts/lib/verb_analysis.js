@@ -238,100 +238,149 @@ class AnnotatedVariantsTable {
 }
 
 /**
- * A table of the following structure:
- *                  | column annotation 1 | column annotation 2 |
- * row annotation 1 | variant_1_1         | variant_1_2         |
- * row annotation 2 | variant_2_1         | variant_2_2         |
+ * Table layout adapted for mobile:
+ *
+ *  Table annotation 0
+ *  | column annotation 0 | column annotation 1 |
+ *  | variant_0_0         | variant_0_1         |
+ *
+ *  Table annotation 1
+ *  | column annotation 0 | column annotation 1 |
+ *  | variant_1_0         | variant_1_1         |
  */
-class DoublyAnnotatedTable {
-    constructor(table, lang, i18nTopRow, highlightRow, highlightColumn, highlightColor) {
-        this.table = table;
+class AnnotatedSplitTable {
+    constructor(annotations, tables, lang, i18nTopRow, highlightTable, highlightColumn, highlightColor) {
+        if (annotations.length != tables.length) {
+            throw new Error(`Number of annotations must be equal to the number of tables: ${annotations.length} != ${tables.length}`);
+        }
+        if (highlightTable < 0 || highlightTable >= tables.length) {
+            throw new Error(`highlightTable must be a valid index: ${highlightTable}`);
+        }
+        if (highlightColumn < 0 || highlightColumn >= tables[highlightTable][1].length) {
+            throw new Error(`highlightColumn must be a valid index: ${highlightColumn}`);
+        }
+
+        this.annotations = annotations;
+        this.tables = tables;
         this.lang = lang;
         this.i18nTopRow = i18nTopRow;
-        this.highlightRow = highlightRow;
+        this.highlightTable = highlightTable;
         this.highlightColumn = highlightColumn;
         this.highlightColor = highlightColor;
+
+        let totalRows = 0;
+        for (let i = 0; i < tables.length; ++i) {
+            totalRows += tables[i].length;
+        }
+        this.totalRows = totalRows;
+
+        this.preColumnSteps = this.tables.length + this.totalRows + this.highlightTable + 1;
     }
     totalStates() {
-        return this.table.length + this.highlightRow + this.highlightColumn - 1;
+        return this.annotations.length + this.totalRows + (1 + this.highlightTable) + (1 + this.highlightColumn);
     }
     getState(index, htmlParts) {
-        const R = this.table.length;
-        const HR = this.highlightRow;
-        const rowsToShow = Math.min(R, index + 1);
-        let tableRows = [];
-        const highlightRow = (
-            (index < R)
+        /**
+         * Example sequence:
+         *
+         * 0 - table annotation 0
+         * 1 - annotation row of table 0
+         * 2 - variant row of table 0
+         * 3 - table annotation 1
+         * 4 - annotation row of table 1
+         * 5 - variant row of table 1
+         * 6 - highlight table annotation 0
+         * 7 - highlight table annotation 1 (matches highlightTable => keep highlighted)
+         * 8 - highlight column 0
+         * 9 - highlight column 1 (matches highlightColumn => keep highlighted)
+         */
+        const T = this.tables.length;
+        const TR = this.totalRows;
+        const HT = this.highlightTable;
+        const HC = this.highlightColumn;
+        const highlightTable = (
+            (index < T + TR)
             ? -1
             : (
-                (index < R + HR)
-                ? (index - R + 1)
-                : HR
+                (index < T + TR + HT)
+                ? (index - T - TR)
+                : HT
             )
         );
         const highlightColumn = (
-            (index < R)
+            (index < this.preColumnSteps)
             ? -1
             : (
-                (index < R + HR)
-                ? 1
-                : (index - R - HR + 2)
+                (index < this.preColumnSteps + HC)
+                ? (index - this.preColumnSteps)
+                : HC
             )
         );
-        // console.log(`DAT: index ${index}, highlightRow: ${highlightRow}, highlightColumn: ${highlightColumn}`);
-        for (let i = 0; i < rowsToShow; ++i) {
-            let row = this.table[i];
-            let cells = [];
-            for (let j = 0; j < row.length; ++j) {
-                let cellClass = "text-gray-600";
-                let cellText = row[j];
-                if (i == 0) {
-                    if (j == 0) {
-                        cellClass = "invisible";
+        let drawnRows = 0;
+        for (let t = 0; t < T; ++t) {
+            if (drawnRows < index) {
+                let annotationClass = (
+                    t == highlightTable
+                    ? "text-black"
+                    : "text-gray-600"
+                );
+                htmlParts.push(
+                    <h3
+                        key={htmlParts.length}
+                        className={`text-2xl lg:text-base ${annotationClass}`}>
+                        {i18n(this.annotations[t], this.lang)}
+                    </h3>
+                );
+                drawnRows += 1;
+            } else {
+                break;
+            }
+            const rowsToShow = Math.min(this.tables[t].length, index - drawnRows + 1);
+            const table = this.tables[t];
+            let tableRows = [];
+            for (let i = 0; i < rowsToShow; ++i) {
+                let row = table[i];
+                let cells = [];
+                for (let j = 0; j < row.length; ++j) {
+                    let cellClass = "text-gray-600";
+                    let cellText = row[j];
+                    if (t == highlightTable && j == highlightColumn) {
+                        if (i == 0) {
+                            cellClass = "text-black";
+                        } else {
+                            cellClass = this.highlightColor;
+                        }
+                    }
+                    if (i == 0 && this.i18nTopRow) {
                         cellText = i18n(cellText, this.lang);
-                    } else if (j == highlightColumn) {
-                        cellClass = "text-black";
-                        if (this.i18nTopRow) {
-                            cellText = i18n(cellText, this.lang);
-                        }
-                    } else {
-                        if (this.i18nTopRow) {
-                            cellText = i18n(cellText, this.lang);
-                        }
                     }
-                } else if (j == 0) {
-                    cellText = i18n(cellText, this.lang);
-                    if (i == highlightRow) {
-                        cellClass = "text-black";
-                    }
-                } else if (i == highlightRow && j == highlightColumn) {
-                    cellClass = this.highlightColor;
+                    cells.push(
+                        <td
+                            className={`px-1 lg:px-6 py-1 border-2 border-gray-600 ${cellClass}`}
+                            key={cells.length}>
+                            {cellText}
+                        </td>
+                    );
                 }
-                cells.push(
-                    <td
-                        className={`px-1 lg:px-6 py-1 border-2 border-gray-600 ${cellClass}`}
-                        key={cells.length}>
-                        {cellText}
-                    </td>
+                tableRows.push(
+                    <tr
+                        key={tableRows.length}>
+                        {cells}
+                    </tr>
                 );
             }
-            tableRows.push(
-                <tr
-                    key={tableRows.length}>
-                    {cells}
-                </tr>
+            htmlParts.push(
+                <table
+                    className="my-2 bg-white text-2xl lg:text-base text-center"
+                    key={htmlParts.length}>
+                    <tbody>{tableRows}</tbody>
+                </table>
             );
+            drawnRows += rowsToShow;
         }
-        htmlParts.push(
-            <table
-                className="my-2 bg-white"
-                key={htmlParts.length}>
-                <tbody>{tableRows}</tbody>
-            </table>
-        );
     }
     getSpeed(index) {
-        if (index >= this.table.length) {
+        if (index >= this.preColumnSteps) {
             return SPEED_FAST;
         }
         return SPEED_NORMAL;
@@ -375,25 +424,28 @@ class PhrasalExplanation {
         }
         this.addParagraph(new AnnotatedVariantsTable(table, lang, highlightRow, highlightColor));
     }
-    addDoublyAnnotatedTable(table, lang, i18nTopRow, highlight, highlightColor) {
-        let highlightRow = -1;
+    addAnnotatedSplitTable(annotations, tables, lang, i18nTopRow, highlight, highlightColor) {
+        let highlightTable = -1;
         let highlightColumn = -1;
-        for (let i = 0; i < table.length; ++i) {
-            let row = table[i];
+        for (let t = 0; t < tables.length; ++t) {
+            if (tables[t].length != 2) {
+                throw new Error(`Annotated split table must have 2 rows: ${tables[t].length}`);
+            }
+            let row = tables[t][1];
             for (let j = 0; j < row.length; ++j) {
                 if (row[j] == highlight) {
-                    if (highlightRow >= 0) {
-                        throw new Error(`Item ${highlight} found more than once in doubly annotated table`);
+                    if (highlightTable >= 0) {
+                        throw new Error(`Item ${highlight} found more than once in annotated split table`);
                     }
-                    highlightRow = i;
+                    highlightTable = t;
                     highlightColumn = j;
                 }
             }
         }
-        if (highlightRow < 0) {
-            throw new Error(`Item ${highlight} not found in doubly annotated table`);
+        if (highlightTable < 0) {
+            throw new Error(`Item ${highlight} not found in annotated split table`);
         }
-        this.addParagraph(new DoublyAnnotatedTable(table, lang, i18nTopRow, highlightRow, highlightColumn, highlightColor));
+        this.addParagraph(new AnnotatedSplitTable(annotations, tables, lang, i18nTopRow, highlightTable, highlightColumn, highlightColor));
     }
 }
 
@@ -610,19 +662,20 @@ function buildVerbBaseExplanation(verbDictForm, part, lang, explanation) {
     }
 }
 
-const NEGATION_OR_QUESTION_PARTICLES = [
-    ["ба", "ма", "па"],
-    ["бе", "ме", "пе"],
+const QUESTION_PARTICLES_ANNOTATIONS = [
+    "after_hard",
+    "after_soft",
 ];
 
-/*
- * The first item is a placeholder for the column to be of the right width from the animation start.
- * It should be invisible.
- */
-const ANNOTATED_QUESTION_PARTICLES = [
-    ["after_hard", "after_mnnzhz", "after_unvoiced_bvgd", "after_vowels_lruy"],
-    ["after_hard", "ба", "па", "ма"],
-    ["after_soft", "бе", "пе", "ме"],
+const QUESTION_PARTICLES_SPLIT_TABLES = [
+    [
+        ["after_mnnzhz", "after_unvoiced_bvgd", "after_vowels_lruy"],
+        ["ба", "па", "ма"],
+    ],
+    [
+        ["after_mnnzhz", "after_unvoiced_bvgd", "after_vowels_lruy"],
+        ["бе", "пе", "ме"],
+    ],
 ];
 
 function buildVerbNegationExplanation(part, lang, explanation) {
@@ -639,7 +692,7 @@ function buildVerbNegationExplanation(part, lang, explanation) {
     explanation.addPart();
     explanation.addTitle(i18n("title_negation_particle", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbNegationPostBase) {
-        explanation.addDoublyAnnotatedTable(ANNOTATED_QUESTION_PARTICLES, lang, true, negation, "underline text-red-600");
+        explanation.addAnnotatedSplitTable(QUESTION_PARTICLES_ANNOTATIONS, QUESTION_PARTICLES_SPLIT_TABLES, lang, true, negation, "underline text-red-600");
     }
 }
 
@@ -676,14 +729,20 @@ function buildVerbTenseAffixExplanation(part, lang, explanation) {
     }
 }
 
-/*
- * The first item is a placeholder for the column to be of the right width from the animation start.
- * It should be invisible.
- */
-const ANNOTATED_PERS_AFFIXES = [
-    ["after_hard", "мен", "біз", "сен", "сендер", "Сіз", "Сіздер", "ол / олар"],
-    ["after_hard", "мын", "мыз", "сың", "сыңдар", "сыз", "сыздар", "ды"],
-    ["after_soft", "мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
+const PERS_AFFIXES_ANNOTATIONS = [
+    "after_hard",
+    "after_soft",
+];
+
+const PERS_AFFIXES_SPLIT_TABLES = [
+    [
+        ["мен", "біз", "сен", "сендер", "Сіз", "Сіздер", "ол / олар"],
+        ["мын", "мыз", "сың", "сыңдар", "сыз", "сыздар", "ды"],
+    ],
+    [
+        ["мен", "біз", "сен", "сендер", "Сіз", "Сіздер", "ол / олар"],
+        ["мін", "міз", "сің", "сіңдер", "сіз", "сіздер", "ді"],
+    ]
 ];
 
 function buildVerbPersonalAffixExplanation(part, lang, explanation) {
@@ -700,7 +759,7 @@ function buildVerbPersonalAffixExplanation(part, lang, explanation) {
     explanation.addPart();
     explanation.addTitle(i18n("title_pers_affix", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
-        explanation.addDoublyAnnotatedTable(ANNOTATED_PERS_AFFIXES, lang, false, affix, "underline text-indigo-600");
+        explanation.addAnnotatedSplitTable(PERS_AFFIXES_ANNOTATIONS, PERS_AFFIXES_SPLIT_TABLES, lang, false, affix, "underline text-indigo-600");
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip) {
         explanation.addPlainParagraph(i18n("pers_affix_question_skip", lang));
     }
@@ -719,7 +778,7 @@ function buildQuestionParticleExplanation(part, lang, explanation) {
     console.log(`explaining question particle: expl type ${explanationType}`);
     explanation.addPart();
     explanation.addTitle(i18n("title_question_particle", lang));
-    explanation.addDoublyAnnotatedTable(ANNOTATED_QUESTION_PARTICLES, lang, true, particle, "underline");
+    explanation.addAnnotatedSplitTable(QUESTION_PARTICLES_ANNOTATIONS, QUESTION_PARTICLES_SPLIT_TABLES, lang, true, particle, "underline");
 }
 
 export function buildVerbPhrasalExplanation(verbDictForm, phrasal, lang) {
