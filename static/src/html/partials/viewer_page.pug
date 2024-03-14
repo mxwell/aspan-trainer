@@ -29,7 +29,7 @@ mixin a_viewer_page(l10n, js_path)
                     div(class="relative mr-2 md:mx-8 my-1 py-3 md:py-2")
                         button(id="lang_switcher_btn", class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
                             = l10n.firstLang
-                        div(id="lang_switcher_content", class="absolute hidden")
+                        div(id="lang_switcher_content", class="absolute hidden z-50")
                             a(href= l10n.secondRoot)
                                 button(class="bg-blue-800 border-2 border-gray-300 text-2xl lg:text-xl py-1 px-2")
                                     = l10n.secondLang
