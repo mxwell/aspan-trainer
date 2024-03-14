@@ -1,5 +1,12 @@
 #! /usr/bin/python3
 
+"""
+Usage example:
+
+ python3 scripts/generate_sitemap.py --host https://kazakhverb.khairulin.com --input-directory ssr/output --lastmod 2024-03-15
+
+"""
+
 import argparse
 from dataclasses import dataclass, field
 import logging
@@ -36,22 +43,48 @@ def make_ssr_urls(prefix, html_names, lastmod):
     return result
 
 
-def make_spa_urls(prefix_by_language, main_language, html_names, lastmod):
+def make_spa_urls(host, prefix_by_language, main_language, html_names, lastmod):
     result = []
+
+    def make_url(escaped_verb, language):
+        prefix = prefix_by_language[language]
+        return f"{host}/{prefix}?verb={escaped_verb}"
+
     for name in html_names:
         if not name.endswith(".html"):
             continue
         verb = name[:-5].replace("_", " ")
         escaped = urllib.parse.quote_plus(verb)
         assert main_language in prefix_by_language
-        main_url = f"{prefix_by_language[main_language]}/?verb={escaped}"
+        main_url = make_url(escaped, main_language)
         languages = []
         alternates = []
         for language, prefix in prefix_by_language.items():
             if language == main_language:
                 continue
             languages.append(language)
-            alternates.append(f"{prefix}/?verb={escaped}")
+            alternates.append(make_url(escaped, language))
+        result.append(WebsiteInfo(main_url, lastmod, languages, alternates))
+    return result
+
+
+def make_meta_urls(host, suffix_by_language, main_language, lastmod):
+    result = []
+    pages = ["about", "timeline"]
+
+    def make_page_url(page, language):
+        suffix = suffix_by_language[language]
+        return f"{host}/{page}_{suffix}.html"
+
+    for page in pages:
+        main_url = make_page_url(page, main_language)
+        languages = []
+        alternates = []
+        for language in suffix_by_language:
+            if language == main_language:
+                continue
+            languages.append(language)
+            alternates.append(make_page_url(page, language))
         result.append(WebsiteInfo(main_url, lastmod, languages, alternates))
     return result
 
@@ -109,23 +142,28 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Modify scrapped viewer page to produce a prerendered version.")
-    parser.add_argument("--en-url-prefix", type=str, required=True, help="URL prefix for English version, goes before HTML file name")
-    parser.add_argument("--kk-url-prefix", type=str, required=True, help="URL prefix for Kazakh version, goes before HTML file name")
-    parser.add_argument("--ru-url-prefix", type=str, required=True, help="URL prefix for Russian version, goes before HTML file name")
+    parser.add_argument("--host", type=str, required=True, help="Host name for the website")
     parser.add_argument("--input-directory", "-i", type=str, required=True, help="Directory with HTML pages to put into sitemap")
-    parser.add_argument("--spa-last-mod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as lastmod for SPA URLs")
+    parser.add_argument("--lastmod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as URLs lastmod")
     args = parser.parse_args()
 
     prefix_by_language = dict(
-        en=args.en_url_prefix,
-        kk=args.kk_url_prefix,
-        ru=args.ru_url_prefix,
+        en="en/",
+        kk="kk/",
+        ru="",
+    )
+    suffix_by_language = dict(
+        en="en",
+        kk="kk",
+        ru="ru",
     )
     main_language = "ru"
 
     html_names = collect_html_names(args.input_directory)
-    urls = make_ssr_urls(prefix_by_language[main_language], html_names, "2024-01-14")
-    urls += make_spa_urls(prefix_by_language, main_language, html_names, args.spa_last_mod)
+    urls = []
+    # urls += make_ssr_urls(prefix_by_language[main_language], html_names, "2024-01-14")
+    urls += make_spa_urls(args.host, prefix_by_language, main_language, html_names, args.lastmod)
+    urls += make_meta_urls(args.host, suffix_by_language, main_language, args.lastmod)
     generate_sitemap(urls)
 
 
