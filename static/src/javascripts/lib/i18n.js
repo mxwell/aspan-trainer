@@ -240,6 +240,21 @@ function prepareExplanationOnlyTranslations(map) {
     );
 }
 
+function prepareDetectorOnlyTranslations(map) {
+    setEnRu(map, "title_verb_detector",
+        "Verb detector",
+        "Определитель глагола",
+    );
+    setEnRu(map, "hint_enter_verb_form",
+        "Enter verb form",
+        "Введите форму глагола",
+    );
+    setEnRu(map, "no_verb_detected",
+        "Failed to detect verb in the entered text",
+        "Не удалось обнаружить глагол в введённом тексте",
+    );
+}
+
 function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса", "Бетбейне тілін өзгерту");
     setEnRuKz(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс", "Қазақша бетбейне қолдану");
@@ -301,6 +316,7 @@ function prepareTranslations() {
     prepareCommonTranslations(map);
     prepareViewerOnlyTranslations(map);
     prepareExplanationOnlyTranslations(map);
+    prepareDetectorOnlyTranslations(map);
     prepareQuizOnlyTranslations(map);
 
     return map;
