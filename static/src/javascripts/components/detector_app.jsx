@@ -1,7 +1,8 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { parseParams } from "../lib/url"
+import { buildVerbDetectorUrl, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
+import { normalizeVerb } from "../lib/verb_forms";
 
 class DetectorApp extends React.Component {
     constructor(props) {
@@ -30,15 +31,8 @@ class DetectorApp extends React.Component {
         );
     }
 
-    readUrlState() {
-        const params = parseParams();
-        const form = params.form;
-        if (form == null || form.length == 0) {
-            console.log("No form in URL");
-            return null;
-        }
-        // TODO trim form
-
+    startDetection(rawForm) {
+        const form = normalizeVerb(rawForm);
         makeDetectRequest(
             form,
             this.handleDetectResponse,
@@ -48,7 +42,16 @@ class DetectorApp extends React.Component {
                 lastEntered: form,
             }
         );
+    }
 
+    readUrlState() {
+        const params = parseParams();
+        const form = params.form;
+        if (form == null || form.length == 0) {
+            console.log("No form in URL");
+            return null;
+        }
+        this.startDetection(form);
         return this.makeState(
             form,
             /* verb */ null,
@@ -72,9 +75,12 @@ class DetectorApp extends React.Component {
                         verbs.push(word.initial);
                     }
                 }
-                console.log(`Got ${verbs.length} verbs in detect response.`);
+                // console.log(`Got ${verbs.length} verbs in detect response.`);
                 if (verbs.length > 0) {
                     const verb = verbs[0];
+                    this.setState({ verb });
+                } else {
+                    const verb = null;
                     this.setState({ verb });
                 }
             } else {
@@ -95,14 +101,19 @@ class DetectorApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
+        this.startDetection(lastEntered);
         this.setState({ lastEntered });
-        // call detector
+    }
+
+    reloadToState(form) {
+        const url = buildVerbDetectorUrl(form, this.props.lang);
+        window.location.href = url;
     }
 
     onSubmit(event) {
         event.preventDefault();
-        console.log(`Submit is pressed`);
-        // TODO impl.
+        const form = this.state.lastEntered;
+        this.reloadToState(form);
     }
 
     renderForm() {
@@ -115,32 +126,36 @@ class DetectorApp extends React.Component {
                     value={this.state.lastEntered}
                     onChange={this.onChange}
                     placeholder={this.i18n("hint_enter_verb_form")}
-                    className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                    className="shadow appearance-none border rounded w-full m-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     autoFocus />
                 <input
                     type="submit"
                     value={this.i18n("buttonSubmit")}
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase m-2 w-full font-bold rounded focus:outline-none focus:shadow-outline"
                 />
             </form>
         );
     }
 
     renderFindings() {
-        let result = this.state.verb || this.i18n("no_verb_detected");
+        const verb = this.state.verb;
+        const extraClass = verb ? "text-green-700" : "text-gray-600";
+        const result = verb || this.i18n("no_verb_detected");
         return (
-            <p className="text-4xl lg:text-2xl">{result}</p>
+            <p className={`text-4xl lg:text-2xl lg:max-w-xs m-4 ${extraClass}`}>{result}</p>
         );
     }
 
     render() {
         return (
             <div>
-                <h1 className="px-6 text-3xl lg:text-4xl italic text-gray-600">
+                <h1 className="text-center text-4xl italic text-gray-600">
                     {this.i18n("title_verb_detector")}
                 </h1>
                 {this.renderForm()}
-                {this.renderFindings()}
+                <div className="flex justify-center">
+                    {this.renderFindings()}
+                </div>
             </div>
         );
     }

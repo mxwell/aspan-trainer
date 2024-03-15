@@ -50,6 +50,14 @@ function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person
     return buildUrl(path, params);
 }
 
+function buildVerbDetectorUrl(form, lang) {
+    let params = [
+        `form=${encodeURI(form)}`,
+    ];
+    const path = `/verb_detector_${lang}.html`;
+    return buildUrl(path, params);
+}
+
 function buildViewerUrl(verb, sentenceType, forceExceptional) {
     const path = isSsrPage() ? "/" : window.location.pathname;
     if (verb != null) {
@@ -84,6 +92,7 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang) {
 
 export {
     buildExplanationUrl,
+    buildVerbDetectorUrl,
     buildViewerUrl,
     buildViewerUrl2,
     extractSsrVerb,
