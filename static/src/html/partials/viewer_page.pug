@@ -16,7 +16,10 @@ mixin a_viewer_page(l10n, js_path)
                         div(class="pr-2")
                             button(id="ham_btn")
                                 img(class="ham_icon", src="../images/menu.svg")
-                            div(id="ham_menu_content", class="absolute z-50 hidden")
+                            div(id="ham_menu_content", class="absolute z-50 hidden flex flex-col")
+                                a(href= l10n.linkVerbDetector)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl py-1 px-2")
+                                        = l10n.titleVerbDetector
                                 a(href= l10n.linkAbout)
                                     button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl py-1 px-2")
                                         = l10n.titleAbout

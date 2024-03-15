@@ -3,6 +3,37 @@ import { i18n } from "../lib/i18n";
 import { buildVerbDetectorUrl, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
 import { normalizeVerb } from "../lib/verb_forms";
+import { pickRandom } from "../lib/random";
+
+const PRESET_VERB_FORMS = [
+    "аламын",
+    "кетейік",
+    "жазбадың",
+    "жасамайды",
+    "ойнапсыз",
+    "жаярмыз",
+    "қабитын",
+    "қабатын",
+    "сүйсе",
+    "қобалжымайтынсыңдар",
+];
+
+function pickExamples(chosenForm, exampleCount) {
+    if (PRESET_VERB_FORMS.length < exampleCount + 1) {
+        return [];
+    }
+    let forms = [];
+    while (forms.length < exampleCount) {
+        while (true) {
+            let form = pickRandom(PRESET_VERB_FORMS);
+            if (form == chosenForm) continue;
+            if (forms.indexOf(form) >= 0) continue;
+            forms.push(form);
+            break;
+        }
+    }
+    return forms;
+}
 
 class DetectorApp extends React.Component {
     constructor(props) {
@@ -20,6 +51,7 @@ class DetectorApp extends React.Component {
         return {
             form: form,
             lastEntered: form,
+            examples: pickExamples(form, 2),
             verb: verb,
             error: false,
         };
@@ -55,7 +87,7 @@ class DetectorApp extends React.Component {
         this.startDetection(form);
         return this.makeState(
             form,
-            /* verb */ null,
+            /* verb */ "",
         );
     }
 
@@ -117,6 +149,44 @@ class DetectorApp extends React.Component {
         this.reloadToState(form);
     }
 
+    renderExampleForms() {
+        const forms = this.state.examples;
+        let items = [];
+        items.push(
+            <span
+                className="text-3xl lg:text-sm text-gray-600"
+                key={items.length} >
+                {this.i18n("examples")}:&nbsp;
+            </span>
+        );
+        for (var i = 0; i < forms.length; ++i) {
+            let form = forms[i];
+            const link = buildVerbDetectorUrl(form, this.props.lang);
+            if (i > 0) {
+                items.push(
+                    <span
+                        className="text-3xl lg:text-sm text-gray-600"
+                        key={items.length} >
+                        &nbsp;{this.i18n("or")}&nbsp;
+                    </span>
+                )
+            }
+            items.push(
+                <a
+                    className="px-2 lg:px-1 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    key={items.length}
+                    href={link} >
+                    {form}
+                </a>
+            );
+        }
+        return (
+            <div className="mx-2 py-4 lg:py-0">
+                {items}
+            </div>
+        );
+    }
+
     renderForm() {
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
@@ -129,6 +199,7 @@ class DetectorApp extends React.Component {
                     placeholder={this.i18n("hint_enter_verb_form")}
                     className="shadow appearance-none border rounded w-full m-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     autoFocus />
+                {this.renderExampleForms()}
                 <input
                     type="submit"
                     value={this.i18n("buttonSubmit")}
@@ -141,7 +212,7 @@ class DetectorApp extends React.Component {
     renderFindings() {
         let result = null;
         let extraClass = null;
-        if (this.state.verb) {
+        if (this.state.verb != null) {
             result = this.state.verb;
             extraClass = "text-green-700";
         } else if (this.state.error) {
