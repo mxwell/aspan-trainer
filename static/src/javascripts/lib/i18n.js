@@ -253,6 +253,10 @@ function prepareDetectorOnlyTranslations(map) {
         "Failed to detect verb in the entered text",
         "Не удалось обнаружить глагол в введённом тексте",
     );
+    setEnRu(map, "service_error",
+        "Service error",
+        "Ошибка сервиса",
+    );
 }
 
 function prepareQuizOnlyTranslations(map) {

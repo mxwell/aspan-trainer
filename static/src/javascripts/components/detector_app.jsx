@@ -21,6 +21,7 @@ class DetectorApp extends React.Component {
             form: form,
             lastEntered: form,
             verb: verb,
+            error: false,
         };
     }
 
@@ -94,9 +95,9 @@ class DetectorApp extends React.Component {
     async handleDetectError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
         console.log(`Got error from detect: ${responseText}, lastEntered was ${context.lastEntered}.`);
-        // TODO show error to user
         const verb = null;
-        this.setState({ verb });
+        const error = true;
+        this.setState({ verb, error });
     }
 
     onChange(event) {
@@ -138,9 +139,18 @@ class DetectorApp extends React.Component {
     }
 
     renderFindings() {
-        const verb = this.state.verb;
-        const extraClass = verb ? "text-green-700" : "text-gray-600";
-        const result = verb || this.i18n("no_verb_detected");
+        let result = null;
+        let extraClass = null;
+        if (this.state.verb) {
+            result = this.state.verb;
+            extraClass = "text-green-700";
+        } else if (this.state.error) {
+            result = this.i18n("service_error");
+            extraClass = "text-red-600";
+        } else {
+            result = this.i18n("no_verb_detected");
+            extraClass = "text-gray-600";
+        }
         return (
             <p className={`text-4xl lg:text-2xl lg:max-w-xs m-4 ${extraClass}`}>{result}</p>
         );
