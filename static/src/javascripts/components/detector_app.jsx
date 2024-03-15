@@ -59,13 +59,20 @@ class DetectorApp extends React.Component {
 
     defaultState() {
         return this.makeState(
-            /* form */ null,
-            /* verb */ null,
+            /* form */ "",
+            /* verb */ "",
         );
     }
 
     startDetection(rawForm) {
         const form = normalizeVerb(rawForm);
+
+        if (form.length == 0) {
+            const verb = "";
+            this.setState({ verb });
+            return;
+        }
+
         makeDetectRequest(
             form,
             this.handleDetectResponse,
