@@ -64,7 +64,7 @@ class DetectorApp extends React.Component {
         );
     }
 
-    startDetection(rawForm) {
+    startDetection(prevLastEntered, rawForm) {
         const form = normalizeVerb(rawForm);
 
         if (form.length == 0) {
@@ -78,8 +78,8 @@ class DetectorApp extends React.Component {
             this.handleDetectResponse,
             this.handleDetectError,
             {
-                prevEntered: form,
-                lastEntered: form,
+                prevEntered: prevLastEntered,
+                lastEntered: rawForm,
             }
         );
     }
@@ -91,7 +91,7 @@ class DetectorApp extends React.Component {
             console.log("No form in URL");
             return null;
         }
-        this.startDetection(form);
+        this.startDetection("", form);
         return this.makeState(
             form,
             /* verb */ "",
@@ -141,7 +141,7 @@ class DetectorApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
-        this.startDetection(lastEntered);
+        this.startDetection(this.state.lastEntered, lastEntered);
         this.setState({ lastEntered });
     }
 
