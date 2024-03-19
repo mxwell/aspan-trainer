@@ -576,7 +576,7 @@ class ViewerApp extends React.Component {
     renderImage() {
         return (
             <div className="py-40 flex justify-center">
-                <img src="/bg1.png"></img>
+                <img src="/bg1.webp"></img>
             </div>
         );
     }
