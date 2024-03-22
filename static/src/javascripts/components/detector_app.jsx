@@ -4,6 +4,8 @@ import { buildVerbDetectorUrl, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
 import { normalizeVerb } from "../lib/verb_forms";
 import { pickRandom } from "../lib/random";
+import { SENTENCE_TYPES } from "../lib/sentence";
+import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
 
 const PRESET_VERB_FORMS = [
     "аламын",
@@ -35,6 +37,87 @@ function pickExamples(chosenForm, exampleCount) {
     return forms;
 }
 
+class DetectedVerb {
+    constructor(verb, isExceptional, sentenceType, tense, grammarPerson, grammarNumber) {
+        this.verb = verb;
+        this.isExceptional = isExceptional;
+        this.sentenceType = sentenceType;
+        this.tense = tense;
+        this.grammarPerson = grammarPerson;
+        this.grammarNumber = grammarNumber;
+    }
+}
+
+function getSentenceTypeByIndex(sentenceType) {
+    if (sentenceType == "0") {
+        return SENTENCE_TYPES[0];
+    } else if (sentenceType == "1") {
+        return SENTENCE_TYPES[1];
+    } else if (sentenceType == "2") {
+        return SENTENCE_TYPES[2];
+    }
+    return null;
+}
+
+function getGrammarPerson(p) {
+    if (p.length == 0) {
+        return null;
+    }
+    const index = Number(p);
+    if (index < 0 || index >= GRAMMAR_PERSONS.length) {
+        return null;
+    }
+    return GRAMMAR_PERSONS[index];
+}
+
+function getGrammarNumber(n) {
+    if (n.length == 0) {
+        return null;
+    }
+    const index = Number(n);
+    if (index < 0 || index >= GRAMMAR_NUMBERS.length) {
+        return null;
+    }
+    return GRAMMAR_NUMBERS[index];
+}
+
+function unpackResponseWord(word) {
+    const verb = word.initial;
+    if (verb == null || verb.length == 0) {
+        console.log("No verb in response word.");
+        return null;
+    }
+    const isExceptional = word.exceptional == true;
+    const parts = word.transition.split(":");
+    if (parts.length == 4) {
+        const sentenceType = getSentenceTypeByIndex(parts[0]);
+        if (sentenceType == null) {
+            console.log(`Error: unknown sentence type index: ${parts[0]}`);
+            return null;
+        }
+        const tense = parts[1];
+        if (tense.length == 0) {
+            console.log("Error: empty tense in response word");
+            return null;
+        }
+        const grammarPerson = getGrammarPerson(parts[2]);
+        const grammarNumber = getGrammarNumber(parts[3]);
+        return new DetectedVerb(verb, isExceptional, sentenceType, tense, grammarPerson, grammarNumber);
+    }
+    return new DetectedVerb(verb, isExceptional, null, null, null, null);
+}
+
+function unpackDetectResponse(responseWords) {
+    for (let i = 0; i < responseWords.length; ++i) {
+        let word = responseWords[i];
+        let unpacked = unpackResponseWord(word);
+        if (unpacked != null) {
+            return unpacked;
+        }
+    }
+    return null;
+}
+
 class DetectorApp extends React.Component {
     constructor(props) {
         super(props);
@@ -47,12 +130,12 @@ class DetectorApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(form, verb) {
+    makeState(form) {
         return {
             form: form,
             lastEntered: form,
             examples: pickExamples(form, 2),
-            verb: verb,
+            verb: null,
             error: false,
         };
     }
@@ -60,7 +143,6 @@ class DetectorApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* form */ "",
-            /* verb */ "",
         );
     }
 
@@ -68,7 +150,7 @@ class DetectorApp extends React.Component {
         const form = normalizeVerb(rawForm);
 
         if (form.length == 0) {
-            const verb = "";
+            const verb = null;
             this.setState({ verb });
             return;
         }
@@ -92,10 +174,7 @@ class DetectorApp extends React.Component {
             return null;
         }
         this.startDetection("", form);
-        return this.makeState(
-            form,
-            /* verb */ "",
-        );
+        return this.makeState(form);
     }
 
     i18n(key) {
@@ -108,21 +187,8 @@ class DetectorApp extends React.Component {
         // TODO Use "form" from the response, instead of the context
         if (lastEntered == context.prevEntered || lastEntered == context.lastEntered) {
             if (response.words) {
-                let verbs = [];
-                for (let i = 0; i < response.words.length; ++i) {
-                    let word = response.words[i];
-                    if (word && word.initial) {
-                        verbs.push(word.initial);
-                    }
-                }
-                // console.log(`Got ${verbs.length} verbs in detect response.`);
-                if (verbs.length > 0) {
-                    const verb = verbs[0];
-                    this.setState({ verb });
-                } else {
-                    const verb = null;
-                    this.setState({ verb });
-                }
+                const verb = unpackDetectResponse(response.words);
+                this.setState({ verb });
             } else {
                 console.log("No words in response.");
             }
@@ -220,7 +286,7 @@ class DetectorApp extends React.Component {
         let result = null;
         let extraClass = null;
         if (this.state.verb != null) {
-            result = this.state.verb;
+            result = this.state.verb.verb;
             extraClass = "text-green-700";
         } else if (this.state.error) {
             result = this.i18n("service_error");
@@ -230,7 +296,46 @@ class DetectorApp extends React.Component {
             extraClass = "text-gray-600";
         }
         return (
-            <p className={`text-4xl lg:text-2xl lg:max-w-xs m-4 ${extraClass}`}>{result}</p>
+            <p className={`text-4xl lg:text-2xl lg:max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
+        );
+    }
+
+    renderDetails() {
+        const verb = this.state.verb;
+        if (verb == null) {
+            return null;
+        }
+        const exceptionalClause = (
+            verb.isExceptional
+            ? (<p className="text-orange-600">{this.i18n("ExceptionVerb")}</p>)
+            : null
+        );
+        const tense = (
+            <strong>{this.i18n(verb.tense)}</strong>
+        );
+        const sentenceType = (
+            verb.tense != "infinitiv"
+            ? <p>{this.i18n(verb.sentenceType)}</p>
+            : null
+        );
+        const grammarPerson = (
+            verb.grammarPerson
+            ? (<p>{this.i18n(`gp_${verb.grammarPerson}`)}</p>)
+            : null
+        );
+        const grammarNumber = (
+            verb.grammarNumber
+            ? (<p>{this.i18n(`gn_${verb.grammarNumber}`)}</p>)
+            : null
+        );
+        return (
+            <div className="flex flex-col italic border-2 border-gray-300 p-5">
+                {exceptionalClause}
+                {tense}
+                {sentenceType}
+                {grammarPerson}
+                {grammarNumber}
+            </div>
         );
     }
 
@@ -244,6 +349,7 @@ class DetectorApp extends React.Component {
                 <div className="flex justify-center">
                     {this.renderFindings()}
                 </div>
+                {this.renderDetails()}
             </div>
         );
     }

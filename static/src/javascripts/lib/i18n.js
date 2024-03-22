@@ -26,13 +26,23 @@ function setEnRuKz(map, key, en, ru, kk) {
 }
 
 function prepareCommonTranslations(map) {
-    /* topic names */
+    // TODO drop
+    setEnRuKz(map, "infinitiv", "Infinitive", "Инфинитив", "Инфинитив");
+    setEnRuKz(map, "infinitive", "Infinitive", "Инфинитив", "Инфинитив");
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
+    // TODO drop
     setEnRuKz(map, "remotePastTense", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
+    setEnRuKz(map, "remotePast", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
+    // TODO drop
     setEnRuKz(map, "pastUncertainTense", "Past uncertain tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
+    setEnRuKz(map, "pastUncertain", "Past uncertain tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
+    // TODO drop
     setEnRuKz(map, "pastTransitiveTense", "Past transitive tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
+    setEnRuKz(map, "pastTransitive", "Past transitive tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
+    // TODO
     setEnRuKz(map, "pastTense", "Past tense", "Прошедшее время", "Жедел өткен шақ");
+    setEnRuKz(map, "past", "Past tense", "Прошедшее время", "Жедел өткен шақ");
     setEnRuKz(map, "possibleFuture", "Possible future tense", "Будущее предположительное время", "Болжалды келер шақ");
     setEnRuKz(map, "intentionFuture", "Intention future tense", "Будущее время намерения", "Мақсатты келер шақ");
     setEnRuKz(map, "conditionalMood", "Conditional mood", "Условное наклонение", "Шартты рай");
