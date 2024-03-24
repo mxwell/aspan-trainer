@@ -26,8 +26,6 @@ function setEnRuKz(map, key, en, ru, kk) {
 }
 
 function prepareCommonTranslations(map) {
-    // TODO drop
-    setEnRuKz(map, "infinitiv", "Infinitive", "Инфинитив", "Инфинитив");
     setEnRuKz(map, "infinitive", "Infinitive", "Инфинитив", "Инфинитив");
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
@@ -266,6 +264,18 @@ function prepareDetectorOnlyTranslations(map) {
     setEnRu(map, "service_error",
         "Service error",
         "Ошибка сервиса",
+    );
+    setEnRu(map, "linkAllForms",
+        "All forms",
+        "Все формы",
+    );
+    setEnRu(map, "enteredFormDetails",
+        "Entered form parameters",
+        "Параметры введённой формы",
+    );
+    setEnRu(map, "lookupDictionaries",
+        "Lookup dictionaries",
+        "Поиск в словарях",
     );
 }
 

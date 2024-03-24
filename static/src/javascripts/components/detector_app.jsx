@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildVerbDetectorUrl, parseParams } from "../lib/url"
+import { buildGlosbeUrl, buildLugatUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
 import { normalizeVerb } from "../lib/verb_forms";
 import { pickRandom } from "../lib/random";
@@ -91,10 +91,6 @@ function unpackResponseWord(word) {
     const parts = word.transition.split(":");
     if (parts.length == 4) {
         const sentenceType = getSentenceTypeByIndex(parts[0]);
-        if (sentenceType == null) {
-            console.log(`Error: unknown sentence type index: ${parts[0]}`);
-            return null;
-        }
         const tense = parts[1];
         if (tense.length == 0) {
             console.log("Error: empty tense in response word");
@@ -282,6 +278,23 @@ class DetectorApp extends React.Component {
         );
     }
 
+    renderAllFormsLink() {
+        if (this.state.verb == null) {
+            return null;
+        }
+        const detectedVerb = this.state.verb;
+        const sentenceType = detectedVerb.sentenceType || SENTENCE_TYPES[0];
+        const forceExceptional = detectedVerb.isExceptional == true;
+        const url = buildViewerUrl2(detectedVerb.verb, sentenceType, forceExceptional, this.props.lang);
+        return (
+            <a
+                className="text-right px-2 my-4 lg:px-1 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                href={url}>
+                {this.i18n("linkAllForms")}&nbsp;→
+            </a>
+        );
+    }
+
     renderFindings() {
         let result = null;
         let extraClass = null;
@@ -296,7 +309,10 @@ class DetectorApp extends React.Component {
             extraClass = "text-gray-600";
         }
         return (
-            <p className={`text-4xl lg:text-2xl lg:max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
+            <div className="flex flex-col">
+                <p className={`text-center text-4xl lg:text-3xl lg:max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
+                {this.renderAllFormsLink()}
+            </div>
         );
     }
 
@@ -307,34 +323,61 @@ class DetectorApp extends React.Component {
         }
         const exceptionalClause = (
             verb.isExceptional
-            ? (<p className="text-orange-600">{this.i18n("ExceptionVerb")}</p>)
+            ? (<p className="italic text-orange-600">{this.i18n("ExceptionVerb")}</p>)
             : null
         );
         const tense = (
-            <strong>{this.i18n(verb.tense)}</strong>
+            <strong className="italic">{this.i18n(verb.tense)}</strong>
         );
         const sentenceType = (
-            verb.tense != "infinitiv"
-            ? <p>{this.i18n(verb.sentenceType)}</p>
+            verb.sentenceType
+            ? <p className="italic">{this.i18n(verb.sentenceType)}</p>
             : null
         );
         const grammarPerson = (
             verb.grammarPerson
-            ? (<p>{this.i18n(`gp_${verb.grammarPerson}`)}</p>)
+            ? (<p className="italic">{this.i18n(`gp_${verb.grammarPerson}`)}</p>)
             : null
         );
         const grammarNumber = (
             verb.grammarNumber
-            ? (<p>{this.i18n(`gn_${verb.grammarNumber}`)}</p>)
+            ? (<p className="italic">{this.i18n(`gn_${verb.grammarNumber}`)}</p>)
             : null
         );
         return (
-            <div className="flex flex-col italic border-2 border-gray-300 p-5">
+            <div className="flex flex-col border-2 border-gray-300 p-5">
+                <h2 className="text-xl my-2 text-gray-600">{this.i18n("enteredFormDetails")}</h2>
                 {exceptionalClause}
                 {tense}
                 {sentenceType}
                 {grammarPerson}
                 {grammarNumber}
+            </div>
+        );
+    }
+
+    renderDictionaries() {
+        const detectedVerb = this.state.verb;
+        if (detectedVerb == null) {
+            return null;
+        }
+        const verb = detectedVerb.verb;
+        const lang = this.props.lang;
+        return (
+            <div className="flex flex-col border-2 border-gray-300 p-5 my-4">
+                <h2 className="text-xl my-2 text-gray-600">{this.i18n("lookupDictionaries")}</h2>
+                <a
+                    className="px-2 text-3xl lg:text-base text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    href={buildGlosbeUrl(verb, lang)}
+                    target="blank_">
+                    Glosbe &nbsp; ↗
+                </a>
+                <a
+                    className="px-2 text-3xl lg:text-base text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    href={buildLugatUrl(verb, lang)}
+                    target="blank_">
+                    Lugat &nbsp; ↗
+                </a>
             </div>
         );
     }
@@ -346,10 +389,9 @@ class DetectorApp extends React.Component {
                     {this.i18n("title_verb_detector")}
                 </h1>
                 {this.renderForm()}
-                <div className="flex justify-center">
-                    {this.renderFindings()}
-                </div>
+                {this.renderFindings()}
                 {this.renderDetails()}
+                {this.renderDictionaries()}
             </div>
         );
     }

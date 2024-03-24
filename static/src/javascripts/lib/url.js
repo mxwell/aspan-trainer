@@ -1,4 +1,4 @@
-import { I18N_LANG_RU } from "./i18n";
+import { I18N_LANG_EN, I18N_LANG_RU } from "./i18n";
 
 function parseParams() {
     const search = location.search;
@@ -90,6 +90,23 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang) {
     return buildUrl(path, params);
 }
 
+function buildGlosbeUrl(verb, lang) {
+    return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
+}
+
+function buildLugatUrl(verb, lang) {
+    let params = [
+        `p=voc`,
+        `word=${encodeURI(verb)}`,
+    ];
+    if (lang == I18N_LANG_RU) {
+        params.push(`vocid=4`);
+    } else if (lang == I18N_LANG_EN) {
+        params.push(`vocid=1`);
+    }
+    return buildUrl("https://www.lugat.kz/index.php", params);
+}
+
 export {
     buildExplanationUrl,
     buildVerbDetectorUrl,
@@ -98,4 +115,6 @@ export {
     extractSsrVerb,
     isSsrPage,
     parseParams,
+    buildGlosbeUrl,
+    buildLugatUrl,
 };
