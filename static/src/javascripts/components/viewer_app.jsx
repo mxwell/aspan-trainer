@@ -28,6 +28,7 @@ import {
 } from '../lib/verb_forms';
 import SideQuiz from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
+import { hasMixedAlphabets } from '../lib/input_validation';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -246,6 +247,9 @@ class ViewerApp extends React.Component {
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
         var warning = null;
+        if (hasMixedAlphabets(verb)) {
+            warning = this.i18n("mixedAlphabets");
+        }
         var showVerbSwitcher = false;
         try {
             const verbL = normalizeVerb(verb);

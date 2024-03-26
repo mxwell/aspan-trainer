@@ -69,6 +69,11 @@ function prepareViewerOnlyTranslations(map) {
     );
     setEnRuKz(map, "examples", "Examples", "Примеры", "Мысалдар");
     setEnRuKz(map, "or", "or", "или", "әлде");
+    setEnRuKz(map, "mixedAlphabets",
+        "Entered verb has both Latin and Cyrillic letters. Generated forms might be incorrect.",
+        "Введённый глагол содержит и латинские, и кириллические буквы. Сгенерированные формы могут быть некорректными.",
+        "Енгізілген етістіктің қатарында латын және кирилл әріптері бар. Жасалған формалар дұрыс болмауы мүмкін."
+    );
     setEnRuKz(map, "failed_recognize_verb",
         "Failed to recognize initial form of Kazakh verb",
         "Не удалось разпознать начальную форму казахского глагола",
