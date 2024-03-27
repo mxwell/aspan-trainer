@@ -778,6 +778,12 @@ function buildVerbPersonalAffixExplanation(part, lang, explanation) {
     }
 }
 
+function addJunctionPreamble(explanation, lang) {
+    explanation.addPart(partBackgroundColor(null));
+    explanation.addTitle(i18n("title_base_affix_junction", lang));
+    explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
+}
+
 function buildVerbBaseAndAffixJunctionExplanation(base, affix, lang, explanation) {
     let baseMeta = base.explanation;
     if (baseMeta == null) {
@@ -792,14 +798,31 @@ function buildVerbBaseAndAffixJunctionExplanation(base, affix, lang, explanation
     const affixType = affixMeta.explanationType;
 
     if (baseType == PART_EXPLANATION_TYPE.VerbBaseLostY && affixType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
-        explanation.addPart(partBackgroundColor(null));
-        explanation.addTitle(i18n("title_base_affix_junction", lang));
-        explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
+        // оқу: оқы+й+мын => оқ+и+мын
+        addJunctionPreamble(explanation, lang);
         const baseContent = base.content;
-        let baseLoss = baseMeta.soft ? "і" : "ы";
+        const baseLoss = baseMeta.soft ? "і" : "ы";
         const origAffix = "й";
         const affixContent = affix.content;
-        const items = [[`${baseContent}${baseLoss}${origAffix}`], [baseContent, affixContent]]
+        const items = [[`${baseContent}${baseLoss}${origAffix}`], [baseContent, affixContent]];
+        explanation.addProgression(items, [VERB_BASE_COLOR, VERB_TENSE_AFFIX_COLOR]);
+    } else if (baseType == PART_EXPLANATION_TYPE.VerbBaseLostIShort && affixType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
+        // қою: қой+а+мын => қо+я+мын
+        addJunctionPreamble(explanation, lang);
+        const baseContent = base.content;
+        const baseLoss = "й";
+        const origAffix = "а";
+        const affixContent = affix.content;
+        const items = [[`${baseContent}${baseLoss}${origAffix}`], [baseContent, affixContent]];
+        explanation.addProgression(items, [VERB_BASE_COLOR, VERB_TENSE_AFFIX_COLOR]);
+    } else if (baseType == PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY && affixType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
+        // баю: байы+й+мын => бай+и+мын
+        addJunctionPreamble(explanation, lang);
+        const baseContent = base.content;
+        const baseGain2 = baseMeta.soft ? "і" : "ы"; // this is the second gain after the first gain of "й"
+        const origAffix = "й";
+        const affixContent = affix.content;
+        const items = [[`${baseContent}${baseGain2}${origAffix}`], [baseContent, affixContent]];
         explanation.addProgression(items, [VERB_BASE_COLOR, VERB_TENSE_AFFIX_COLOR]);
     }
     // TODO handle other cases
