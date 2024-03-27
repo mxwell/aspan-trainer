@@ -61,9 +61,9 @@ class PlainParagraph {
 }
 
 class Progression {
-    constructor(states, highlightColor) {
+    constructor(states, highlightColors) {
         this.states = states;
-        this.highlightColor = highlightColor;
+        this.highlightColors = highlightColors;
     }
     totalStates() {
         /**
@@ -83,18 +83,21 @@ class Progression {
             if (i > 0) {
                 spans.push(<span key={spans.length} className="text-2xl lg:text-base"> → </span>);
             }
-            const spanClass = (
-                (i == highlightIndex)
-                ? `text-3xl lg:text-xl ${this.highlightColor}`
-                : "text-2xl lg:text-base"
-            );
-            spans.push(
-                <span
-                    className={spanClass}
-                    key={spans.length}>
-                    {items[i]}
-                </span>
-            );
+            const toHighlight = i == highlightIndex;
+            for (let j = 0; j < items[i].length; ++j) {
+                const spanClass = (
+                    toHighlight
+                    ? `text-3xl lg:text-xl ${this.highlightColors[j]}`
+                    : "text-2xl lg:text-base"
+                );
+                spans.push(
+                    <span
+                        className={spanClass}
+                        key={spans.length}>
+                        {items[i][j]}
+                    </span>
+                );
+            }
         }
         htmlParts.push(
             <p
@@ -387,19 +390,29 @@ class AnnotatedSplitTable {
     }
 }
 
+class PartExplanation {
+    constructor(bgColor) {
+        this.bgColor = bgColor;
+        this.paragraphs = [];
+    }
+    addParagraph(paragraph) {
+        this.paragraphs.push(paragraph);
+    }
+}
+
 class PhrasalExplanation {
     constructor(phrasal) {
         this.phrasal = phrasal;
         /* parts is a list of lists of Paragraphs, where each Paragraph has a number of states */
         this.parts = [];
     }
-    addPart() {
-        this.parts.push([]);
+    addPart(bgColor) {
+        this.parts.push(new PartExplanation(bgColor));
     }
     addParagraph(part) {
         // console.log(`Adding part of type: ${typeof part}`);
         // console.log(`with states ${part.totalStates()}`);
-        this.parts[this.parts.length - 1].push(part);
+        this.parts[this.parts.length - 1].addParagraph(part);
     }
     addTitle(text) {
         this.addParagraph(new Title(text));
@@ -407,11 +420,11 @@ class PhrasalExplanation {
     addPlainParagraph(text) {
         this.addParagraph(new PlainParagraph(text));
     }
-    addProgression(states, highlightColor) {
-        if (!highlightColor) {
-            throw new Error("highlightColor is required for Progression");
+    addProgression(states, highlightColors) {
+        if (!highlightColors) {
+            throw new Error("highlightColors is required for Progression");
         }
-        this.addParagraph(new Progression(states, highlightColor));
+        this.addParagraph(new Progression(states, highlightColors));
     }
     addVariantsTable(table, highlight, highlightColor) {
         let highlightPos = findItemInTable(table, highlight);
@@ -467,7 +480,7 @@ export class PhrasalAnimationState {
     nextParagraph(explanation) {
         this.paragraphIndex += 1;
         this.stateIndex = 0;
-        if (this.paragraphIndex >= explanation.parts[this.partIndex].length) {
+        if (this.paragraphIndex >= explanation.parts[this.partIndex].paragraphs.length) {
             return this.nextPart(explanation);
         }
         return this;
@@ -479,7 +492,7 @@ export class PhrasalAnimationState {
         if (this.partIndex >= explanation.parts.length) {
             return null;
         }
-        let paragraphs = explanation.parts[this.partIndex];
+        let paragraphs = explanation.parts[this.partIndex].paragraphs;
         if (this.paragraphIndex >= paragraphs.length) {
             return this.nextPart(explanation);
         }
@@ -497,7 +510,7 @@ export class PhrasalAnimationState {
         if (!this.valid(explanation)) {
             return SPEED_NORMAL;
         }
-        let paragraphs = explanation.parts[this.partIndex];
+        let paragraphs = explanation.parts[this.partIndex].paragraphs;
         if (this.paragraphIndex >= paragraphs.length) {
             return SPEED_NORMAL;
         }
@@ -509,7 +522,7 @@ export class PhrasalAnimationState {
 function makeFinalState(explanation) {
     let state = new PhrasalAnimationState();
     state.partIndex = explanation.parts.length - 1;
-    const paragraphs = explanation.parts[state.partIndex];
+    const paragraphs = explanation.parts[state.partIndex].paragraphs;
     state.paragraphIndex = paragraphs.length - 1;
     const paragraph = paragraphs[state.paragraphIndex];
     state.stateIndex = paragraph.totalStates() - 1;
@@ -533,11 +546,12 @@ export function renderPhrasalExplanation(explanation, state, phrasalFirst) {
     let complete = false;
     for (let partIndex = 0; partIndex < shownParts; ++partIndex) {
         let htmlParagraphs = [];
-        const paragraphsCount = explanation.parts[partIndex].length;
+        const partExplanation = explanation.parts[partIndex];
+        const paragraphsCount = partExplanation.paragraphs.length;
         let shownParagraphs = (partIndex < state.partIndex) ? paragraphsCount : (state.paragraphIndex + 1);
         for (let paragraphIndex = 0; paragraphIndex < shownParagraphs; ++paragraphIndex) {
             // console.log(`render part ${partIndex}/${explanation.phrasal.parts.length}, paragraph ${paragraphIndex}`);
-            let paragraph = explanation.parts[partIndex][paragraphIndex];
+            let paragraph = partExplanation.paragraphs[paragraphIndex];
             let stateIndex = (
                 (partIndex < state.partIndex || paragraphIndex + 1 < shownParagraphs)
                 ? (paragraph.totalStates() - 1)
@@ -549,8 +563,7 @@ export function renderPhrasalExplanation(explanation, state, phrasalFirst) {
                 complete = true;
             }
         }
-        let blockClasses = ["m-4", "p-4", "rounded-2xl"];
-        blockClasses.push(partBackgroundColor(explanation.phrasal.parts[partIndex].partType));
+        let blockClasses = ["m-4", "p-4", "rounded-2xl", partExplanation.bgColor];
         htmlParts.push(
             <div
                 className={blockClasses.join(" ")}
@@ -602,61 +615,61 @@ function buildVerbBaseExplanation(verbDictForm, part, lang, explanation) {
     }
     const base = part.content;
     console.log(`explaining base: expl type ${explanationType}`)
-    explanation.addPart();
+    explanation.addPart(partBackgroundColor(part.partType));
     explanation.addTitle(i18n("title_base", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbBaseStripU) {
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         explanation.addPlainParagraph(i18n("base_strip_u", lang));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
         let loss = "й";
-        const items = [verbDictForm, `${base}${loss}`, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [`${base}${loss}`], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_loss_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostY) {
         let loss = meta.soft ? "і" : "ы";
-        const items = [verbDictForm, `${base}${loss}`, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [`${base}${loss}`], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_loss_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedY) {
         let gain = meta.soft ? "і" : "ы";
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShort) {
         let gain = "й";
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY) {
         let gain1 = "й";
         let gain2 = meta.soft ? "і" : "ы";
-        explanation.addProgression([verbDictForm, `${base}${gain2}`, base], VERB_BASE_COLOR);
+        explanation.addProgression([[verbDictForm], [`${base}${gain2}`], [base]], [VERB_BASE_COLOR]);
         explanation.addPlainParagraph(i18n("base_gain_and_loss_templ", lang)(`${gain1}${gain2}`, gain2));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY) {
         let gain = meta.soft ? "йі" : "йы";
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_gain_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedYInsidePriorCons) {
         let gain = meta.soft ? "і" : "ы";
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_gain_inside_templ", lang)(gain);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceB2U) {
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_replace_b_to_u", lang);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseReplaceLastCons) {
-        const items = [verbDictForm, base];
-        explanation.addProgression(items, VERB_BASE_COLOR);
+        const items = [[verbDictForm], [base]];
+        explanation.addProgression(items, [VERB_BASE_COLOR]);
         const text = i18n("base_replace_last_cons", lang);
         explanation.addPlainParagraph(text);
     }
@@ -689,7 +702,7 @@ function buildVerbNegationExplanation(part, lang, explanation) {
     }
     const negation = part.content;
     console.log(`explaining negation: expl type ${explanationType}`);
-    explanation.addPart();
+    explanation.addPart(partBackgroundColor(part.partType));
     explanation.addTitle(i18n("title_negation_particle", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbNegationPostBase) {
         explanation.addAnnotatedSplitTable(QUESTION_PARTICLES_ANNOTATIONS, QUESTION_PARTICLES_SPLIT_TABLES, lang, true, negation, "underline text-red-600");
@@ -713,7 +726,7 @@ function buildVerbTenseAffixExplanation(part, lang, explanation) {
     }
     const affix = part.content;
     console.log(`explaining tense affix: expl type ${explanationType}`);
-    explanation.addPart();
+    explanation.addPart(partBackgroundColor(part.partType));
     explanation.addTitle(i18n("title_tense_affix", lang));
     const highlightColor = "underline text-orange-600";
     if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitive) {
@@ -721,11 +734,11 @@ function buildVerbTenseAffixExplanation(part, lang, explanation) {
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
         explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "а", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression(["а", affix], VERB_TENSE_AFFIX_COLOR);
+        explanation.addProgression([["а"], [affix]], [VERB_TENSE_AFFIX_COLOR]);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
         explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "й", highlightColor);
         explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression(["й", affix], VERB_TENSE_AFFIX_COLOR);
+        explanation.addProgression([["й"], [affix]], [VERB_TENSE_AFFIX_COLOR]);
     }
 }
 
@@ -756,13 +769,40 @@ function buildVerbPersonalAffixExplanation(part, lang, explanation) {
     }
     const affix = part.content;
     console.log(`explaining pers affix: expl type ${explanationType}`);
-    explanation.addPart();
+    explanation.addPart(partBackgroundColor(part.partType));
     explanation.addTitle(i18n("title_pers_affix", lang));
     if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitive) {
         explanation.addAnnotatedSplitTable(PERS_AFFIXES_ANNOTATIONS, PERS_AFFIXES_SPLIT_TABLES, lang, false, affix, "underline text-indigo-600");
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbPersonalAffixPresentTransitiveQuestionSkip) {
         explanation.addPlainParagraph(i18n("pers_affix_question_skip", lang));
     }
+}
+
+function buildVerbBaseAndAffixJunctionExplanation(base, affix, lang, explanation) {
+    let baseMeta = base.explanation;
+    if (baseMeta == null) {
+        return;
+    }
+    const baseType = baseMeta.explanationType;
+
+    let affixMeta = affix.explanation;
+    if (affixMeta == null) {
+        return;
+    }
+    const affixType = affixMeta.explanationType;
+
+    if (baseType == PART_EXPLANATION_TYPE.VerbBaseLostY && affixType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
+        explanation.addPart(partBackgroundColor(null));
+        explanation.addTitle(i18n("title_base_affix_junction", lang));
+        explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
+        const baseContent = base.content;
+        let baseLoss = baseMeta.soft ? "і" : "ы";
+        const origAffix = "й";
+        const affixContent = affix.content;
+        const items = [[`${baseContent}${baseLoss}${origAffix}`], [baseContent, affixContent]]
+        explanation.addProgression(items, [VERB_BASE_COLOR, VERB_TENSE_AFFIX_COLOR]);
+    }
+    // TODO handle other cases
 }
 
 function buildQuestionParticleExplanation(part, lang, explanation) {
@@ -776,7 +816,7 @@ function buildQuestionParticleExplanation(part, lang, explanation) {
     }
     const particle = part.content;
     console.log(`explaining question particle: expl type ${explanationType}`);
-    explanation.addPart();
+    explanation.addPart(partBackgroundColor(part.partType));
     explanation.addTitle(i18n("title_question_particle", lang));
     explanation.addAnnotatedSplitTable(QUESTION_PARTICLES_ANNOTATIONS, QUESTION_PARTICLES_SPLIT_TABLES, lang, true, particle, "underline");
 }
@@ -784,16 +824,19 @@ function buildQuestionParticleExplanation(part, lang, explanation) {
 export function buildVerbPhrasalExplanation(verbDictForm, phrasal, lang) {
     let explanation = new PhrasalExplanation(phrasal);
     let parts = phrasal.parts;
+    let savedBase = null;
     for (let i = 0; i < parts.length; ++i) {
         let part = parts[i];
         let pt = part.partType;
         // console.log(`explaining: i ${i}, pt ${pt}`);
         if (pt == PHRASAL_PART_TYPE.VerbBase) {
             buildVerbBaseExplanation(verbDictForm, part, lang, explanation);
+            savedBase = part;
         } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
             buildVerbNegationExplanation(part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
             buildVerbTenseAffixExplanation(part, lang, explanation);
+            buildVerbBaseAndAffixJunctionExplanation(savedBase, part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
             buildVerbPersonalAffixExplanation(part, lang, explanation);
         } else if (pt == PHRASAL_PART_TYPE.QuestionParticle) {

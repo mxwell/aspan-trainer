@@ -213,9 +213,13 @@ function prepareExplanationOnlyTranslations(map) {
         "Follows a vowel",
         "Следует за гласным звуком",
     );
+    setEnRu(map, "title_base_affix_junction",
+        "Base-affix junction",
+        "Слияние основы и аффикса",
+    );
     setEnRu(map, "affix_merge_with_base",
         "Affix changes after merge with base",
-        "Аффикс меняется из-за слияния с основой",
+        "Аффикс меняется из-за слияния с последним звуком основы",
     );
 
     setEnRu(map, "title_pers_affix",
