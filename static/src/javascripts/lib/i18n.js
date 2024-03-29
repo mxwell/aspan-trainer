@@ -164,20 +164,12 @@ function prepareExplanationOnlyTranslations(map) {
         "Основа",
     );
     setEnRu(map, "base_strip_u",
-        "The base is formed by stripping 'у' or 'ю' at the end of the dictionary form",
-        "Основа формируется путём удаления 'у' или 'ю' на конце словарной формы",
-    );
-    setEnRu(map, "base_loss_templ",
-        (loss) => `The base loses '${loss}' because it is merged with the affix`,
-        (loss) => `Основа теряет '${loss}' из-за слияния с аффиксом`,
+        "Regular verb: the base is formed by stripping 'у' or 'ю' at the end of the dictionary form",
+        "Обычный глагол: при формировании основы удаляется 'у' или 'ю' на конце словарной формы",
     );
     setEnRu(map, "base_gain_templ",
-        (gain) => `This special verb gains '${gain}' to form the base`,
-        (gain) => `Этот особенный глагол приобретает '${gain}' для формирования основы`,
-    );
-    setEnRu(map, "base_gain_and_loss_templ",
-        (gain, loss) => `The base gains '${gain}' but loses '${loss}' due to the merge with the affix`,
-        (gain, loss) => `Основа приобретает '${gain}', но теряет '${loss}' из-за слияния с аффиксом`,
+        (gain) => `Exception verb: the form is formed by stripping 'у' or 'ю' at the end of the dictionary form and by adding '${gain}'`,
+        (gain) => `Глагол-исключение: при формирования основы удаляется 'у' или 'ю' на конце словарной формы, затем добавляется '${gain}'`,
     );
     setEnRu(map, "base_gain_inside_templ",
         (gain) => `This special verb gains '${gain}' inside the base ahead of the following consonant`,
@@ -218,7 +210,7 @@ function prepareExplanationOnlyTranslations(map) {
         "Слияние основы и аффикса",
     );
     setEnRu(map, "affix_merge_with_base",
-        "Affix changes after merge with base",
+        "The affix changes after merge with the last sound of the base",
         "Аффикс меняется из-за слияния с последним звуком основы",
     );
 

@@ -623,15 +623,15 @@ function buildVerbBaseExplanation(verbDictForm, part, lang, explanation) {
         explanation.addPlainParagraph(i18n("base_strip_u", lang));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostIShort) {
         let loss = "й";
-        const items = [[verbDictForm], [`${base}${loss}`], [base]];
+        const items = [[verbDictForm], [`${base}${loss}`]];
         explanation.addProgression(items, [VERB_BASE_COLOR]);
-        const text = i18n("base_loss_templ", lang)(loss);
+        const text = i18n("base_gain_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseLostY) {
         let loss = meta.soft ? "і" : "ы";
-        const items = [[verbDictForm], [`${base}${loss}`], [base]];
+        const items = [[verbDictForm], [`${base}${loss}`]];
         explanation.addProgression(items, [VERB_BASE_COLOR]);
-        const text = i18n("base_loss_templ", lang)(loss);
+        const text = i18n("base_gain_templ", lang)(loss);
         explanation.addPlainParagraph(text);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedY) {
         let gain = meta.soft ? "і" : "ы";
@@ -648,8 +648,8 @@ function buildVerbBaseExplanation(verbDictForm, part, lang, explanation) {
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainIShortLoseY) {
         let gain1 = "й";
         let gain2 = meta.soft ? "і" : "ы";
-        explanation.addProgression([[verbDictForm], [`${base}${gain2}`], [base]], [VERB_BASE_COLOR]);
-        explanation.addPlainParagraph(i18n("base_gain_and_loss_templ", lang)(`${gain1}${gain2}`, gain2));
+        explanation.addProgression([[verbDictForm], [`${base}${gain2}`]], [VERB_BASE_COLOR]);
+        explanation.addPlainParagraph(i18n("base_gain_templ", lang)(`${gain1}${gain2}`));
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbBaseGainedIShortY) {
         let gain = meta.soft ? "йі" : "йы";
         const items = [[verbDictForm], [base]];
@@ -733,12 +733,8 @@ function buildVerbTenseAffixExplanation(part, lang, explanation) {
         explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, affix, highlightColor);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYa) {
         explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "а", highlightColor);
-        explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression([["а"], [affix]], [VERB_TENSE_AFFIX_COLOR]);
     } else if (explanationType == PART_EXPLANATION_TYPE.VerbTenseAffixPresentTransitiveToYi) {
         explanation.addAnnotatedVariantsTable(ANNOTATED_PRES_TRANS_AFFIXES, lang, "й", highlightColor);
-        explanation.addPlainParagraph(i18n("affix_merge_with_base", lang));
-        explanation.addProgression([["й"], [affix]], [VERB_TENSE_AFFIX_COLOR]);
     }
 }
 
