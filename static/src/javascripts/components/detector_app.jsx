@@ -6,6 +6,7 @@ import { normalizeVerb } from "../lib/verb_forms";
 import { pickRandom } from "../lib/random";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
+import { hasMixedAlphabets } from "../lib/input_validation";
 
 const PRESET_VERB_FORMS = [
     "аламын",
@@ -126,12 +127,13 @@ class DetectorApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(form) {
+    makeState(form, warning) {
         return {
             form: form,
             lastEntered: form,
             examples: pickExamples(form, 2),
             verb: null,
+            warning: warning,
             error: false,
         };
     }
@@ -139,6 +141,7 @@ class DetectorApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* form */ "",
+            /* warning */ null,
         );
     }
 
@@ -169,8 +172,9 @@ class DetectorApp extends React.Component {
             console.log("No form in URL");
             return null;
         }
+        const warning = hasMixedAlphabets(form) ? this.i18n("mixedAlphabetsInForm") : null;
         this.startDetection("", form);
-        return this.makeState(form);
+        return this.makeState(form, warning);
     }
 
     i18n(key) {
@@ -203,8 +207,9 @@ class DetectorApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
+        const warning = hasMixedAlphabets(lastEntered) ? this.i18n("mixedAlphabetsInForm") : null;
         this.startDetection(this.state.lastEntered, lastEntered);
-        this.setState({ lastEntered });
+        this.setState({ lastEntered, warning });
     }
 
     reloadToState(form) {
@@ -278,6 +283,16 @@ class DetectorApp extends React.Component {
         );
     }
 
+    renderWarning() {
+        const warning = this.state.warning;
+        if (warning == null) {
+            return null;
+        }
+        return (
+            <p className="text-red-600 text-center text-2xl lg:text-base lg:max-w-xs m-4 py-4">{warning}</p>
+        );
+    }
+
     renderAllFormsLink() {
         if (this.state.verb == null) {
             return null;
@@ -310,6 +325,7 @@ class DetectorApp extends React.Component {
         }
         return (
             <div className="flex flex-col">
+                {this.renderWarning()}
                 <p className={`text-center text-4xl lg:text-3xl lg:max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
                 {this.renderAllFormsLink()}
             </div>

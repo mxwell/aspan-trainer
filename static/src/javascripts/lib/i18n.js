@@ -266,6 +266,11 @@ function prepareDetectorOnlyTranslations(map) {
         "Service error",
         "Ошибка сервиса",
     );
+    setEnRuKz(map, "mixedAlphabetsInForm",
+        "Entered form has both Latin and Cyrillic letters. It might affect the detection result.",
+        "Введённая форма содержит и латинские, и кириллические буквы. Это может повлиять на результат определения.",
+        "Енгізілген форма латын және кирилл әріптерін қамтиды." // FIXME
+    );
     setEnRu(map, "linkAllForms",
         "All forms",
         "Все формы",
