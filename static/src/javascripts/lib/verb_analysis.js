@@ -864,3 +864,45 @@ export function buildVerbPhrasalExplanation(verbDictForm, phrasal, lang) {
     }
     return explanation;
 }
+
+export function buildVerbPhrasalSummary(sentenceType, tense, person, number, phrasal, lang) {
+    let resultParts = [];
+    resultParts.push(i18n(`form_${sentenceType}`, lang));
+    resultParts.push(i18n(`ofTense_${tense}`, lang));
+    resultParts.push(i18n(`inNumber_${number}`, lang));
+    resultParts.push(i18n(`ofPerson_${person}`, lang));
+    resultParts.push(i18n("consistsOf", lang));
+
+    let phrasalParts = [];
+    const parts = phrasal.parts;
+    let emptyPersAffix = false;
+    for (let i = 0; i < parts.length; ++i) {
+        let part = parts[i];
+        let pt = part.partType;
+        if (pt == PHRASAL_PART_TYPE.VerbBase) {
+            phrasalParts.push(i18n("consistsOfBase", lang));
+        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
+            phrasalParts.push(i18n("consistsOfNegation", lang));
+        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
+            phrasalParts.push(i18n("consistsOfTenseAffix", lang));
+        } else if (pt == PHRASAL_PART_TYPE.VerbPersonalAffix) {
+            if (part.content.length > 0) {
+                phrasalParts.push(i18n("consistsOfPersAffix", lang));
+            } else {
+                emptyPersAffix = true;
+            }
+        } else if (pt == PHRASAL_PART_TYPE.QuestionParticle) {
+            phrasalParts.push(i18n("consistsOfQuestionParticle", lang));
+        }
+    }
+    const pn = phrasalParts.length;
+    if (pn > 1) {
+        resultParts.push(phrasalParts.slice(0, -1).join(", "));
+        resultParts.push(i18n("and", lang));
+    }
+    resultParts.push(`${phrasalParts[pn - 1]}.`);
+    if (emptyPersAffix) {
+        resultParts.push(i18n("noPersAffix", lang));
+    }
+    return resultParts.join(" ");
+}

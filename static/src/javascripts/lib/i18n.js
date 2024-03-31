@@ -155,6 +155,78 @@ function prepareExplanationOnlyTranslations(map) {
         "Plural",
         "Множественное число",
     );
+    setEnRu(map, "form_Statement",
+        "Positive form",
+        "Утвердительная форма",
+    );
+    setEnRu(map, "form_Negative",
+        "Negative form",
+        "Отрицательная форма",
+    );
+    setEnRu(map, "form_Question",
+        "Question form",
+        "Вопросительная форма",
+    );
+    setEnRu(map, "ofTense_presentTransitive",
+        "of the present transitive tense",
+        "настоящего переходного времени",
+    );
+    setEnRu(map, "inNumber_Singular",
+        "in singular",
+        "в единственном числе",
+    );
+    setEnRu(map, "inNumber_Plural",
+        "in plural",
+        "во множественном числе",
+    );
+    setEnRu(map, "ofPerson_First",
+        "of the first person",
+        "первого лица",
+    );
+    setEnRu(map, "ofPerson_Second",
+        "of the second person",
+        "второго лица",
+    );
+    setEnRu(map, "ofPerson_SecondPolite",
+        "of the second person (polite address)",
+        "второго лица (вежливое обращение)",
+    );
+    setEnRu(map, "ofPerson_Third",
+        "of the third person",
+        "третьего лица",
+    );
+    setEnRu(map, "consistsOf",
+        "consists of",
+        "состоит из",
+    );
+    setEnRu(map, "consistsOfBase",
+        "a base",
+        "основы",
+    );
+    setEnRu(map, "consistsOfNegation",
+        "a negation particle",
+        "отрицательной частицы",
+    );
+    setEnRu(map, "consistsOfTenseAffix",
+        "a tense affix",
+        "аффикса времени",
+    );
+    setEnRu(map, "consistsOfPersAffix",
+        "a personal affix",
+        "личного окончания",
+    );
+    setEnRu(map, "consistsOfQuestionParticle",
+        "a question particle",
+        "вопросительной частицы",
+    );
+    setEnRu(map, "and",
+        "and",
+        "и",
+    );
+    setEnRu(map, "noPersAffix",
+        "A personal affix is omitted.",
+        "Личное окончание отсутствует.",
+    );
     setEnRu(map, "nothing_explain",
         "Nothing to explain",
         "Нечего разбирать",

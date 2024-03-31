@@ -14,6 +14,7 @@ import {
     buildVerbPhrasalExplanation,
     renderPhrasalExplanation,
     makeAnimationState,
+    buildVerbPhrasalSummary,
 } from "../lib/verb_analysis";
 import { createFormByParams, normalizeVerb } from "../lib/verb_forms";
 import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
@@ -66,7 +67,7 @@ class ExplanationApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, sentenceType, tense, personNumber, animation, phrasal, explanation, animationState, paused, showForm) {
+    makeState(verb, forceExceptional, sentenceType, tense, personNumber, animation, phrasal, explanation, summary, animationState, paused, showForm) {
         if (typeof animation != "boolean") {
             throw new Error("animation param must be boolean");
         }
@@ -80,6 +81,7 @@ class ExplanationApp extends React.Component {
             animation: animation,
             phrasal: phrasal,
             explanation: explanation,
+            summary: summary,
             animationState: animationState,
             paused: paused,
             showForm: showForm,
@@ -96,6 +98,7 @@ class ExplanationApp extends React.Component {
             /* animation */ false,
             /* phrasal */ null,
             /* explanation */ null,
+            /* summary */ null,
             /* animationState */ null,
             /* paused */ true,
             /* showForm */ false,
@@ -163,6 +166,7 @@ class ExplanationApp extends React.Component {
         const number = parseNumber(params.number);
         const pronoun = getNomPronounByPersonNumber(person, number);
         const personNumber = new PersonNumber(person, number, pronoun);
+        const lang = this.props.lang;
 
         const animation = params.animation == "true";
         const form = params.form == "true";
@@ -180,7 +184,8 @@ class ExplanationApp extends React.Component {
             console.log("Invalid phrasal form");
             return null;
         }
-        const explanation = buildVerbPhrasalExplanation(verbL, phrasal, this.props.lang);
+        const explanation = buildVerbPhrasalExplanation(verbL, phrasal, lang);
+        const summary = buildVerbPhrasalSummary(sentenceType, tense, personNumber.person, personNumber.number, phrasal, lang);
         const animationState = makeAnimationState(explanation, animation);
         if (animation) {
             this.startAnimation();
@@ -194,6 +199,7 @@ class ExplanationApp extends React.Component {
             animation,
             phrasal,
             explanation,
+            summary,
             animationState,
             animationState == null,
             form,
@@ -209,17 +215,26 @@ class ExplanationApp extends React.Component {
 
         const verb = this.state.lastEntered || null;
         const verbL = normalizeVerb(verb);
+        const sentenceType = this.state.sentenceType;
+        const tense = this.state.tense;
+        const personNumber = this.state.personNumber;
+        const lang = this.props.lang;
 
         const phrasal = createFormByParams(
             verbL,
             this.state.forceExceptional,
-            this.state.sentenceType,
-            this.state.tense,
-            this.state.personNumber,
+            sentenceType,
+            tense,
+            personNumber,
         );
         const explanation = (
             phrasal != null
-            ? buildVerbPhrasalExplanation(verbL, phrasal, this.props.lang)
+            ? buildVerbPhrasalExplanation(verbL, phrasal, lang)
+            : null
+        );
+        const summary = (
+            phrasal != null
+            ? buildVerbPhrasalSummary(sentenceType, tense, personNumber.person, personNumber.number, phrasal, lang)
             : null
         );
         const animationState = makeAnimationState(explanation, this.state.animation);
@@ -228,6 +243,7 @@ class ExplanationApp extends React.Component {
             verb,
             phrasal,
             explanation,
+            summary,
             animationState,
             paused,
         });
@@ -277,23 +293,14 @@ class ExplanationApp extends React.Component {
         if (tense == null || verb == null || verb.length == 0) {
             return null;
         }
-        const personNumber = this.state.personNumber;
-
         const localizedTense = this.i18n(tense);
         const localizedOfVerb = this.i18n("of_verb");
         const tenseOfVerb = `${localizedTense} ${localizedOfVerb} «${verb}»`;
 
-        const localizedSentenceType = this.i18n(this.state.sentenceType);
-        const sentenceWord = this.i18n("sentence");
-        const localizedPerson = this.i18n(`gp_${personNumber.person}`);
-        const localizedNumber = this.i18n(`gn_${personNumber.number}`);
-
-        const otherDetails = `${localizedSentenceType} ${sentenceWord}. ${localizedPerson}. ${localizedNumber}`;
-
         return (
             <div className="px-6">
                 <p>{tenseOfVerb}</p>
-                <p>{otherDetails}</p>
+                <p>{this.state.summary}</p>
             </div>
         );
     }
