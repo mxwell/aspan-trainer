@@ -79,6 +79,16 @@ function prepareViewerOnlyTranslations(map) {
         "Не удалось разпознать начальную форму казахского глагола",
         "Етістіктің басқы тұлғасы анықталынбады"
     );
+    setEnRuKz(map, "entered_is_form",
+        (verb) => `The entered line is a form of the verb «${verb}»`,
+        (verb) => `Введённая строка является формой глагола «${verb}»`,
+        (verb) => `Енгізілген жол «${verb}» етістігінің бір түрі`,
+    );
+    setEnRuKz(map, "show_detected",
+        (verb) => `Show forms of the verb «${verb}»`,
+        (verb) => `Показать формы глагола «${verb}»`,
+        (verb) => `«${verb}» етістігінің формаларын көрсету`,
+    );
     setEnRuKz(map, "switch_to_exception",
         "Switch to the exception verb",
         "Переключиться на глагол-исключение",

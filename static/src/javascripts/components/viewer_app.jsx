@@ -10,7 +10,7 @@ import {
 } from '../lib/i18n';
 import { getRandomInt, pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys } from "../lib/react_util";
-import { makeSuggestRequest } from '../lib/requests';
+import { makeDetectRequest, makeSuggestRequest } from '../lib/requests';
 import {
     buildExplanationUrl,
     buildViewerUrl,
@@ -29,6 +29,7 @@ import {
 import SideQuiz from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
 import { hasMixedAlphabets } from '../lib/input_validation';
+import { unpackDetectResponse } from '../lib/detector';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -180,6 +181,8 @@ class ViewerApp extends React.Component {
         this.handleSuggestError = this.handleSuggestError.bind(this);
         this.handleTranslateResponse = this.handleTranslateResponse.bind(this);
         this.handleTranslateError = this.handleTranslateError.bind(this);
+        this.handleDetectResponse = this.handleDetectResponse.bind(this);
+        this.handleDetectError = this.handleDetectError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -198,6 +201,7 @@ class ViewerApp extends React.Component {
             verb: verb,
             forceExceptional: forceExceptional,
             lastEntered: lastEntered,
+            detected: null,
             warning: warning,
             showVerbSwitcher: showVerbSwitcher,
             sentenceType: sentenceType,
@@ -265,6 +269,7 @@ class ViewerApp extends React.Component {
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
             warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
+            this.startDetection(verb);
         }
         return this.makeState(
             verb,
@@ -385,6 +390,46 @@ class ViewerApp extends React.Component {
                 { verb }
             );
         }
+    }
+
+    async handleDetectResponse(context, responseJsonPromise) {
+        let response = await responseJsonPromise;
+        let verb = this.state.verb;
+        // TODO Use "form" from the response, instead of the context
+        if (verb == context.detectRawForm) {
+            if (response.words) {
+                const detected = unpackDetectResponse(response.words);
+                this.setState({ detected });
+            } else {
+                console.log("No words in detect response.");
+            }
+        } else {
+            console.log(`Detections are too old, verb is ${verb}.`);
+        }
+    }
+
+    async handleDetectError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from detect: ${responseText}, detectRawForm was ${context.detectRawForm}.`);
+        const detected = null;
+        this.setState({ detected });
+    }
+
+    startDetection(rawForm) {
+        const form = normalizeVerb(rawForm);
+
+        if (form.length == 0) {
+            return;
+        }
+
+        makeDetectRequest(
+            form,
+            this.handleDetectResponse,
+            this.handleDetectError,
+            {
+                detectRawForm: rawForm,
+            }
+        );
     }
 
     moveActiveSuggestion(posChange) {
@@ -603,10 +648,34 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderDetectedVerbInvite() {
+        const detected = this.state.detected;
+        if (detected == null) {
+            return null;
+        }
+        const sentenceType = detected.sentenceType || SENTENCE_TYPES[0];
+        const forceExceptional = detected.isExceptional == true;
+        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang);
+        return (
+            <p className="my-4">
+                {this.i18n("entered_is_form")(detected.verb)}.&nbsp;
+                <a className="underline text-orange-600" href={url}>{this.i18n("show_detected")(detected.verb)}</a>
+            </p>
+        );
+    }
+
     renderWarning() {
         let warning = this.state.warning;
         if (warning == null) {
             return null;
+        }
+        const detectedVerbInvite = this.renderDetectedVerbInvite();
+        if (detectedVerbInvite != null) {
+            return (
+                <div className="text-3xl lg:text-sm p-5">
+                    {detectedVerbInvite}
+                </div>
+            );
         }
         return (
             <div className="text-3xl lg:text-sm text-orange-600 p-5">
