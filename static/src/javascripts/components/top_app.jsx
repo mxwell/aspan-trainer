@@ -114,49 +114,70 @@ class TopApp extends React.Component {
         console.log(`Got error on top list load: ${responseText}`);
     }
 
+    renderLegend() {
+        return (
+            <div className="m-4">
+                <h2 className="text-center text-3xl m-4">{this.i18n("legend")}</h2>
+                <p className="text-xl">{this.i18n("frequency_source_is_issai_ksc2")}</p>
+                <p className="text-xl">{this.i18n("verb_color_depends_on_aux_likelihood")}:</p>
+                <ul className="text-xl m-4">
+                    <li className="text-blue-600">- {this.i18n("verb_blue_jatyr")}</li>
+                    <li className="text-green-600">- {this.i18n("verb_green_otyr")}</li>
+                    <li className="text-orange-600">- {this.i18n("verb_orange_tur")}</li>
+                    <li className="text-red-600">- {this.i18n("verb_red_jur")}</li>
+                </ul>
+                <p className="text-xl">{this.i18n("verb_bold_majority")}</p>
+                <p className="text-xl">{this.i18n("feedback_invite")}</p>
+            </div>
+        );
+    }
+
     renderTopList() {
         const topList = this.state.topList;
         if (topList.length == 0) {
             return <p>Loading...</p>;
         }
         return (
-            <table className="text-center m-4">
-                <thead>
-                    <tr>
-                        <th className="p-2 border-2">#</th>
-                        <th className="p-2 border-2">{this.i18n("Verb")}</th>
-                        <th className="p-2 border-2">↓&nbsp;{this.i18n("column_freq")}</th>
-                        <th className="p-2 border-2">жатыр</th>
-                        <th className="py-2 px-4 border-2">жүр</th>
-                        <th className="p-2 border-2">отыр</th>
-                        <th className="py-2 px-4 border-2">тұр</th>
-                        <th className="p-2 border-2">{this.i18n("column_forms_link")}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {topList.map((item, index) => (
-                        <tr key={index}>
-                            <td className="p-2 border-2">{item.rank}</td>
-                            {item.getVerbHtml()}
-                            <td className="p-2 border-2">{item.stats[0]}</td>
-                            <td className="p-2 border-2">{item.stats[1]}</td>
-                            <td className="p-2 border-2">{item.stats[2]}</td>
-                            <td className="p-2 border-2">{item.stats[3]}</td>
-                            <td className="p-2 border-2">{item.stats[4]}</td>
-                            <td className="p-2 border-2">
-                                <a href={item.getViewerUrl(this.props.lang)}>→</a>
-                            </td>
+            <div>
+                <table className="text-center text-xl m-4">
+                    <thead>
+                        <tr>
+                            <th className="p-2 border-2">#</th>
+                            <th className="p-2 border-2">{this.i18n("Verb")}</th>
+                            <th className="p-2 border-2">↓&nbsp;{this.i18n("column_freq")}</th>
+                            <th className="p-2 border-2">жатыр</th>
+                            <th className="py-2 px-4 border-2">жүр</th>
+                            <th className="p-2 border-2">отыр</th>
+                            <th className="py-2 px-4 border-2">тұр</th>
+                            <th className="p-2 border-2">{this.i18n("column_forms_link")}</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {topList.map((item, index) => (
+                            <tr key={index}>
+                                <td className="p-2 border-2">{item.rank}</td>
+                                {item.getVerbHtml()}
+                                <td className="p-2 border-2">{item.stats[0]}</td>
+                                <td className="p-2 border-2">{item.stats[1]}</td>
+                                <td className="p-2 border-2">{item.stats[2]}</td>
+                                <td className="p-2 border-2">{item.stats[3]}</td>
+                                <td className="p-2 border-2">{item.stats[4]}</td>
+                                <td className="p-2 border-2">
+                                    <a href={item.getViewerUrl(this.props.lang)}>→</a>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {this.renderLegend()}
+            </div>
         );
     }
 
     render() {
         return (
             <div>
-                <h1 className="text-3xl m-4">{this.i18n("present_top_title")}</h1>
+                <h1 className="text-4xl m-4">{this.i18n("present_top_title")}</h1>
                 {this.renderTopList()}
             </div>
         );

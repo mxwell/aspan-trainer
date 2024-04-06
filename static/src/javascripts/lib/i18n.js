@@ -438,6 +438,42 @@ function prepareTopOnlyTranslations(map) {
         "All forms",
         "Все формы",
     );
+    setEnRu(map, "legend",
+        "Legend",
+        "Легенда",
+    );
+    setEnRu(map, "frequency_source_is_issai_ksc2",
+        "Frequency is calculated using data from train part of ISSAI Kazakh Speech Corpus 2.",
+        "Для расчета частотности использовались данные train речевого корпуса ISSAI Kazakh Speech Corpus 2.",
+    );
+    setEnRu(map, "verb_color_depends_on_aux_likelihood",
+        "Verbs are colored differently based on the most probable auxiliary verb",
+        "Глаголы отображены разными цветами в зависимости от наиболее вероятного вспомогательного глагола",
+    );
+    setEnRu(map, "verb_blue_jatyr",
+        "blue: жатыр",
+        "синий: жатыр",
+    );
+    setEnRu(map, "verb_green_otyr",
+        "green: отыр",
+        "зелёный: отыр",
+    );
+    setEnRu(map, "verb_orange_tur",
+        "orange: тұр",
+        "оранжевый: тұр",
+    );
+    setEnRu(map, "verb_red_jur",
+        "red: жүр",
+        "красный: жүр",
+    );
+    setEnRu(map, "verb_bold_majority",
+        "Bold font is used for verbs that are used with one auxiliary verb in the majority of cases.",
+        "Жирным шрифтом отмечены глаголы, которые преимущественно используются только с одним вспомогательным глаголом.",
+    );
+    setEnRu(map, "feedback_invite",
+        "If you have any feedback, e.g. missing popular verb, you can find us in the Telegram group.",
+        "Если у вас есть обратная связь, например, отсутствует популярный глагол, вы можете найти нас в Telegram-группе.",
+    );
 }
 
 function prepareTranslations() {
