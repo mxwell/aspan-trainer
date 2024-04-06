@@ -4,7 +4,7 @@ function extendHeadersWithToken(headers, idToken) {
     }
 }
 
-function makeGenericApiRequest(method, url, params, successCallback, errorCallback, context, idToken) {
+function makeGenericApiRequest(method, url, params, successCallback, errorCallback, context, idToken, expectJson) {
     if (method !== "GET" && method !== "POST") {
         throw "unsupported http method " + method;
     }
@@ -23,19 +23,22 @@ function makeGenericApiRequest(method, url, params, successCallback, errorCallba
     fetch(url, fetchParams)
         .then((response) => {
             if (response.ok) {
-                successCallback(context, response.json());
+                if (expectJson)
+                    successCallback(context, response.json());
+                else
+                    successCallback(context, response.text());
             } else {
                 errorCallback(context, response.text());
             }
         });
 }
 
-function makeGetApiRequest(url, successCallback, errorCallback, context, idToken) {
-    makeGenericApiRequest("GET", url, null, successCallback, errorCallback, context, idToken);
+function makeGetApiRequest(url, successCallback, errorCallback, context, idToken, expectJson) {
+    makeGenericApiRequest("GET", url, null, successCallback, errorCallback, context, idToken, expectJson);
 }
 
-function makeJsonApiRequest(url, params, successCallback, errorCallback, context, idToken) {
-    makeGenericApiRequest("POST", url, params, successCallback, errorCallback, context, idToken);
+function makeJsonApiRequest(url, params, successCallback, errorCallback, context, idToken, expectJson) {
+    makeGenericApiRequest("POST", url, params, successCallback, errorCallback, context, idToken, expectJson);
 }
 
 /* copied from https://stackoverflow.com/a/111545 */
@@ -49,17 +52,22 @@ function encodeQueryData(data) {
 function makeSuggestRequest(lastEntered, successCallback, errorCallback, context) {
     const query = encodeQueryData({part: lastEntered});
     const url = `/suggest?${query}`;
-    makeGetApiRequest(url, successCallback, errorCallback, context, "lala");
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
 function makeDetectRequest(lastEntered, successCallback, errorCallback, context) {
     const query = encodeQueryData({q: lastEntered});
     const url = `/detect?${query}`;
-    makeGetApiRequest(url, successCallback, errorCallback, context, "lala");
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function loadTopList(successCallback, errorCallback) {
+    const url = `/present_top100.colonsv`;
+    makeGetApiRequest(url, successCallback, errorCallback, null, "lala", false);
+}
 
 export {
     makeSuggestRequest,
     makeDetectRequest,
+    loadTopList,
 };

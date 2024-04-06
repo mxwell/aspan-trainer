@@ -18,6 +18,9 @@ function setEnRu(map, key, en, ru) {
 }
 
 function setEnRuKz(map, key, en, ru, kk) {
+    if (map.has(key)) {
+        throw new Error(`Key already exists in the map: ${key}`);
+    }
     setEntries(map, key, new Map([
         [I18N_LANG_EN, en],
         [I18N_LANG_RU, ru],
@@ -26,6 +29,7 @@ function setEnRuKz(map, key, en, ru, kk) {
 }
 
 function prepareCommonTranslations(map) {
+    setEnRuKz(map, "Verb", "Verb", "Глагол", "Етістік");
     setEnRuKz(map, "infinitive", "Infinitive", "Инфинитив", "Инфинитив");
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
@@ -376,7 +380,6 @@ function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "easy", "Easy (one-click)", "Лёгкий (один клик)", "Оңай (бір шерту)");
     setEnRuKz(map, "hard", "Hard (type answer)", "Сложный (печать ответа)", "Қиын (жазып беру)");
     setEnRuKz(map, "SentenceType", "Sentence type", "Тип предложения", "Сөйлем түрі");
-    setEnRuKz(map, "Verb", "Verb", "Глагол", "Етістік");
     setEnRuKz(map, "AuxVerb", "Auxiliary verb", "Вспомогательный глагол", "Көмекші етістік");
     setEnRuKz(map, "Statement", "Statement", "Утвердительное", "Болымды");
     setEnRuKz(map, "Negative", "Negative", "Отрицательное", "Болымсыз");
@@ -422,6 +425,21 @@ function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "linkShortSurvey", "the short survey", "короткий опрос", "шағын сауалнама");
 }
 
+function prepareTopOnlyTranslations(map) {
+    setEnRu(map, "present_top_title",
+        "Top verbs by Present tense usage",
+        "Топ глаголов по использованию настоящего времени",
+    );
+    setEnRu(map, "column_freq",
+        "Frequency",
+        "Частота",
+    );
+    setEnRu(map, "column_forms_link",
+        "All forms",
+        "Все формы",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -430,6 +448,7 @@ function prepareTranslations() {
     prepareExplanationOnlyTranslations(map);
     prepareDetectorOnlyTranslations(map);
     prepareQuizOnlyTranslations(map);
+    prepareTopOnlyTranslations(map);
 
     return map;
 }
