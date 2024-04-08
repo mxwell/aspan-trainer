@@ -1,43 +1,110 @@
 import React from 'react';
 import { i18n } from '../lib/i18n';
 
+class SideQuizState {
+    constructor(commonDescription, tasks, taskIndex, selected, correctCount) {
+        this.commonDescription = commonDescription;
+        this.tasks = tasks;
+        this.taskIndex = taskIndex;
+        this.selected = selected;
+        this.correctCount = correctCount;
+    }
+    answerIsSelected() {
+        return this.selected >= 0;
+    }
+    selectAnswer(index) {
+        return new SideQuizState(
+            this.commonDescription,
+            this.tasks,
+            this.taskIndex,
+            index,
+            this.correctCount
+        );
+    }
+    advance() {
+        if (this.taskIndex >= this.tasks.length) {
+            return null;
+        }
+        const task = this.tasks[this.taskIndex];
+        const correctInc = task.correct == this.selected ? 1 : 0;
+        return new SideQuizState(
+            this.commonDescription,
+            this.tasks,
+            this.taskIndex + 1,
+            -1,
+            this.correctCount + correctInc
+        );
+    }
+}
+
+function initialSideQuizState(commonDescription, tasks) {
+    return new SideQuizState(commonDescription, tasks, 0, -1, false, 0);
+}
+
+/**
+ * props - lang, initialState (SideQuizState), closeCallback
+ */
 class SideQuiz extends React.Component {
     constructor(props) {
         super(props);
+
+        this.onNext = this.onNext.bind(this);
+
+        this.state = {
+            quizState: props.initialState
+        };
+    }
+
+    i18n(key) {
+        return i18n(key, this.props.lang);
     }
 
     onClick(e, position) {
         e.preventDefault();
-        if (this.props.selected >= 0) {
+        const curQuizState = this.state.quizState;
+        if (curQuizState.answerIsSelected()) {
+            console.log("Answer is already selected");
             return;
         }
-        this.props.onQuizSelection(position);
+        const quizState = curQuizState.selectAnswer(position);
+        this.setState({ quizState });
     }
 
-    renderSubject() {
-        if (this.props.selected >= 0) {
-            return this.props.subjectAfterCompletion;
+    onNext(e) {
+        e.preventDefault();
+        const quizState = this.state.quizState.advance();
+        if (quizState == null) {
+            console.log(`Quiz is finished, nothing to do`);
         } else {
-            return this.props.taskSubject;
+            this.setState({ quizState });
         }
     }
 
-    renderCases() {
-        let listItems = [];
+    renderSubject(task, selected) {
+        if (selected >= 0) {
+            return task.completedSubject;
+        } else {
+            return task.rawSubject;
+        }
+    }
 
-        let cases = this.props.cases;
-        let lang = this.props.lang;
-        let selected = this.props.selected;
+    renderCases(task, selected, invisible) {
+        let listItems = [];
+        const cases = task.caseKeys;
+        const correct = task.correct;
         for (let i = 0; i < cases.length; ++i) {
-            let text = i18n(cases[i], lang);
-            let classes = "py-2 px-2 my-1";
+            let text = this.i18n(cases[i]);
+            let classes = "p-2 my-1";
+            if (invisible) {
+                classes += " invisible";
+            }
             if (i == selected) {
-                if (i == this.props.correct) {
+                if (i == correct) {
                     classes += " bg-green-600";
                 } else {
                     classes += " bg-red-600";
                 }
-            } else if (selected >= 0 && i == this.props.correct) {
+            } else if (selected >= 0 && i == correct) {
                 classes += " bg-green-600";
             } else {
                 classes += " bg-white text-teal-500";
@@ -62,19 +129,50 @@ class SideQuiz extends React.Component {
         );
     }
 
-    render() {
-        if (this.props.completed) {
-            return null;
-        }
+    renderTask(quizState, task) {
+        const selected = quizState.selected;
         return (
             <div className="bg-teal-400 p-5 text-white">
                 <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
-                <h4 className="text-2xl text-center">{this.props.taskDescription}</h4>
-                <h3 className="text-4xl text-center">{this.renderSubject()}</h3>
-                {this.renderCases()}
+                <h4 className="text-2xl text-center">{quizState.commonDescription}</h4>
+                <h3 className="text-4xl text-center">{this.renderSubject(task, selected)}</h3>
+                {this.renderCases(task, selected, false)}
+                <div className="flex justify-end">
+                    <button
+                        className="bg-white text-teal-500 hover:bg-gray-200 p-2"
+                        onClick={this.onNext} >
+                        {this.i18n("next")}
+                    </button>
+                </div>
             </div>
         );
     }
+
+    renderFinal(quizState) {
+        const score = quizState.correctCount;
+        const total = quizState.tasks.length;
+        const task = quizState.tasks[0];
+        return (
+            <div className="bg-teal-400 p-5 text-white">
+                <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
+                <h4 className="text-2xl text-center">{this.i18n("yourScore")}: {score} / {total}</h4>
+                {this.renderCases(task, -1, true)}
+            </div>
+        );
+    }
+
+    render() {
+        const quizState = this.state.quizState;
+        const tasks = quizState.tasks;
+        if (quizState.taskIndex < tasks.length) {
+            return this.renderTask(quizState, tasks[quizState.taskIndex]);
+        } else {
+            return this.renderFinal(quizState);
+        }
+    }
 }
 
-export default SideQuiz;
+export {
+    SideQuiz,
+    initialSideQuizState
+};

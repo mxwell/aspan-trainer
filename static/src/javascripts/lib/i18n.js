@@ -130,6 +130,8 @@ function prepareViewerOnlyTranslations(map) {
         "Что это за форма глагола?",
         "Бұл қандай етістік түрі?"
     );
+    setEnRuKz(map, "next", "Next", "Далее", "Келесі");
+    setEnRuKz(map, "yourScore", "Your score", "Ваш счёт", "Сіздің есептіңіз");
 }
 
 function prepareExplanationOnlyTranslations(map) {

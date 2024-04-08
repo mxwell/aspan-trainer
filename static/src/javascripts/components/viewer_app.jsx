@@ -26,7 +26,7 @@ import {
     generateVerbForms,
     normalizeVerb,
 } from '../lib/verb_forms';
-import SideQuiz from './side_quiz';
+import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
 import { hasMixedAlphabets } from '../lib/input_validation';
 import { unpackDetectResponse } from '../lib/detector';
@@ -169,6 +169,22 @@ function pickExamples(chosenVerb, exampleCount) {
     return verbs;
 }
 
+function getSideQuizVerbs(chosenVerb, taskCount) {
+    if (PRESET_VIEWER_VERBS.length < taskCount + 1) {
+        throw new Error(`Not enough verbs for side quiz: ${PRESET_VIEWER_VERBS.length}`);
+    }
+    let offset = getRandomInt(PRESET_VIEWER_VERBS.length - 1);
+    let verbs = [];
+    for (let i = 0; i < taskCount; ++i) {
+        if (PRESET_VIEWER_VERBS[offset] == chosenVerb) {
+            offset = (offset + 1) % PRESET_VIEWER_VERBS.length;
+        }
+        verbs.push(PRESET_VIEWER_VERBS[offset]);
+        offset = (offset + 1) % PRESET_VIEWER_VERBS.length;
+    }
+    return verbs;
+}
+
 class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
@@ -187,16 +203,12 @@ class ViewerApp extends React.Component {
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
-        this.onQuizSelection = this.onQuizSelection.bind(this);
-        this.onQuizCompletion = this.onQuizCompletion.bind(this);
-
         this.state = this.readUrlState() || this.defaultState();
     }
 
     makeState(verb, forceExceptional, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
-        let quizState = this.buildSideQuizState(collapse, verb);
         return {
             verb: verb,
             forceExceptional: forceExceptional,
@@ -214,7 +226,6 @@ class ViewerApp extends React.Component {
             shown: shown,
             suggestions: DEFAULT_SUGGESTIONS,
             currentFocus: DEFAULT_SUGGESTION_POS,
-            quizState: quizState,
         };
     }
 
@@ -283,23 +294,28 @@ class ViewerApp extends React.Component {
         );
     }
 
-    buildSideQuizState(collapse, chosenVerb) {
-        if (collapse) {
+    buildSideQuizState(chosenVerb) {
+        const taskCount = 5;
+        let verbs = getSideQuizVerbs(chosenVerb, taskCount);
+        if (verbs.length < taskCount) {
+            console.log(`Failed to pick ${taskCount} verbs for quiz: ${verbs.length}.`);
             return null;
         }
-        let verb = pickExamples(chosenVerb, 1)[0];
-        let task = createSideQuizTask(verb, true, SENTENCE_TYPES[0]);
-        if (task == null) {
-            return null;
+        let tasks = [];
+        for (let i = 0; i < verbs.length; ++i) {
+            let verb = verbs[i];
+            let task = createSideQuizTask(verb, true, SENTENCE_TYPES[0]);
+            if (task == null) {
+                console.log(`Failed to create task for ${verb}, i ${i}.`)
+                return null;
+            }
+            task.completedSubject = highlightPhrasal(task.subject);
+            tasks.push(task);
         }
-        return {
-            taskDescription: this.i18n("what_verb_form"),
-            taskSubject: task.subject,
-            cases: task.caseKeys,
-            correct: task.correct,
-            selected: -1,
-            completed: false,
-        };
+        return initialSideQuizState(
+            this.i18n("what_verb_form"),
+            tasks,
+        );
     }
 
     i18n(key) {
@@ -873,35 +889,19 @@ class ViewerApp extends React.Component {
         );
     }
 
-    onQuizCompletion() {
-        let quizState = this.buildSideQuizState(this.state.collapse, this.state.verb);
-        this.setState({ quizState });
-    }
-
-    onQuizSelection(position) {
-        let quizState = this.state.quizState;
-        quizState.selected = position;
-        this.setState ({ quizState });
-        setTimeout(this.onQuizCompletion, 2000);
-    }
-
     renderQuiz() {
-        let quizState = this.state.quizState;
-        if (quizState && !quizState.completed) {
-            const subject = quizState.taskSubject;
-            const subjectAfterCompletion = highlightPhrasal(subject);
+        const chosenVerb = this.state.verb;
+        if (this.state.collapse || chosenVerb.length == 0) {
+            return null;
+        }
+        let quizState = this.buildSideQuizState(chosenVerb);
+        if (quizState != null) {
             return (
                 <div className="flex flex-col justify-start pl-16 pt-32">
                     <SideQuiz
                         lang={this.props.lang}
-                        taskDescription={quizState.taskDescription}
-                        taskSubject={subject.raw}
-                        subjectAfterCompletion={subjectAfterCompletion}
-                        cases={quizState.cases}
-                        correct={quizState.correct}
-                        selected={quizState.selected}
-                        completed={quizState.completed}
-                        onQuizSelection={this.onQuizSelection}
+                        initialState={quizState}
+                        closeCallback={null}
                     />
                 </div>
             );

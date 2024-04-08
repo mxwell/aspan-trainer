@@ -191,6 +191,8 @@ class SideQuizTask {
         this.subject = subject;
         this.caseKeys = caseKeys;
         this.correct = correct;
+        this.rawSubject = subject.raw;
+        this.completedSubject = null;
     }
 }
 
