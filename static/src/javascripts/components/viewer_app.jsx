@@ -202,6 +202,7 @@ class ViewerApp extends React.Component {
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.buildSideQuizState = this.buildSideQuizState.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
@@ -294,7 +295,8 @@ class ViewerApp extends React.Component {
         );
     }
 
-    buildSideQuizState(chosenVerb) {
+    buildSideQuizState() {
+        const chosenVerb = this.state.verb;
         const taskCount = 5;
         let verbs = getSideQuizVerbs(chosenVerb, taskCount);
         if (verbs.length < taskCount) {
@@ -894,20 +896,14 @@ class ViewerApp extends React.Component {
         if (this.state.collapse || chosenVerb.length == 0) {
             return null;
         }
-        let quizState = this.buildSideQuizState(chosenVerb);
-        if (quizState != null) {
-            return (
-                <div className="flex flex-col justify-start pl-16 pt-32">
-                    <SideQuiz
-                        lang={this.props.lang}
-                        initialState={quizState}
-                        closeCallback={null}
-                    />
-                </div>
-            );
-        } else {
-            return null;
-        }
+        return (
+            <div className="flex flex-col justify-start pl-16 pt-32">
+                <SideQuiz
+                    lang={this.props.lang}
+                    sideQuizStateCreator={this.buildSideQuizState}
+                />
+            </div>
+        );
     }
 
     render () {

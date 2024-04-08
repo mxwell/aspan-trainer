@@ -42,16 +42,17 @@ function initialSideQuizState(commonDescription, tasks) {
 }
 
 /**
- * props - lang, initialState (SideQuizState), closeCallback
+ * props - lang, sideQuizStateCreator (returns SideQuizState)
  */
 class SideQuiz extends React.Component {
     constructor(props) {
         super(props);
 
         this.onNext = this.onNext.bind(this);
+        this.onRestart = this.onRestart.bind(this);
 
         this.state = {
-            quizState: props.initialState
+            quizState: props.sideQuizStateCreator()
         };
     }
 
@@ -78,6 +79,14 @@ class SideQuiz extends React.Component {
         } else {
             this.setState({ quizState });
         }
+    }
+
+    onRestart(e) {
+        e.preventDefault();
+        console.log("Restarting quiz");
+        this.setState({
+            quizState: this.props.sideQuizStateCreator()
+        });
     }
 
     renderSubject(task, selected) {
@@ -132,7 +141,7 @@ class SideQuiz extends React.Component {
     renderTask(quizState, task) {
         const selected = quizState.selected;
         return (
-            <div className="bg-teal-400 p-5 text-white">
+            <div className="bg-teal-400 p-5 text-white side-quiz-container">
                 <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
                 <h4 className="text-2xl text-center">{quizState.commonDescription}</h4>
                 <h3 className="text-4xl text-center">{this.renderSubject(task, selected)}</h3>
@@ -153,16 +162,26 @@ class SideQuiz extends React.Component {
         const total = quizState.tasks.length;
         const task = quizState.tasks[0];
         return (
-            <div className="bg-teal-400 p-5 text-white">
+            <div className="bg-teal-400 p-5 text-white side-quiz-container">
                 <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
                 <h4 className="text-2xl text-center">{this.i18n("yourScore")}: {score} / {total}</h4>
                 {this.renderCases(task, -1, true)}
+                <div className="flex justify-start">
+                    <button
+                        className="bg-white text-teal-500 hover:bg-gray-200 p-2"
+                        onClick={this.onRestart} >
+                        {this.i18n("restartQuiz")}
+                    </button>
+                </div>
             </div>
         );
     }
 
     render() {
         const quizState = this.state.quizState;
+        if (quizState == null) {
+            return null;
+        }
         const tasks = quizState.tasks;
         if (quizState.taskIndex < tasks.length) {
             return this.renderTask(quizState, tasks[quizState.taskIndex]);

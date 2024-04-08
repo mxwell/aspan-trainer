@@ -132,6 +132,7 @@ function prepareViewerOnlyTranslations(map) {
     );
     setEnRuKz(map, "next", "Next", "Далее", "Келесі");
     setEnRuKz(map, "yourScore", "Your score", "Ваш счёт", "Сіздің есептіңіз");
+    setEnRuKz(map, "restartQuiz", "Restart quiz", "Перезапустить тест", "Тестті жаңағырау");
 }
 
 function prepareExplanationOnlyTranslations(map) {
