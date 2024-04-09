@@ -131,6 +131,10 @@ function prepareViewerOnlyTranslations(map) {
         "Бұл қандай етістік түрі?"
     );
     setEnRuKz(map, "next", "Next", "Далее", "Келесі");
+    setEnRuKz(map, "resultExcellent", "Excellent result!", "Замечательный результат!", "Асағы нәтиже!");
+    setEnRuKz(map, "resultGood", "Good result!", "Хороший результат!", "Жақсы нәтиже!");
+    setEnRuKz(map, "roomForImprovement", "Room for improvement", "Есть куда расти", "Жетіспеушілікке жол бар");
+    setEnRuKz(map, "shouldTryAgain", "You should try again", "Вам стоит попробовать ещё раз", "Сіз қайтадан көріңіз келеді");
     setEnRuKz(map, "yourScore", "Your score", "Ваш счёт", "Сіздің есептіңіз");
     setEnRuKz(map, "restartQuiz", "Restart quiz", "Перезапустить тест", "Тестті жаңағырау");
 }

@@ -157,6 +157,18 @@ class SideQuiz extends React.Component {
         );
     }
 
+    getJudgementKey(scoreRatio) {
+        if (scoreRatio >= 0.9) {
+            return "resultExcellent";
+        } else if (scoreRatio >= 0.7) {
+            return "resultGood";
+        } else if (scoreRatio >= 0.3) {
+            return "roomForImprovement";
+        } else {
+            return "shouldTryAgain";
+        }
+    }
+
     renderFinal(quizState) {
         const score = quizState.correctCount;
         const total = quizState.tasks.length;
@@ -165,6 +177,7 @@ class SideQuiz extends React.Component {
             <div className="bg-teal-400 p-5 text-white side-quiz-container">
                 <h5 className="text-center pb-4">{i18n("side_quiz", this.props.lang)}</h5>
                 <h4 className="text-2xl text-center">{this.i18n("yourScore")}: {score} / {total}</h4>
+                <h4 className="text-xl my-4 text-center">{this.i18n(this.getJudgementKey(score / total))}</h4>
                 {this.renderCases(task, -1, true)}
                 <div className="flex justify-start">
                     <button
