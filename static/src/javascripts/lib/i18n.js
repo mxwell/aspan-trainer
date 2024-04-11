@@ -33,6 +33,7 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "infinitive", "Infinitive", "Инфинитив", "Инфинитив");
     setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
     setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
+    setEnRuKz(map, "presentColloquial", "Present tense (colloquial, experiment)", "Настоящее время (разговорное, эксперимент)", "Нақ осы шақ (сөйлеу, эксперимент)");
     // TODO drop
     setEnRuKz(map, "remotePastTense", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
     setEnRuKz(map, "remotePast", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");

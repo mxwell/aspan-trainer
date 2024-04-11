@@ -78,6 +78,14 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
     ));
+    if (sentenceType == "Statement") {
+        tenses.push(createForms(
+            "presentColloquial",
+            "present",
+            NOMINATIVE_PRONOUN,
+            (person, number) => verbBuilder.presentColloquialForm(person, number, sentenceType),
+        ));
+    }
     tenses.push(createForms(
         "remotePastTense",
         "past",
