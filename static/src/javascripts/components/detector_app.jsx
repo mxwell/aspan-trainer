@@ -223,7 +223,7 @@ class DetectorApp extends React.Component {
         const detectedVerb = this.state.verb;
         const sentenceType = detectedVerb.sentenceType || SENTENCE_TYPES[0];
         const forceExceptional = detectedVerb.isExceptional == true;
-        const url = buildViewerUrl2(detectedVerb.verb, sentenceType, forceExceptional, this.props.lang);
+        const url = buildViewerUrl2(detectedVerb.verb, sentenceType, forceExceptional, this.props.lang, null);
         return (
             <a
                 className="text-right px-2 my-4 lg:px-1 text-3xl lg:text-sm text-blue-600 hover:text-blue-800 visited:text-purple-600"

@@ -9,7 +9,7 @@ import {
     i18n
 } from '../lib/i18n';
 import { getRandomInt, pickRandom } from '../lib/random';
-import { renderOptionsWithI18nKeys } from "../lib/react_util";
+import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_util";
 import { makeDetectRequest, makeSuggestRequest } from '../lib/requests';
 import {
     buildExplanationUrl,
@@ -30,6 +30,7 @@ import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
 import { hasMixedAlphabets } from '../lib/input_validation';
 import { unpackDetectResponse } from '../lib/detector';
+import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -201,18 +202,20 @@ class ViewerApp extends React.Component {
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
+        this.onAuxVerbSelect = this.onAuxVerbSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.buildSideQuizState = this.buildSideQuizState.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
+    makeState(verb, forceExceptional, auxVerb, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
             verb: verb,
             forceExceptional: forceExceptional,
+            auxVerb: auxVerb,
             lastEntered: lastEntered,
             detected: null,
             warning: warning,
@@ -234,6 +237,7 @@ class ViewerApp extends React.Component {
         return this.makeState(
             /* verb */ "",
             /* forceExceptional */ false,
+            /* auxVerb */ AUX_VERBS[0],
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* translation */ null,
@@ -260,6 +264,7 @@ class ViewerApp extends React.Component {
             return null;
         }
         const forceExceptional = params.exception == "true"
+        const auxVerb = parseAuxVerb(params.aux);
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
         var warning = null;
@@ -272,7 +277,7 @@ class ViewerApp extends React.Component {
             if (this.checkTranslationEnabled()) {
                 this.requestTranslation(verbL);
             }
-            tenses = generateVerbForms(verbL, "", forceExceptional, sentenceType);
+            tenses = generateVerbForms(verbL, auxVerb, forceExceptional, sentenceType);
             setPageTitle(verb);
             if (checkOptionalExceptionVerb(verb)) {
                 warning = this.i18n("chooseVerbExceptionOrNot");
@@ -286,6 +291,7 @@ class ViewerApp extends React.Component {
         return this.makeState(
             verb,
             forceExceptional,
+            auxVerb,
             /* lastEntered */ verb,
             sentenceType,
             /* translation */ null,
@@ -519,8 +525,8 @@ class ViewerApp extends React.Component {
         }
     }
 
-    reloadToState(verb, sentenceType, forceExceptional) {
-        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang);
+    reloadToState(verb, sentenceType, forceExceptional, auxVerb) {
+        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang, auxVerb);
         window.location.href = url;
     }
 
@@ -529,7 +535,7 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0 || this.state.lastEntered != this.state.verb) {
             this.setState({ sentenceType });
         } else {
-            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional);
+            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb);
         }
     }
 
@@ -537,9 +543,9 @@ class ViewerApp extends React.Component {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
         if (RELOAD_ON_SUBMIT) {
-            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional);
+            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb);
         } else {
-            let tenses = generateVerbForms(this.state.lastEntered, "", forceExceptional, this.state.sentenceType);
+            let tenses = generateVerbForms(this.state.lastEntered, this.state.auxVerb, forceExceptional, this.state.sentenceType);
             let tensesSentenceType = this.state.sentenceType;
             this.setState({ tenses, tensesSentenceType });
         }
@@ -610,7 +616,10 @@ class ViewerApp extends React.Component {
                 : null;
             content = (
                 <div className="pb-4 lg:py-6">
-                    {subtitle}
+                    <div className="flex flex-row justify-between">
+                        {subtitle}
+                        {this.renderAuxVerbSelector(tenseNameKey)}
+                    </div>
                     <table className="lg:w-full">
                         <tbody>
                             {this.renderFormRows(tenseForms, tenseForms.tenseNameKey)}
@@ -640,6 +649,27 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderAuxVerbSelector(tenseNameKey) {
+        if (tenseNameKey != "presentContinuous") {
+            return null;
+        }
+        return (
+            <select
+                required
+                value={this.state.auxVerb}
+                onChange={this.onAuxVerbSelect}
+                className="text-4xl lg:text-base px-2 ml-2">
+                {renderOptionsWithKeys(AUX_VERBS)}
+            </select>
+        );
+    }
+
+    onAuxVerbSelect(e) {
+        const auxVerb = e.target.value;
+        console.log(`Aux verb changed to ${auxVerb}.`)
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, auxVerb);
+    }
+
     renderImage() {
         return (
             <div className="py-40 flex justify-center">
@@ -657,6 +687,7 @@ class ViewerApp extends React.Component {
             this.state.sentenceType,
             !this.state.forceExceptional,
             this.props.lang,
+            this.state.auxVerb,
         );
         const textKey = this.state.forceExceptional ? "switch_to_regular" : "switch_to_exception";
         return (
@@ -673,7 +704,7 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = detected.sentenceType || SENTENCE_TYPES[0];
         const forceExceptional = detected.isExceptional == true;
-        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang);
+        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang, null);
         return (
             <p className="my-4">
                 {this.i18n("entered_is_form")(detected.verb)}.&nbsp;
@@ -865,7 +896,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang);
+            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null);
             if (i > 0) {
                 items.push(
                     <span

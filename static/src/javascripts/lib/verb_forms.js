@@ -4,6 +4,7 @@ import {
     VerbBuilder,
     isVerbOptionalException
 } from './aspan';
+import { AUX_VERBS } from './aux_verbs';
 import {
     NOMINATIVE_PRONOUN,
     POSSESSIVE_PRONOUN,
@@ -69,7 +70,7 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
     ));
     if (auxVerb == null || auxVerb == "") {
-        auxVerb = "жату";
+        auxVerb = AUX_VERBS[0];
     }
     let auxBuilder = new VerbBuilder(auxVerb);
     tenses.push(createForms(

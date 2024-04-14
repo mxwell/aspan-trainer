@@ -74,13 +74,19 @@ function buildViewerUrl(verb, sentenceType, forceExceptional) {
     return path;
 }
 
-function buildViewerUrl2(verb, sentenceType, forceExceptional, lang) {
+function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb) {
+    if (auxVerb === undefined) {
+        throw new Error("auxVerb is undefined in buildViewerUrl2");
+    }
     let params = [
         `verb=${encodeURI(verb)}`,
         `sentence_type=${sentenceType}`,
     ];
     if (forceExceptional) {
         params.push("exception=true");
+    }
+    if (auxVerb != null) {
+        params.push(`aux=${auxVerb}`);
     }
     const path = (
         (lang == I18N_LANG_RU)

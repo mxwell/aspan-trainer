@@ -41,7 +41,8 @@ class TopItem {
             this.verb,
             SENTENCE_TYPES[0],
             this.exceptional,
-            lang
+            lang,
+            null,
         );
     }
 }
