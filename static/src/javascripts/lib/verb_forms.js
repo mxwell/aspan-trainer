@@ -60,7 +60,7 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType) {
     return new TenseForms("participle", "participle", forms);
 }
 
-export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType) {
+export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sentenceType) {
     let tenses = [];
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
     tenses.push(createForms(
@@ -77,7 +77,7 @@ export function generateVerbForms(verb, auxVerb, forceExceptional, sentenceType)
         "presentContinuous",
         "present",
         NOMINATIVE_PRONOUN,
-        (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder),
+        (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder, auxNeg),
     ));
     tenses.push(createForms(
         "presentColloquial",

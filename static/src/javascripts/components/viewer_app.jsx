@@ -202,6 +202,7 @@ class ViewerApp extends React.Component {
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
+        this.onAuxNegToggle = this.onAuxNegToggle.bind(this);
         this.onAuxVerbSelect = this.onAuxVerbSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.buildSideQuizState = this.buildSideQuizState.bind(this);
@@ -209,13 +210,14 @@ class ViewerApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, auxVerb, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
+    makeState(verb, forceExceptional, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
             verb: verb,
             forceExceptional: forceExceptional,
             auxVerb: auxVerb,
+            auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
             lastEntered: lastEntered,
             detected: null,
             warning: warning,
@@ -238,6 +240,7 @@ class ViewerApp extends React.Component {
             /* verb */ "",
             /* forceExceptional */ false,
             /* auxVerb */ AUX_VERBS[0],
+            /* auxNeg */ false,
             /* lastEntered */ "",
             /* sentenceType */ SENTENCE_TYPES[0],
             /* translation */ null,
@@ -265,6 +268,7 @@ class ViewerApp extends React.Component {
         }
         const forceExceptional = params.exception == "true"
         const auxVerb = parseAuxVerb(params.aux);
+        const auxNeg = params.aux_neg == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
         var tenses = [];
         var warning = null;
@@ -277,7 +281,7 @@ class ViewerApp extends React.Component {
             if (this.checkTranslationEnabled()) {
                 this.requestTranslation(verbL);
             }
-            tenses = generateVerbForms(verbL, auxVerb, forceExceptional, sentenceType);
+            tenses = generateVerbForms(verbL, auxVerb, auxNeg, forceExceptional, sentenceType);
             setPageTitle(verb);
             if (checkOptionalExceptionVerb(verb)) {
                 warning = this.i18n("chooseVerbExceptionOrNot");
@@ -292,6 +296,7 @@ class ViewerApp extends React.Component {
             verb,
             forceExceptional,
             auxVerb,
+            auxNeg,
             /* lastEntered */ verb,
             sentenceType,
             /* translation */ null,
@@ -525,8 +530,8 @@ class ViewerApp extends React.Component {
         }
     }
 
-    reloadToState(verb, sentenceType, forceExceptional, auxVerb) {
-        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang, auxVerb);
+    reloadToState(verb, sentenceType, forceExceptional, auxVerb, auxNeg) {
+        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang, auxVerb, auxNeg);
         window.location.href = url;
     }
 
@@ -535,7 +540,7 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0 || this.state.lastEntered != this.state.verb) {
             this.setState({ sentenceType });
         } else {
-            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb);
+            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
         }
     }
 
@@ -543,9 +548,9 @@ class ViewerApp extends React.Component {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
         if (RELOAD_ON_SUBMIT) {
-            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb);
+            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb, this.state.auxNeg);
         } else {
-            let tenses = generateVerbForms(this.state.lastEntered, this.state.auxVerb, forceExceptional, this.state.sentenceType);
+            let tenses = generateVerbForms(this.state.lastEntered, this.state.auxVerb, this.state.auxNeg, forceExceptional, this.state.sentenceType);
             let tensesSentenceType = this.state.sentenceType;
             this.setState({ tenses, tensesSentenceType });
         }
@@ -618,6 +623,7 @@ class ViewerApp extends React.Component {
                 <div className="pb-4 lg:py-6">
                     <div className="flex flex-row justify-between">
                         {subtitle}
+                        {this.renderNegationToggler(tenseNameKey)}
                         {this.renderAuxVerbSelector(tenseNameKey)}
                     </div>
                     <table className="lg:w-full">
@@ -649,6 +655,25 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderNegationToggler(tenseNameKey) {
+        if (this.state.sentenceType != "Negative" || tenseNameKey != "presentContinuous") {
+            return null;
+        }
+        return (
+            <img
+                className="mx-2 mt-2 h-10 lg:mt-0 lg:h-auto"
+                src={this.state.auxNeg ? "/toggle_on.svg" : "/toggle_off.svg"}
+                onClick={this.onAuxNegToggle}
+                />
+        );
+    }
+
+    onAuxNegToggle(e) {
+        const auxNeg = !this.state.auxNeg;
+        console.log(`Aux negation changed to ${auxNeg}.`)
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.auxVerb, auxNeg);
+    }
+
     renderAuxVerbSelector(tenseNameKey) {
         if (tenseNameKey != "presentContinuous") {
             return null;
@@ -667,7 +692,7 @@ class ViewerApp extends React.Component {
     onAuxVerbSelect(e) {
         const auxVerb = e.target.value;
         console.log(`Aux verb changed to ${auxVerb}.`)
-        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, auxVerb);
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, auxVerb, this.state.auxNeg);
     }
 
     renderImage() {
@@ -688,6 +713,7 @@ class ViewerApp extends React.Component {
             !this.state.forceExceptional,
             this.props.lang,
             this.state.auxVerb,
+            this.state.auxNeg,
         );
         const textKey = this.state.forceExceptional ? "switch_to_regular" : "switch_to_exception";
         return (
@@ -704,7 +730,7 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = detected.sentenceType || SENTENCE_TYPES[0];
         const forceExceptional = detected.isExceptional == true;
-        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang, null);
+        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang, null, false);
         return (
             <p className="my-4">
                 {this.i18n("entered_is_form")(detected.verb)}.&nbsp;
@@ -896,7 +922,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null);
+            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null, false);
             if (i > 0) {
                 items.push(
                     <span

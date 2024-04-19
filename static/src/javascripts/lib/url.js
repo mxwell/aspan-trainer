@@ -74,9 +74,12 @@ function buildViewerUrl(verb, sentenceType, forceExceptional) {
     return path;
 }
 
-function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb) {
+function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, auxNeg) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
+    }
+    if (auxNeg === undefined) {
+        throw new Error("auxNeg is undefined in buildViewerUrl2");
     }
     let params = [
         `verb=${encodeURI(verb)}`,
@@ -87,6 +90,9 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb) {
     }
     if (auxVerb != null) {
         params.push(`aux=${auxVerb}`);
+    }
+    if (auxNeg == true) {
+        params.push("aux_neg=true");
     }
     const path = (
         (lang == I18N_LANG_RU)
