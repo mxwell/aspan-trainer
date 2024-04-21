@@ -201,7 +201,9 @@ class ViewerApp extends React.Component {
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
-        this.onSentenceTypeSelect = this.onSentenceTypeSelect.bind(this);
+        this.onPlusClick = this.onPlusClick.bind(this);
+        this.onMinusClick = this.onMinusClick.bind(this);
+        this.onQuestionClick = this.onQuestionClick.bind(this);
         this.onAuxNegToggle = this.onAuxNegToggle.bind(this);
         this.onAuxVerbSelect = this.onAuxVerbSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -535,15 +537,6 @@ class ViewerApp extends React.Component {
         window.location.href = url;
     }
 
-    onSentenceTypeSelect(e) {
-        const sentenceType = e.target.value;
-        if (this.state.tenses.length == 0 || this.state.lastEntered != this.state.verb) {
-            this.setState({ sentenceType });
-        } else {
-            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
-        }
-    }
-
     onSubmit(e) {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
@@ -737,6 +730,50 @@ class ViewerApp extends React.Component {
                 <a className="underline text-orange-600" href={url}>{this.i18n("show_detected")(detected.verb)}</a>
             </p>
         );
+    }
+
+    renderSentenceTypeToggle() {
+        const sentenceType = this.state.sentenceType;
+        const active = "bg-blue-600 hover:bg-blue-700";
+        const inactive = "bg-gray-400 hover:bg-gray-600";
+        const plusClass = sentenceType == "Statement" ? active : inactive;
+        const minusClass = sentenceType == "Negative" ? active : inactive;
+        const questionClass = sentenceType == "Question" ? active : inactive;
+        const commonClass = "text-white text-3xl lg:text-2xl font-bold border-2 h-12 w-12"
+        return (
+            <div className="flex flex-row mx-4 my-1">
+                <button
+                    className={`${plusClass} ${commonClass}`}
+                    onClick={this.onPlusClick}>
+                    +
+                </button>
+                <button
+                    className={`${minusClass} ${commonClass}`}
+                    onClick={this.onMinusClick}>
+                    -
+                </button>
+                <button
+                    className={`${questionClass} ${commonClass}`}
+                    onClick={this.onQuestionClick}>
+                    ?
+                </button>
+            </div>
+        );
+    }
+
+    onPlusClick(e) {
+        e.preventDefault();
+        this.reloadToState(this.state.verb, "Statement", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+    }
+
+    onMinusClick(e) {
+        e.preventDefault();
+        this.reloadToState(this.state.verb, "Negative", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+    }
+
+    onQuestionClick(e) {
+        e.preventDefault();
+        this.reloadToState(this.state.verb, "Question", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
     }
 
     renderWarning() {
@@ -984,18 +1021,14 @@ class ViewerApp extends React.Component {
                             </div>
                             {this.renderExampleVerbs()}
                         </div>
-                        <select
-                            required
-                            value={this.state.sentenceType}
-                            onChange={this.onSentenceTypeSelect}
-                            className="text-gray-800 text-4xl lg:text-2xl lg:mx-2 mb-6 p-2 lg:px-4">
-                            {renderOptionsWithI18nKeys(SENTENCE_TYPES, this.props.lang)}
-                        </select>
-                        <input
-                            type="submit"
-                            value={this.i18n("buttonSubmit")}
-                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
-                        />
+                        <div className="flex flex-row justify-between">
+                            {this.renderSentenceTypeToggle()}
+                            <input
+                                type="submit"
+                                value={this.i18n("buttonSubmit")}
+                                className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
+                            />
+                        </div>
                     </form>
                     {this.renderWarning()}
                     {this.renderTranslation()}
