@@ -134,7 +134,7 @@ function highlightPhrasal(phrasal) {
 
 function setPageTitle(verb) {
     let verbOk = (typeof verb == "string") && 0 < verb.length && verb.length < 20;
-    let title = verbOk ? `${verb} – ${DEFAULT_TITLE}` : DEFAULT_TITLE;
+    let title = verbOk ? `${verb.toUpperCase()} – ${DEFAULT_TITLE}` : DEFAULT_TITLE;
     document.title = title;
 }
 
