@@ -533,7 +533,9 @@ class ViewerApp extends React.Component {
     }
 
     reloadToState(verb, sentenceType, forceExceptional, auxVerb, auxNeg) {
-        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.props.lang, auxVerb, auxNeg);
+        const sentenceTypeParam = (sentenceType != SENTENCE_TYPES[0]) ? sentenceType : null;
+        const auxVerbParam = (auxVerb != AUX_VERBS[0]) ? auxVerb : null;
+        const url = buildViewerUrl2(verb, sentenceTypeParam, forceExceptional, this.props.lang, auxVerbParam, auxNeg);
         window.location.href = url;
     }
 

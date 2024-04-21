@@ -83,8 +83,10 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
     }
     let params = [
         `verb=${encodeURI(verb)}`,
-        `sentence_type=${sentenceType}`,
     ];
+    if (sentenceType != null) {
+        params.push(`sentence_type=${sentenceType}`);
+    }
     if (forceExceptional) {
         params.push("exception=true");
     }
