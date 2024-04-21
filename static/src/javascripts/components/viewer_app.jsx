@@ -649,7 +649,10 @@ class ViewerApp extends React.Component {
     }
 
     renderNegationToggler(tenseNameKey) {
-        if (this.state.sentenceType != "Negative" || tenseNameKey != "presentContinuous") {
+        if (this.state.sentenceType != "Negative") {
+            return null;
+        }
+        if (tenseNameKey != "presentContinuous" && tenseNameKey != "remotePastTense") {
             return null;
         }
         return (

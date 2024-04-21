@@ -89,7 +89,7 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         "remotePastTense",
         "past",
         NOMINATIVE_PRONOUN,
-        (person, number) => verbBuilder.remotePastTense(person, number, sentenceType),
+        (person, number) => verbBuilder.remotePastTense(person, number, sentenceType, auxNeg),
     ));
     tenses.push(createForms(
         "pastUncertainTense",
