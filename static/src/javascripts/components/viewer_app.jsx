@@ -747,17 +747,20 @@ class ViewerApp extends React.Component {
             <div className="flex flex-row mx-4 my-1">
                 <button
                     className={`${plusClass} ${commonClass}`}
-                    onClick={this.onPlusClick}>
+                    onClick={this.onPlusClick}
+                    type="button">
                     +
                 </button>
                 <button
                     className={`${minusClass} ${commonClass}`}
-                    onClick={this.onMinusClick}>
+                    onClick={this.onMinusClick}
+                    type="button">
                     -
                 </button>
                 <button
                     className={`${questionClass} ${commonClass}`}
-                    onClick={this.onQuestionClick}>
+                    onClick={this.onQuestionClick}
+                    type="button">
                     ?
                 </button>
             </div>
@@ -766,17 +769,25 @@ class ViewerApp extends React.Component {
 
     onPlusClick(e) {
         e.preventDefault();
-        this.reloadToState(this.state.verb, "Statement", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+        this.toggleSentenceType("Statement");
     }
 
     onMinusClick(e) {
         e.preventDefault();
-        this.reloadToState(this.state.verb, "Negative", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+        this.toggleSentenceType("Negative");
     }
 
     onQuestionClick(e) {
         e.preventDefault();
-        this.reloadToState(this.state.verb, "Question", this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+        this.toggleSentenceType("Question");
+    }
+
+    toggleSentenceType(sentenceType) {
+        if (this.state.tenses.length == 0) {
+            this.setState({ sentenceType });
+        } else {
+            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+        }
     }
 
     renderWarning() {
@@ -1026,11 +1037,11 @@ class ViewerApp extends React.Component {
                         </div>
                         <div className="flex flex-row justify-between">
                             {this.renderSentenceTypeToggle()}
-                            <input
-                                type="submit"
-                                value={this.i18n("buttonSubmit")}
+                            <button
                                 className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase mb-6 font-bold px-4 rounded focus:outline-none focus:shadow-outline"
-                            />
+                                type="submit">
+                                {this.i18n("buttonSubmit")}
+                            </button>
                         </div>
                     </form>
                     {this.renderWarning()}
