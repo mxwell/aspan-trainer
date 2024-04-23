@@ -94,15 +94,21 @@ function prepareViewerOnlyTranslations(map) {
         (verb) => `Показать формы глагола «${verb}»`,
         (verb) => `«${verb}» етістігінің формаларын көрсету`,
     );
-    setEnRuKz(map, "switch_to_exception",
-        "Switch to the exception verb",
-        "Переключиться на глагол-исключение",
-        "Ережеден тыс етістікке ауысу"
+    setEnRuKz(map, "verbHasTwoMeaningsTempl",
+        (regularMeanings, exceptionMeanings) => `The verb has two meanings: one behaves regularly (${regularMeanings}), and the other behaves like an exception (${exceptionMeanings}).`,
+        (regularMeanings, exceptionMeanings) => `Глагол имеет два значения: одно спрягается обычным способом (${regularMeanings}), а другое как исключение (${exceptionMeanings}).`,
+        (regularMeanings, exceptionMeanings) => `Етістіктің екі мағынасы бар: біріншісі қарапайым әдіспен жіктеледі (${regularMeanings}), екіншісі ережеден тыс арқылы жіктеледі (${exceptionMeanings}).`,
     );
-    setEnRuKz(map, "switch_to_regular",
-        "Switch to the regular verb",
-        "Переключиться на обычный глагол",
-        "Қарапайым етістікке ауысу"
+    // TODO add text: Shown regular/exceptional verb with meanings
+    setEnRuKz(map, "switchToExceptionTempl",
+        (meanings) => `Switch to the exception verb (${meanings})`,
+        (meanings) => `Переключиться на глагол-исключение (${meanings})`,
+        (meanings) => `Ережеден тыс етістікке ауысу (${meanings})`,
+    );
+    setEnRuKz(map, "switchToRegularTempl",
+        (meanings) => `Switch to the regular verb (${meanings})`,
+        (meanings) => `Переключиться на обычный глагол (${meanings})`,
+        (meanings) => `Қарапайым етістікке ауысу (${meanings})`,
     );
     setEnRuKz(map, "wiktionary_title",
         "Wiktionary",

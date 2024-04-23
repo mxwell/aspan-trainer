@@ -20,7 +20,7 @@ import {
     parseParams
 } from "../lib/url";
 import {
-    checkOptionalExceptionVerb,
+    getOptionalExceptionalVerbMeanings,
     createSideQuizTask,
     generateParticipleForms,
     generateVerbForms,
@@ -212,7 +212,7 @@ class ViewerApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, showVerbSwitcher) {
+    makeState(verb, forceExceptional, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
@@ -223,7 +223,7 @@ class ViewerApp extends React.Component {
             lastEntered: lastEntered,
             detected: null,
             warning: warning,
-            showVerbSwitcher: showVerbSwitcher,
+            meanings: meanings,
             sentenceType: sentenceType,
             enableTranslation: this.checkTranslationEnabled(),
             translation: translation,
@@ -248,7 +248,7 @@ class ViewerApp extends React.Component {
             /* translation */ null,
             /* tenses */ [],
             /* warning */ null,
-            /* exceptionWarning */ null,
+            /* meanings */ null,
         );
     }
 
@@ -277,7 +277,7 @@ class ViewerApp extends React.Component {
         if (hasMixedAlphabets(verb)) {
             warning = this.i18n("mixedAlphabets");
         }
-        var showVerbSwitcher = false;
+        let meanings = null;
         try {
             const verbL = normalizeVerb(verb);
             if (this.checkTranslationEnabled()) {
@@ -285,9 +285,9 @@ class ViewerApp extends React.Component {
             }
             tenses = generateVerbForms(verbL, auxVerb, auxNeg, forceExceptional, sentenceType);
             setPageTitle(verb);
-            if (checkOptionalExceptionVerb(verb)) {
-                warning = this.i18n("chooseVerbExceptionOrNot");
-                showVerbSwitcher = true;
+            meanings = getOptionalExceptionalVerbMeanings(verbL);
+            if (meanings != null) {
+                warning = this.i18n("verbHasTwoMeaningsTempl")(meanings[0].join(", "), meanings[1].join(", "));
             }
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
@@ -304,7 +304,7 @@ class ViewerApp extends React.Component {
             /* translation */ null,
             tenses,
             warning,
-            showVerbSwitcher,
+            meanings,
         );
     }
 
@@ -702,7 +702,8 @@ class ViewerApp extends React.Component {
     }
 
     renderSwitcher() {
-        if (!this.state.showVerbSwitcher) {
+        const meanings = this.state.meanings;
+        if (meanings == null) {
             return null;
         }
         const oppositeUrl = buildViewerUrl2(
@@ -713,10 +714,14 @@ class ViewerApp extends React.Component {
             this.state.auxVerb,
             this.state.auxNeg,
         );
-        const textKey = this.state.forceExceptional ? "switch_to_regular" : "switch_to_exception";
+        const text = (
+            this.state.forceExceptional
+            ? this.i18n("switchToRegularTempl")(meanings[0].join(", "))
+            : this.i18n("switchToExceptionTempl")(meanings[1].join(", "))
+        );
         return (
             <p className="my-4">
-                <a className="underline" href={oppositeUrl}>{this.i18n(textKey)}</a>
+                <a className="underline" href={oppositeUrl}>{text}</a>
             </p>
         );
     }

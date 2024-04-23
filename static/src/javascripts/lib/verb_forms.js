@@ -2,7 +2,7 @@ import {
     GRAMMAR_PERSONS,
     GRAMMAR_NUMBERS,
     VerbBuilder,
-    isVerbOptionalException
+    getOptExceptVerbMeanings,
 } from './aspan';
 import { AUX_VERBS } from './aux_verbs';
 import {
@@ -234,12 +234,13 @@ export function createSideQuizTask(verb, forceExceptional, sentenceType) {
     );
 }
 
-export function checkOptionalExceptionVerb(verb) {
-    return isVerbOptionalException(verb);
+export function getOptionalExceptionalVerbMeanings(verb) {
+    return getOptExceptVerbMeanings(verb);
 }
 
 export function createFormByParams(verb, forceExceptional, sentenceType, tense, personNumber) {
-    if (!checkOptionalExceptionVerb(verb) && forceExceptional) {
+    const meanings = getOptionalExceptionalVerbMeanings(verb);
+    if (meanings == null && forceExceptional) {
         console.log(`Unnecessary forceExceptional flag for the selected verb: ${verb}`);
         return null;
     }
