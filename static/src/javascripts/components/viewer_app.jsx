@@ -138,6 +138,15 @@ function setPageTitle(verb) {
     document.title = title;
 }
 
+function getVerbMainPart(verb) {
+    const space = verb.lastIndexOf(" ");
+    if (space == -1) {
+        return verb;
+    } else {
+        return verb.substring(space + 1);
+    }
+}
+
 function checkForCollapse() {
     return window.matchMedia('screen and (max-width: 1024px)').matches;
 }
@@ -204,6 +213,7 @@ class ViewerApp extends React.Component {
         this.onPlusClick = this.onPlusClick.bind(this);
         this.onMinusClick = this.onMinusClick.bind(this);
         this.onQuestionClick = this.onQuestionClick.bind(this);
+        this.switchBetweenRegularAndException = this.switchBetweenRegularAndException.bind(this);
         this.onAuxNegToggle = this.onAuxNegToggle.bind(this);
         this.onAuxVerbSelect = this.onAuxVerbSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -287,7 +297,8 @@ class ViewerApp extends React.Component {
             setPageTitle(verb);
             meanings = getOptionalExceptionalVerbMeanings(verbL);
             if (meanings != null) {
-                warning = this.i18n("verbHasTwoMeaningsTempl")(meanings[0].join(", "), meanings[1].join(", "));
+                const verbPart = getVerbMainPart(verbL);
+                warning = this.i18n("verbHasTwoMeaningsTempl")(verbPart);
             }
         } catch (err) {
             console.log(`Error during form generation: ${err}`);
@@ -706,24 +717,45 @@ class ViewerApp extends React.Component {
         if (meanings == null) {
             return null;
         }
-        const oppositeUrl = buildViewerUrl2(
-            this.state.verb,
-            this.state.sentenceType,
-            !this.state.forceExceptional,
-            this.props.lang,
-            this.state.auxVerb,
-            this.state.auxNeg,
-        );
-        const text = (
-            this.state.forceExceptional
-            ? this.i18n("switchToRegularTempl")(meanings[0].join(", "))
-            : this.i18n("switchToExceptionTempl")(meanings[1].join(", "))
-        );
+
+        let regularChecked = null;
+        let exceptionChecked = null;
+        let regularHandler = null;
+        let exceptionHandler = null;
+        if (this.state.forceExceptional) {
+            exceptionChecked = "checked";
+            regularHandler = this.switchBetweenRegularAndException;
+        } else {
+            regularChecked = "checked";
+            exceptionHandler = this.switchBetweenRegularAndException;
+        }
+        const verbPart = getVerbMainPart(this.state.verb);
+
         return (
-            <p className="my-4">
-                <a className="underline" href={oppositeUrl}>{text}</a>
-            </p>
+            <fieldset>
+                <div className="my-2">
+                    <input type="radio" id="regular" checked={regularChecked} onChange={regularHandler} />
+                    <label
+                        className="mx-2"
+                        htmlFor="regular">
+                        {this.i18n("verbMeaningRegularPrefixTempl")(verbPart)}&nbsp;<strong>«{meanings[0].join(", ")}»</strong>&nbsp;{this.i18n("verbMeaningSuffix")}
+                    </label>
+                </div>
+                <div className="my-2">
+                    <input type="radio" id="exception" checked={exceptionChecked} onChange={exceptionHandler} />
+                    <label
+                        className="mx-2"
+                        htmlFor="exception">
+                        {this.i18n("verbMeaningExceptionPrefixTempl")(verbPart)}&nbsp;<strong>«{meanings[1].join(", ")}»</strong>&nbsp;{this.i18n("verbMeaningSuffix")}
+                    </label>
+                </div>
+            </fieldset>
         );
+    }
+
+    switchBetweenRegularAndException(e) {
+        e.preventDefault();
+        this.reloadToState(this.state.verb, this.state.sentenceType, !this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
     }
 
     renderDetectedVerbInvite() {
@@ -811,8 +843,8 @@ class ViewerApp extends React.Component {
             );
         }
         return (
-            <div className="text-3xl lg:text-sm text-orange-600 p-5">
-                {warning}
+            <div className="text-3xl lg:text-base p-5">
+                <p className="text-orange-600">{warning}</p>
                 {this.renderSwitcher()}
             </div>
         );

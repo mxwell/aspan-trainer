@@ -95,20 +95,24 @@ function prepareViewerOnlyTranslations(map) {
         (verb) => `«${verb}» етістігінің формаларын көрсету`,
     );
     setEnRuKz(map, "verbHasTwoMeaningsTempl",
-        (regularMeanings, exceptionMeanings) => `The verb has two meanings: one behaves regularly (${regularMeanings}), and the other behaves like an exception (${exceptionMeanings}).`,
-        (regularMeanings, exceptionMeanings) => `Глагол имеет два значения: одно спрягается обычным способом (${regularMeanings}), а другое как исключение (${exceptionMeanings}).`,
-        (regularMeanings, exceptionMeanings) => `Етістіктің екі мағынасы бар: біріншісі қарапайым әдіспен жіктеледі (${regularMeanings}), екіншісі ережеден тыс арқылы жіктеледі (${exceptionMeanings}).`,
+        (verb) => `The verb «${verb}» is conjugated in different ways depending on the meaning`,
+        (verb) => `Глагол «${verb}» спрягается по-разному в зависимости от значения`,
+        (verb) => `«${verb}» етістігі мағынасы бойынша айырымды жолдармен жіктеледі`,
     );
-    // TODO add text: Shown regular/exceptional verb with meanings
-    setEnRuKz(map, "switchToExceptionTempl",
-        (meanings) => `Switch to the exception verb (${meanings})`,
-        (meanings) => `Переключиться на глагол-исключение (${meanings})`,
-        (meanings) => `Ережеден тыс етістікке ауысу (${meanings})`,
+    setEnRuKz(map, "verbMeaningRegularPrefixTempl",
+        (verb) => `«${verb}» is conjugated in a regular way if its meaning is`,
+        (verb) => `«${verb}» спрягается обычным способом, если его значение`,
+        (verb) => `«${verb}» қарапайым жолмен жіктеледі, егер оның мағынасы`,
     );
-    setEnRuKz(map, "switchToRegularTempl",
-        (meanings) => `Switch to the regular verb (${meanings})`,
-        (meanings) => `Переключиться на обычный глагол (${meanings})`,
-        (meanings) => `Қарапайым етістікке ауысу (${meanings})`,
+    setEnRuKz(map, "verbMeaningExceptionPrefixTempl",
+        (verb) => `«${verb}» is conjugated in a special way if its meaning is`,
+        (verb) => `«${verb}» спрягается особым способом, если его значение`,
+        (verb) => `«${verb}» ережеден тыс жолмен жіктеледі, егер оның мағынасы`,
+    );
+    setEnRuKz(map, "verbMeaningSuffix",
+        "",
+        "",
+        "болса",
     );
     setEnRuKz(map, "wiktionary_title",
         "Wiktionary",
