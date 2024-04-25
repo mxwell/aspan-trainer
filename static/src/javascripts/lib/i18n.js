@@ -273,7 +273,7 @@ function prepareExplanationOnlyTranslations(map) {
     );
     setEnRu(map, "base_gain_templ",
         (gain) => `Exception verb: the form is formed by stripping 'у' or 'ю' at the end of the dictionary form and by adding '${gain}'`,
-        (gain) => `Глагол-исключение: при формирования основы удаляется 'у' или 'ю' на конце словарной формы, затем добавляется '${gain}'`,
+        (gain) => `Глагол-исключение: при формировании основы удаляется 'у' или 'ю' на конце словарной формы, затем добавляется '${gain}'`,
     );
     setEnRu(map, "base_gain_inside_templ",
         (gain) => `This special verb gains '${gain}' inside the base ahead of the following consonant`,
