@@ -121,6 +121,13 @@ function buildLugatUrl(verb, lang) {
     return buildUrl("https://www.lugat.kz/index.php", params);
 }
 
+function buildSozdikUrl(verb, lang) {
+    if (lang != I18N_LANG_RU) {
+        return null;
+    }
+    return `https://sozdik.kz/ru/dictionary/translate/kk/${lang}/${encodeURI(verb)}/`;
+}
+
 export {
     buildExplanationUrl,
     buildVerbDetectorUrl,
@@ -131,4 +138,5 @@ export {
     parseParams,
     buildGlosbeUrl,
     buildLugatUrl,
+    buildSozdikUrl,
 };

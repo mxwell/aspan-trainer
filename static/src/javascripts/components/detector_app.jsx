@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildGlosbeUrl, buildLugatUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
+import { buildGlosbeUrl, buildLugatUrl, buildSozdikUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
 import { normalizeVerb } from "../lib/verb_forms";
 import { pickRandom } from "../lib/random";
@@ -302,21 +302,29 @@ class DetectorApp extends React.Component {
         }
         const verb = detectedVerb.verb;
         const lang = this.props.lang;
+        const dicts = [
+            ["Glosbe", buildGlosbeUrl(verb, lang)],
+            ["Lugat", buildLugatUrl(verb, lang)],
+        ];
+        const sozdikUrl = buildSozdikUrl(verb, lang);
+        if (sozdikUrl != null) {
+            dicts.push(["Sozdik", sozdikUrl]);
+        }
+        let links = [];
+        for (let i = 0; i < dicts.length; i++) {
+            const [name, url] = dicts[i];
+            links.push(<a
+                key={i}
+                className="px-2 text-3xl lg:text-base text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                href={url}
+                target="blank_">
+                {name} &nbsp; ↗
+            </a>);
+        }
         return (
             <div className="flex flex-col border-2 border-gray-300 p-5 my-4">
                 <h2 className="text-xl my-2 text-gray-600">{this.i18n("lookupDictionaries")}</h2>
-                <a
-                    className="px-2 text-3xl lg:text-base text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                    href={buildGlosbeUrl(verb, lang)}
-                    target="blank_">
-                    Glosbe &nbsp; ↗
-                </a>
-                <a
-                    className="px-2 text-3xl lg:text-base text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                    href={buildLugatUrl(verb, lang)}
-                    target="blank_">
-                    Lugat &nbsp; ↗
-                </a>
+                {links}
             </div>
         );
     }
