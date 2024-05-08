@@ -464,8 +464,10 @@ class ViewerApp extends React.Component {
             return;
         }
 
+        const suggest = false;
         makeDetectRequest(
             form,
+            suggest,
             this.handleDetectResponse,
             this.handleDetectError,
             {

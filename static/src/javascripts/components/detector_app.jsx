@@ -21,6 +21,9 @@ const PRESET_VERB_FORMS = [
     "қобалжымайтынсыңдар",
 ];
 
+const DEFAULT_SUGGESTIONS = [];
+const DEFAULT_SUGGESTION_POS = -1;
+
 function pickExamples(chosenForm, exampleCount) {
     if (PRESET_VERB_FORMS.length < exampleCount + 1) {
         return [];
@@ -46,6 +49,7 @@ class DetectorApp extends React.Component {
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
@@ -54,6 +58,8 @@ class DetectorApp extends React.Component {
         return {
             form: form,
             lastEntered: form,
+            suggestions: DEFAULT_SUGGESTIONS,
+            currentFocus: DEFAULT_SUGGESTION_POS,
             examples: pickExamples(form, 2),
             verb: null,
             warning: warning,
@@ -68,7 +74,7 @@ class DetectorApp extends React.Component {
         );
     }
 
-    startDetection(prevLastEntered, rawForm) {
+    startDetection(prevLastEntered, rawForm, suggest) {
         const form = normalizeVerb(rawForm);
 
         if (form.length == 0) {
@@ -79,6 +85,7 @@ class DetectorApp extends React.Component {
 
         makeDetectRequest(
             form,
+            suggest,
             this.handleDetectResponse,
             this.handleDetectError,
             {
@@ -96,7 +103,7 @@ class DetectorApp extends React.Component {
             return null;
         }
         const warning = hasMixedAlphabets(form) ? this.i18n("mixedAlphabetsInForm") : null;
-        this.startDetection("", form);
+        this.startDetection("", form, false);
         return this.makeState(form, warning);
     }
 
@@ -112,8 +119,13 @@ class DetectorApp extends React.Component {
             if (response.words) {
                 const verb = unpackDetectResponse(response.words);
                 this.setState({ verb });
-            } else {
-                console.log("No words in response.");
+            }
+            if (response.suggestions && response.suggestions.length > 0) {
+                const suggestions = response.suggestions;
+                if (!(suggestions.length == 1 && suggestions[0].completion == lastEntered)) {
+                    const currentFocus = DEFAULT_SUGGESTION_POS;
+                    this.setState({ suggestions, currentFocus });
+                }
             }
         } else {
             console.log(`Detections are too old, lastEntered is ${lastEntered}.`);
@@ -128,11 +140,16 @@ class DetectorApp extends React.Component {
         this.setState({ verb, error });
     }
 
+    changeInputText(lastEntered, suggest) {
+        const warning = hasMixedAlphabets(lastEntered) ? this.i18n("mixedAlphabetsInForm") : null;
+        const suggestions = DEFAULT_SUGGESTIONS;
+        this.startDetection(this.state.lastEntered, lastEntered, suggest);
+        this.setState({ lastEntered, suggestions, warning });
+    }
+
     onChange(event) {
         let lastEntered = event.target.value;
-        const warning = hasMixedAlphabets(lastEntered) ? this.i18n("mixedAlphabetsInForm") : null;
-        this.startDetection(this.state.lastEntered, lastEntered);
-        this.setState({ lastEntered, warning });
+        this.changeInputText(lastEntered, true);
     }
 
     reloadToState(form) {
@@ -144,6 +161,87 @@ class DetectorApp extends React.Component {
         event.preventDefault();
         const form = this.state.lastEntered;
         this.reloadToState(form);
+    }
+
+    moveActiveSuggestion(posChange) {
+        if (posChange == 0) return;
+        let suggestions = this.state.suggestions;
+        let prevFocus = this.state.currentFocus;
+        let currentFocus = prevFocus + posChange;
+        if (currentFocus >= suggestions.length || suggestions.length == 0) {
+            currentFocus = 0;
+        } else if (currentFocus < 0) {
+            currentFocus = suggestions.length - 1;
+        }
+        this.setState({ currentFocus });
+    }
+
+    clearSuggestions() {
+        this.setState({
+            suggestions: DEFAULT_SUGGESTIONS,
+        });
+    }
+
+    activateSuggestion(lastEntered) {
+        this.changeInputText(lastEntered, false);
+    }
+
+    onKeyDown(e) {
+        if (e.keyCode == 40) {  // arrow down
+            this.moveActiveSuggestion(1);
+        } else if (e.keyCode == 38) { // arrow up
+            this.moveActiveSuggestion(-1);
+        } else if (e.keyCode == 27) { // esc
+            this.clearSuggestions();
+        } else if (e.keyCode == 13) { // enter
+            let suggestions = this.state.suggestions;
+            let currentFocus = this.state.currentFocus;
+            if (0 <= currentFocus && currentFocus < suggestions.length) {
+                e.preventDefault();
+                let lastEntered = suggestions[currentFocus].completion;
+                this.activateSuggestion(lastEntered);
+            }
+        }
+    }
+
+    onSuggestionClick(verb, e) {
+        e.stopPropagation();
+        let lastEntered = verb;
+        this.activateSuggestion(lastEntered);
+    }
+
+    renderSuggestions() {
+        let suggestions = this.state.suggestions;
+        if (suggestions.length == 0) {
+            return null;
+        }
+
+        let currentFocus = this.state.currentFocus;
+
+        let items = [];
+        for (let i = 0; i < suggestions.length; ++i) {
+            let completion = suggestions[i].completion;
+            let verb = completion;
+            let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
+            if (i == currentFocus) {
+                divClasses += " bg-blue-500 text-white";
+            } else {
+                divClasses += " bg-white text-gray-700";
+            }
+            items.push(
+                <div
+                    onClick={(e) => { this.onSuggestionClick(verb, e) }}
+                    key={i}
+                    className={divClasses} >
+                    {completion}
+                </div>
+            );
+        }
+        return (
+            <div className="absolute z-50 left-0 right-0 border-l-2 border-r-2 border-gray-300">
+                {items}
+            </div>
+        );
     }
 
     renderExampleForms() {
@@ -187,15 +285,19 @@ class DetectorApp extends React.Component {
     renderForm() {
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
-                <input
-                    type="text"
-                    size="20"
-                    maxLength="100"
-                    value={this.state.lastEntered}
-                    onChange={this.onChange}
-                    placeholder={this.i18n("hint_enter_verb_form")}
-                    className="shadow appearance-none border rounded w-full m-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                    autoFocus />
+                <div className="relative">
+                    <input
+                        type="text"
+                        size="20"
+                        maxLength="100"
+                        value={this.state.lastEntered}
+                        onChange={this.onChange}
+                        onKeyDown={this.onKeyDown}
+                        placeholder={this.i18n("hint_enter_verb_form")}
+                        className="shadow appearance-none border rounded w-full m-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        autoFocus />
+                    {this.renderSuggestions()}
+                </div>
                 {this.renderExampleForms()}
                 <input
                     type="submit"

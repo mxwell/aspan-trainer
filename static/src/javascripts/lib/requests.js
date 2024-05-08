@@ -55,8 +55,14 @@ function makeSuggestRequest(lastEntered, successCallback, errorCallback, context
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function makeDetectRequest(lastEntered, successCallback, errorCallback, context) {
-    const query = encodeQueryData({q: lastEntered});
+function makeDetectRequest(lastEntered, suggest, successCallback, errorCallback, context) {
+    const params = {
+        q: lastEntered,
+    };
+    if (suggest) {
+        params["suggest"] = "1";
+    }
+    const query = encodeQueryData(params);
     const url = `/detect?${query}`;
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
