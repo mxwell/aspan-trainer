@@ -50,6 +50,7 @@ class DetectorApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onBgClick = this.onBgClick.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
@@ -58,6 +59,7 @@ class DetectorApp extends React.Component {
         return {
             form: form,
             lastEntered: form,
+            modified: false,
             suggestions: DEFAULT_SUGGESTIONS,
             currentFocus: DEFAULT_SUGGESTION_POS,
             examples: pickExamples(form, 2),
@@ -141,10 +143,11 @@ class DetectorApp extends React.Component {
     }
 
     changeInputText(lastEntered, suggest) {
+        const modified = true;
         const warning = hasMixedAlphabets(lastEntered) ? this.i18n("mixedAlphabetsInForm") : null;
         const suggestions = DEFAULT_SUGGESTIONS;
         this.startDetection(this.state.lastEntered, lastEntered, suggest);
-        this.setState({ lastEntered, suggestions, warning });
+        this.setState({ lastEntered, modified, suggestions, warning });
     }
 
     onChange(event) {
@@ -210,6 +213,10 @@ class DetectorApp extends React.Component {
         this.activateSuggestion(lastEntered);
     }
 
+    onBgClick(e) {
+        this.clearSuggestions();
+    }
+
     renderSuggestions() {
         let suggestions = this.state.suggestions;
         if (suggestions.length == 0) {
@@ -238,7 +245,7 @@ class DetectorApp extends React.Component {
             );
         }
         return (
-            <div className="absolute z-50 left-0 right-0 border-l-2 border-r-2 border-gray-300">
+            <div className="absolute z-50 left-0 right-0 border-l-2 border-r-2 border-gray-300 mx-2">
                 {items}
             </div>
         );
@@ -285,25 +292,27 @@ class DetectorApp extends React.Component {
     renderForm() {
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
-                <div className="relative">
-                    <input
-                        type="text"
-                        size="20"
-                        maxLength="100"
-                        value={this.state.lastEntered}
-                        onChange={this.onChange}
-                        onKeyDown={this.onKeyDown}
-                        placeholder={this.i18n("hint_enter_verb_form")}
-                        className="shadow appearance-none border rounded w-full m-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                        autoFocus />
-                    {this.renderSuggestions()}
+                <div className="flex">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            size="20"
+                            maxLength="100"
+                            value={this.state.lastEntered}
+                            onChange={this.onChange}
+                            onKeyDown={this.onKeyDown}
+                            placeholder={this.i18n("hint_enter_verb_form")}
+                            className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            autoFocus />
+                        {this.renderSuggestions()}
+                    </div>
+                    <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                        →
+                    </button>
                 </div>
                 {this.renderExampleForms()}
-                <input
-                    type="submit"
-                    value={this.i18n("buttonSubmit")}
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl lg:text-2xl uppercase m-2 w-full font-bold rounded focus:outline-none focus:shadow-outline"
-                />
             </form>
         );
     }
@@ -344,6 +353,9 @@ class DetectorApp extends React.Component {
         } else if (this.state.error) {
             result = this.i18n("service_error");
             extraClass = "text-red-600";
+        } else if (this.state.modified) {
+            result = "(·_·)";
+            extraClass = "text-gray-600";
         } else {
             result = this.i18n("no_verb_detected");
             extraClass = "text-gray-600";
@@ -351,7 +363,7 @@ class DetectorApp extends React.Component {
         return (
             <div className="flex flex-col">
                 {this.renderWarning()}
-                <p className={`text-center text-4xl lg:text-3xl lg:max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
+                <p className={`text-center text-4xl lg:text-3xl max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
                 {this.renderAllFormsLink()}
             </div>
         );
@@ -433,7 +445,7 @@ class DetectorApp extends React.Component {
 
     render() {
         return (
-            <div>
+            <div onClick={this.onBgClick}>
                 <h1 className="text-center text-4xl italic text-gray-600">
                     {this.i18n("title_verb_detector")}
                 </h1>
