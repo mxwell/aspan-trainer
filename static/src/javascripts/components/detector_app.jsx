@@ -50,6 +50,7 @@ class DetectorApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onCopyClick = this.onCopyClick.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
@@ -64,6 +65,7 @@ class DetectorApp extends React.Component {
             currentFocus: DEFAULT_SUGGESTION_POS,
             examples: pickExamples(form, 2),
             verb: null,
+            copied: false,
             warning: warning,
             error: false,
         };
@@ -120,7 +122,8 @@ class DetectorApp extends React.Component {
         if (lastEntered == context.prevEntered || lastEntered == context.lastEntered) {
             if (response.words) {
                 const verb = unpackDetectResponse(response.words);
-                this.setState({ verb });
+                const copied = false;
+                this.setState({ verb, copied });
             }
             if (response.suggestions && response.suggestions.length > 0) {
                 const suggestions = response.suggestions;
@@ -252,6 +255,10 @@ class DetectorApp extends React.Component {
     }
 
     renderExampleForms() {
+        if (this.state.lastEntered.length > 0) {
+            return null;
+        }
+
         const forms = this.state.examples;
         let items = [];
         items.push(
@@ -323,8 +330,18 @@ class DetectorApp extends React.Component {
             return null;
         }
         return (
-            <p className="text-red-600 text-center text-2xl lg:text-base lg:max-w-xs m-4 py-4">{warning}</p>
+            <p className="text-red-600 text-center text-2xl lg:text-base max-w-sm m-4 py-4">{warning}</p>
         );
+    }
+
+    onCopyClick(e) {
+        navigator.clipboard.writeText(this.state.verb.verb).then(function() {
+            const copied = true;
+            console.log("Copied to clipboard");
+            this.setState({ copied });
+          }, function(err) {
+            console.error(`Could not copy to clipboard: ${err}`);
+          });
     }
 
     renderAllFormsLink() {
@@ -346,9 +363,16 @@ class DetectorApp extends React.Component {
 
     renderFindings() {
         let result = null;
+        let copyIcon = null;
         let extraClass = null;
         if (this.state.verb != null) {
             result = this.state.verb.verb;
+            copyIcon = (
+                <img
+                    className="mx-2"
+                    onClick={this.onCopyClick}
+                    src={this.state.copied ? "/copy_pressed.svg" : "/copy.svg"} />
+            );
             extraClass = "text-green-700";
         } else if (this.state.error) {
             result = this.i18n("service_error");
@@ -363,7 +387,11 @@ class DetectorApp extends React.Component {
         return (
             <div className="flex flex-col">
                 {this.renderWarning()}
-                <p className={`text-center text-4xl lg:text-3xl max-w-xs m-4 py-4 ${extraClass}`}>{result}</p>
+                <div
+                    className={`text-center text-4xl lg:text-3xl max-w-sm m-4 py-4 flex justify-center ${extraClass}`}>
+                    <span>{result}</span>
+                    {copyIcon}
+                </div>
                 {this.renderAllFormsLink()}
             </div>
         );

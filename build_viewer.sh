@@ -15,7 +15,8 @@ parcel build static/src/html/verb_detector_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
 
-cp static/src/images/{bg1.webp,expand_down.svg,expand_up.svg,toggle_off.svg,toggle_on.svg} $OUTPUT_DIR/
+cp static/src/images/bg1.webp $OUTPUT_DIR/
+cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 
 mv "${OUTPUT_DIR}/viewer.html" "${OUTPUT_DIR}/index.html"
 mkdir -p ${EN_OUTPUT}
