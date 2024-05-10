@@ -50,6 +50,7 @@ class DetectorApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.onCopySuccess = this.onCopySuccess.bind(this);
         this.onCopyClick = this.onCopyClick.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
 
@@ -334,14 +335,19 @@ class DetectorApp extends React.Component {
         );
     }
 
+    onCopySuccess() {
+        console.log("Copied to clipboard");
+        const copied = true;
+        this.setState({ copied });
+    }
+
     onCopyClick(e) {
-        navigator.clipboard.writeText(this.state.verb.verb).then(function() {
-            const copied = true;
-            console.log("Copied to clipboard");
-            this.setState({ copied });
-          }, function(err) {
-            console.error(`Could not copy to clipboard: ${err}`);
-          });
+        navigator.clipboard.writeText(this.state.verb.verb).then(
+            this.onCopySuccess,
+            function(err) {
+                console.error(`Could not copy to clipboard: ${err}`);
+            }
+        );
     }
 
     renderAllFormsLink() {
@@ -369,7 +375,7 @@ class DetectorApp extends React.Component {
             result = this.state.verb.verb;
             copyIcon = (
                 <img
-                    className="mx-2"
+                    className="mx-2 h-12 w-12"
                     onClick={this.onCopyClick}
                     src={this.state.copied ? "/copy_pressed.svg" : "/copy.svg"} />
             );
