@@ -41,6 +41,17 @@ function pickExamples(chosenForm, exampleCount) {
     return forms;
 }
 
+function catCompletion(suggestion) {
+    const completion = suggestion.completion;
+    let parts = [];
+    if (completion) {
+        for (let i = 0; i < completion.length; ++i) {
+            parts.push(completion[i].text);
+        }
+    }
+    return parts.join("");
+}
+
 class DetectorApp extends React.Component {
     constructor(props) {
         super(props);
@@ -127,8 +138,14 @@ class DetectorApp extends React.Component {
                 this.setState({ verb, copied });
             }
             if (response.suggestions && response.suggestions.length > 0) {
-                const suggestions = response.suggestions;
-                if (!(suggestions.length == 1 && suggestions[0].completion == lastEntered)) {
+                const suggestions = [];
+                for (let i = 0; i < response.suggestions.length; ++i) {
+                    suggestions.push({
+                        completion: response.suggestions[i].completion,
+                        raw: catCompletion(response.suggestions[i]),
+                    });
+                }
+                if (!(suggestions.length == 1 && suggestions[0].raw == lastEntered)) {
                     const currentFocus = DEFAULT_SUGGESTION_POS;
                     this.setState({ suggestions, currentFocus });
                 }
@@ -205,7 +222,7 @@ class DetectorApp extends React.Component {
             let currentFocus = this.state.currentFocus;
             if (0 <= currentFocus && currentFocus < suggestions.length) {
                 e.preventDefault();
-                let lastEntered = suggestions[currentFocus].completion;
+                let lastEntered = suggestions[currentFocus].raw;
                 this.activateSuggestion(lastEntered);
             }
         }
@@ -232,7 +249,16 @@ class DetectorApp extends React.Component {
         let items = [];
         for (let i = 0; i < suggestions.length; ++i) {
             let completion = suggestions[i].completion;
-            let verb = completion;
+            let parts = [];
+            for (let j = 0; j < completion.length; ++j) {
+                let item = completion[j];
+                if (item.hl) {
+                    parts.push(<strong key={j}>{item.text}</strong>);
+                } else {
+                    parts.push(<span key={j}>{item.text}</span>);
+                }
+            }
+            let verb = suggestions[i].raw;
             let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
             if (i == currentFocus) {
                 divClasses += " bg-blue-500 text-white";
@@ -244,7 +270,7 @@ class DetectorApp extends React.Component {
                     onClick={(e) => { this.onSuggestionClick(verb, e) }}
                     key={i}
                     className={divClasses} >
-                    {completion}
+                    {parts}
                 </div>
             );
         }
