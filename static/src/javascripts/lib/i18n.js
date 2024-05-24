@@ -494,6 +494,57 @@ function prepareTopOnlyTranslations(map) {
     );
 }
 
+function prepareDeclensionAppOnlyTranslations(map) {
+    setEnRu(map, "hint_enter_word",
+        "Enter word",
+        "Введите слово",
+    );
+    setEnRu(map, "declension_of",
+        "Declension of",
+        "Склонение",
+    );
+    setEnRu(map, "singularSubject",
+        "Singular",
+        "Единственное число",
+    );
+
+    setEnRuKz(map, "septik_0",
+        "nominative",
+        "именительный",
+        "атау",
+    );
+    setEnRuKz(map, "septik_1",
+        "original",
+        "исходный",
+        "шығыс",
+    );
+    setEnRuKz(map, "septik_2",
+        "local",
+        "местный",
+        "жатыс",
+    );
+    setEnRuKz(map, "septik_3",
+        "dative",
+        "дательный",
+        "барыс",
+    );
+    setEnRuKz(map, "septik_4",
+        "genitive",
+        "родительный",
+        "ілік",
+    );
+    setEnRuKz(map, "septik_5",
+        "accusative",
+        "винительный",
+        "табыс",
+    );
+    setEnRuKz(map, "septik_6",
+        "instrumental",
+        "творительный",
+        "көмектес",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -503,6 +554,7 @@ function prepareTranslations() {
     prepareDetectorOnlyTranslations(map);
     prepareQuizOnlyTranslations(map);
     prepareTopOnlyTranslations(map);
+    prepareDeclensionAppOnlyTranslations(map);
 
     return map;
 }

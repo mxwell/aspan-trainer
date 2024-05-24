@@ -12,6 +12,7 @@ rm -rf $OUTPUT_DIR/*
 parcel build static/src/html/about_{en,kk,ru}.pug
 parcel build static/src/html/present_top_{en,ru}.pug
 parcel build static/src/html/verb_detector_{en,ru}.pug
+parcel build static/src/html/declension_ru.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
 

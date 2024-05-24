@@ -35,6 +35,14 @@ function buildUrl(path, params) {
     return `${path}?${params.join("&")}`;
 }
 
+function buildDeclensionUrl(subject, lang) {
+    let params = [
+        `subject=${encodeURI(subject)}`,
+    ];
+    const path = `/declension_${lang}.html`;
+    return buildUrl(path, params);
+}
+
 function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person, number, lang) {
     let params = [
         `verb=${encodeURI(verb)}`,
@@ -129,6 +137,7 @@ function buildSozdikUrl(verb, lang) {
 }
 
 export {
+    buildDeclensionUrl,
     buildExplanationUrl,
     buildVerbDetectorUrl,
     buildViewerUrl,
