@@ -14,6 +14,10 @@ function highlightPhrasal(phrasal) {
         // TODO support more part types
         if (pt == PHRASAL_PART_TYPE.NounBase) {
             partClasses = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.PluralAffix) {
+            partClasses = "text-pink-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.PossessiveAffix) {
+            partClasses = "text-indigo-600 font-bold";
         } else if (pt == PHRASAL_PART_TYPE.SeptikAffix) {
             partClasses = "text-orange-600 font-bold";
         }
@@ -151,10 +155,10 @@ class DeclensionApp extends React.Component {
         )
         return (
             <div className="px-6 flex flex-col" key={tableNameKey}>
-                <h3
-                    className="text-5xl lg:text-xl font-bold text-red-400">
+                <h4
+                    className="text-5xl lg:text-lg text-red-400">
                     {this.i18n(tableNameKey)}
-                </h3>
+                </h4>
                 {content}
             </div>
         );
@@ -181,6 +185,14 @@ class DeclensionApp extends React.Component {
         let groups = [];
         for (let i = 0; i < groupNames.length; ++i) {
             const groupNameKey = groupNames[i];
+            if (groupNameKey.length > 0) {
+                groups.push(
+                    <h3
+                        className="px-6 text-5xl lg:text-xl italic text-red-800">
+                        {this.i18n(groupNameKey)}
+                    </h3>
+                );
+            }
             const tables = groupedTables[groupNameKey];
             groups.push(
                 <div

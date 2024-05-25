@@ -1,4 +1,4 @@
-import { NounBuilder, SEPTIKS } from "./aspan";
+import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS, NounBuilder, SEPTIKS } from "./aspan";
 
 class DeclensionForm {
     constructor(septik, phrasal) {
@@ -32,8 +32,22 @@ export function generateDeclensionTables(subject) {
     let nounBuilder = new NounBuilder(subject);
     tables.push(createForms(
         "singularSubject",
-        "regularSubject",
+        "",
         septik => nounBuilder.septikForm(septik),
     ));
+    tables.push(createForms(
+        "pluralSubject",
+        "",
+        septik => nounBuilder.pluralSeptikForm(septik),
+    ));
+    for (const person of GRAMMAR_PERSONS) {
+        for (const number of GRAMMAR_NUMBERS) {
+            tables.push(createForms(
+                `possessive_${number}`,
+                `possessive_${person}`,
+                septik => nounBuilder.possessiveSeptikForm(person, number, septik),
+            ));
+        }
+    }
     return tables;
 }

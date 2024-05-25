@@ -507,6 +507,34 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "Singular",
         "Единственное число",
     );
+    setEnRu(map, "pluralSubject",
+        "Plural",
+        "Множественное число",
+    );
+    setEnRu(map, "possessive_First",
+        "1st person possessive",
+        "Притяжательные формы первого лица",
+    );
+    setEnRu(map, "possessive_Second",
+        "2nd person possessive",
+        "Притяжательные формы второго лица",
+    );
+    setEnRu(map, "possessive_SecondPolite",
+        "2nd person possessive (polite)",
+        "Притяжательные формы второго лица (вежливые)",
+    );
+    setEnRu(map, "possessive_Third",
+        "3rd person possessive",
+        "Притяжательные формы третьего лица",
+    );
+    setEnRu(map, "possessive_Singular",
+        "Singular",
+        "Единственное число",
+    );
+    setEnRu(map, "possessive_Plural",
+        "Plural",
+        "Множественное число",
+    );
 
     setEnRuKz(map, "septik_0",
         "nominative",
