@@ -152,13 +152,24 @@ class DeclensionApp extends React.Component {
                     </tbody>
                 </table>
             </div>
-        )
+        );
+        const title = (declTable.tableNameKey == null ? null : (
+            <h4
+                className="text-5xl lg:text-lg text-red-400">
+                {this.i18n(tableNameKey)}
+            </h4>
+        ));
+        const icon = (declTable.icon == null ? null : (
+            <div className="flex justify-center">
+                <img
+                    src={declTable.icon}
+                    className="w-32 h-32 lg:w-16 lg:h-16" />
+            </div>
+        ));
         return (
             <div className="px-6 flex flex-col" key={tableNameKey}>
-                <h4
-                    className="text-5xl lg:text-lg text-red-400">
-                    {this.i18n(tableNameKey)}
-                </h4>
+                {title}
+                {icon}
                 {content}
             </div>
         );
