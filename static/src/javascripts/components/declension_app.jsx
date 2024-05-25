@@ -142,6 +142,27 @@ class DeclensionApp extends React.Component {
         return rows;
     }
 
+    renderIconsRow(icons) {
+        if (icons == null || icons.length == 0) {
+            return null;
+        }
+
+        let items = [];
+        for (const icon of icons) {
+            items.push(
+                <img
+                    key={items.length}
+                    src={icon}
+                    className="m-2 w-32 h-32 lg:w-16 lg:h-16" />
+            );
+        }
+        return (
+            <div className="flex justify-center">
+                {items}
+            </div>
+        );
+    }
+
     renderOneTable(declTable) {
         const tableNameKey = declTable.tableNameKey;
         const content = (
@@ -159,17 +180,10 @@ class DeclensionApp extends React.Component {
                 {this.i18n(tableNameKey)}
             </h4>
         ));
-        const icon = (declTable.icon == null ? null : (
-            <div className="flex justify-center">
-                <img
-                    src={declTable.icon}
-                    className="w-32 h-32 lg:w-16 lg:h-16" />
-            </div>
-        ));
         return (
             <div className="px-6 flex flex-col" key={tableNameKey}>
                 {title}
-                {icon}
+                {this.renderIconsRow(declTable.icons)}
                 {content}
             </div>
         );
