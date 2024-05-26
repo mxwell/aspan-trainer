@@ -35,10 +35,13 @@ function buildUrl(path, params) {
     return `${path}?${params.join("&")}`;
 }
 
-function buildDeclensionUrl(subject, lang) {
+function buildDeclensionUrl(subject, forceAlternative, lang) {
     let params = [
         `subject=${encodeURI(subject)}`,
     ];
+    if (forceAlternative) {
+        params.push("alternative=true");
+    }
     const path = `/declension_${lang}.html`;
     return buildUrl(path, params);
 }

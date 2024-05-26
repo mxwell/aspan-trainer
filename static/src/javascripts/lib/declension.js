@@ -1,4 +1,8 @@
-import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS, NounBuilder, SEPTIKS } from "./aspan";
+import { GRAMMAR_PERSONS, NounBuilder, SEPTIKS, getDeclAltInfo } from "./aspan";
+
+export function declensionAlternativeInfo(subject) {
+    return getDeclAltInfo(subject);
+}
 
 class DeclensionForm {
     constructor(septik, phrasal) {
@@ -19,28 +23,38 @@ class DeclensionTable {
     }
 }
 
-function createForms(tableNameKey, groupNameKey, icons, septikFn) {
+function extractPhrasal(phrasal, forceAlternative) {
+    if (forceAlternative && phrasal.alternative != null) {
+        return phrasal.alternative;
+    }
+    return phrasal;
+}
+
+function createForms(tableNameKey, groupNameKey, icons, forceAlternative, septikFn) {
     let forms = [];
     for (const septik in SEPTIKS) {
-        const phrasal = septikFn(septik);
+        const origPhrasal = septikFn(septik);
+        const phrasal = extractPhrasal(origPhrasal, forceAlternative);
         forms.push(new DeclensionForm(septik, phrasal));
     }
     return new DeclensionTable(tableNameKey, groupNameKey, icons, forms);
 }
 
-export function generateDeclensionTables(subject) {
+export function generateDeclensionTables(subject, forceAlternative) {
     let tables = [];
     let nounBuilder = new NounBuilder(subject);
     tables.push(createForms(
         "singularSubject",
         "",
         null,
+        forceAlternative,
         septik => nounBuilder.septikForm(septik),
     ));
     tables.push(createForms(
         "pluralSubject",
         "",
         null,
+        forceAlternative,
         septik => nounBuilder.pluralSeptikForm(septik),
     ));
     const ic1 = "/one_to_one.png";
@@ -53,24 +67,28 @@ export function generateDeclensionTables(subject) {
         null,
         firstPossGroup,
         [ic1],
+        forceAlternative,
         septik => nounBuilder.possessiveSeptikForm("First", "Singular", septik),
     ));
     tables.push(createForms(
         null,
         firstPossGroup,
         [ic2],
+        forceAlternative,
         septik => nounBuilder.pluralPossessiveSeptikForm("First", "Singular", septik),
     ));
     tables.push(createForms(
         null,
         firstPossGroup,
         [ic3],
+        forceAlternative,
         septik => nounBuilder.possessiveSeptikForm("First", "Plural", septik),
     ));
     tables.push(createForms(
         null,
         firstPossGroup,
         [ic4],
+        forceAlternative,
         septik => nounBuilder.pluralPossessiveSeptikForm("First", "Plural", septik),
     ));
 
@@ -82,12 +100,14 @@ export function generateDeclensionTables(subject) {
             null,
             groupNameKey,
             [ic1],
+            forceAlternative,
             septik => nounBuilder.possessiveSeptikForm(person, "Singular", septik),
         ));
         tables.push(createForms(
             null,
             groupNameKey,
             [ic2, ic3, ic4],
+            forceAlternative,
             septik => nounBuilder.pluralPossessiveSeptikForm(person, "Plural", septik),
         ));
     }

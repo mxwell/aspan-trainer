@@ -499,9 +499,21 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "Enter word",
         "Введите слово",
     );
+    setEnRu(map, "word_two_declensions_templ",
+        (word) => `The word «${word}» can be declined in two ways`,
+        (word) => `Слово «${word}» можно склонять двумя способами`,
+    );
+    setEnRu(map, "word_decl_drop_vowel_templ",
+        (word) => `«${word}» is declined by dropping a vowel in the last syllable if its meaning is`,
+        (word) => `«${word}» склоняется с выпадением гласной в последнем слоге, если его значение`,
+    );
+    setEnRu(map, "word_decl_keep_vowel_templ",
+        (word) => `«${word}» is declined without dropping a vowel if its meaning is`,
+        (word) => `«${word}» склоняется без выпадения гласной, если его значение`,
+    );
     setEnRu(map, "declension_of",
-        "Declension of",
-        "Склонение",
+        "Declension of the Kazakh word",
+        "Склонение казахского слова",
     );
     setEnRu(map, "singularSubject",
         "Singular",

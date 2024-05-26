@@ -1,7 +1,7 @@
 import React from 'react';
 import { buildDeclensionUrl, parseParams } from '../lib/url';
 import { i18n } from '../lib/i18n';
-import { generateDeclensionTables } from '../lib/declension';
+import { declensionAlternativeInfo, generateDeclensionTables } from '../lib/declension';
 import { PHRASAL_PART_TYPE } from '../lib/aspan';
 
 function highlightPhrasal(phrasal) {
@@ -42,20 +42,23 @@ class DeclensionApp extends React.Component {
 
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.switchBetweenDeclensions = this.switchBetweenDeclensions.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(subject, lastEntered, declTables) {
+    makeState(subject, declAltInfo, forceAlternative, lastEntered, declTables) {
         return {
             subject: subject,
+            declAltInfo: declAltInfo,
+            forceAlternative: forceAlternative,
             lastEntered: lastEntered,
             declTables: declTables
         };
     }
 
     defaultState() {
-        return this.makeState("", "", []);
+        return this.makeState("", null, false, "", []);
     }
 
     readUrlState() {
@@ -64,8 +67,10 @@ class DeclensionApp extends React.Component {
         if (subject == null || subject.length <= 0) {
             return null;
         }
-        let declTables = generateDeclensionTables(subject);
-        return this.makeState(subject, subject, declTables);
+        const forceAlternative = params.alternative == "true"
+        const declAltInfo = declensionAlternativeInfo(subject);
+        let declTables = generateDeclensionTables(subject, forceAlternative);
+        return this.makeState(subject, declAltInfo, forceAlternative, subject, declTables);
     }
 
     i18n(key) {
@@ -81,23 +86,71 @@ class DeclensionApp extends React.Component {
         this.changeInputText(lastEntered);
     }
 
-    reloadToState(subject) {
+    reloadToState(subject, forceAlternative) {
         if (subject == null || subject.length <= 0) {
             console.log("Not reloading: empty subject");
             return;
         }
-        const url = buildDeclensionUrl(subject, this.props.lang);
+        const url = buildDeclensionUrl(subject, forceAlternative, this.props.lang);
         window.location.href = url;
     }
 
     onSubmit(event) {
         event.preventDefault();
-        this.reloadToState(this.state.lastEntered);
+        this.reloadToState(this.state.lastEntered, false);
     }
 
     renderExampleForms() {
         // TODO impl.
         return null;
+    }
+
+    switchBetweenDeclensions(e) {
+        e.preventDefault();
+        this.reloadToState(this.state.subject, !this.state.forceAlternative);
+    }
+
+    renderSwitcher() {
+        const declAltInfo = this.state.declAltInfo;
+        if (declAltInfo == null) {
+            return null;
+        }
+
+        let regChecked = null;
+        let altChecked = null;
+        let regHandler = null;
+        let altHandler = null;
+        if (this.state.forceAlternative) {
+            altChecked = "checked";
+            regHandler = this.switchBetweenDeclensions;
+        } else {
+            regChecked = "checked";
+            altHandler = this.switchBetweenDeclensions;
+        }
+
+        return (
+            <div className="text-3xl lg:text-lg p-5">
+                <p className="text-orange-600">{this.i18n("word_two_declensions_templ")(declAltInfo.noun)}</p>
+                <fieldset>
+                    <div className="my-2">
+                        <input type="radio" id="reg" checked={regChecked} onChange={regHandler} />
+                        <label
+                            className="mx-2"
+                            htmlFor="reg">
+                            {this.i18n("word_decl_drop_vowel_templ")(declAltInfo.noun)}&nbsp;«<strong>{declAltInfo.dropVowelMeaning}</strong>»
+                        </label>
+                    </div>
+                    <div className="my-2">
+                        <input type="radio" id="alt" checked={altChecked} onChange={altHandler} />
+                        <label
+                            className="mx-2"
+                            htmlFor="alt">
+                            {this.i18n("word_decl_keep_vowel_templ")(declAltInfo.noun)}&nbsp;«<strong>{declAltInfo.keepVowelMeaning}</strong>»
+                        </label>
+                    </div>
+                </fieldset>
+            </div>
+        );
     }
 
     renderForm() {
@@ -239,6 +292,7 @@ class DeclensionApp extends React.Component {
         return (
             <div>
                 {this.renderForm()}
+                {this.renderSwitcher()}
                 {this.renderDeclTables()}
             </div>
         );
