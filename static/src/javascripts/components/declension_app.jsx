@@ -3,6 +3,48 @@ import { buildDeclensionUrl, parseParams } from '../lib/url';
 import { i18n } from '../lib/i18n';
 import { declensionAlternativeInfo, generateDeclensionTables } from '../lib/declension';
 import { PHRASAL_PART_TYPE } from '../lib/aspan';
+import { getRandomInt, pickRandom } from '../lib/random';
+
+const PRESET_NOUNS = [
+    "алма",
+    "ақпарат",
+    "ауыз",
+    "әйел",
+    "дауыс хат",
+    "дүкен",
+    "кофеұсатқыш",
+    "септік",
+    "түйме",
+    "ыдыс",
+];
+
+function pickExamples(exampleCount) {
+    if (PRESET_NOUNS.length <= exampleCount) {
+        return PRESET_NOUNS;
+    }
+    let examples = [];
+    let remaining = PRESET_NOUNS.length;
+    for (let i = 0; i < exampleCount; ++i) {
+        let pos = getRandomInt(remaining - 1);
+        let index = 0;
+        for (let j = 0; j < pos; ++j) {
+            while (index < PRESET_NOUNS.length && examples.includes(PRESET_NOUNS[index])) {
+                index += 1;
+            }
+            index += 1;
+        }
+        while (index < PRESET_NOUNS.length && examples.includes(PRESET_NOUNS[index])) {
+            index += 1;
+        }
+        if (index >= PRESET_NOUNS.length) {
+            examples.push(pickRandom(PRESET_NOUNS));
+        } else {
+            examples.push(PRESET_NOUNS[index]);
+            remaining -= 1;
+        }
+    }
+    return examples;
+}
 
 function highlightPhrasal(phrasal) {
     let htmlParts = [];
@@ -47,18 +89,20 @@ class DeclensionApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(subject, declAltInfo, forceAlternative, lastEntered, declTables) {
+    makeState(subject, declAltInfo, forceAlternative, lastEntered, examples, declTables) {
         return {
             subject: subject,
             declAltInfo: declAltInfo,
             forceAlternative: forceAlternative,
             lastEntered: lastEntered,
+            examples: examples,
             declTables: declTables
         };
     }
 
     defaultState() {
-        return this.makeState("", null, false, "", []);
+        const examples = pickExamples(2);
+        return this.makeState("", null, false, "", examples, []);
     }
 
     readUrlState() {
@@ -70,7 +114,7 @@ class DeclensionApp extends React.Component {
         const forceAlternative = params.alternative == "true"
         const declAltInfo = declensionAlternativeInfo(subject);
         let declTables = generateDeclensionTables(subject, forceAlternative);
-        return this.makeState(subject, declAltInfo, forceAlternative, subject, declTables);
+        return this.makeState(subject, declAltInfo, forceAlternative, subject, [], declTables);
     }
 
     i18n(key) {
@@ -101,8 +145,47 @@ class DeclensionApp extends React.Component {
     }
 
     renderExampleForms() {
-        // TODO impl.
-        return null;
+        if (this.state.lastEntered.length > 0) {
+            return null;
+        }
+        const examples = this.state.examples;
+        if (examples.length == 0) {
+            return null;
+        }
+        let items = [];
+        items.push(
+            <span
+                className="px-2 lg:px-1 text-3xl lg:text-lg text-gray-600"
+                key={items.length} >
+                {this.i18n("examples")}:&nbsp;
+            </span>
+        );
+        for (let i = 0; i < examples.length; ++i) {
+            let example = examples[i];
+            const link = buildDeclensionUrl(example, false, this.props.lang);
+            if (i > 0) {
+                items.push(
+                    <span
+                        className="text-3xl lg:text-lg text-gray-600"
+                        key={items.length}>
+                        &nbsp;{this.i18n("or")}&nbsp;
+                    </span>
+                );
+            }
+            items.push(
+                <a
+                    className="px-2 lg:px-1 text-3xl lg:text-lg text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                    key={items.length}
+                    href={link} >
+                    {example}
+                </a>
+            );
+        }
+        return (
+            <div className="mx-2 py-4 lg:py-0">
+                {items}
+            </div>
+        );
     }
 
     switchBetweenDeclensions(e) {
