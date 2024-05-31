@@ -367,6 +367,17 @@ class DeclensionApp extends React.Component {
             <div>
                 <h2 className="px-6 text-3xl lg:text-4xl italic text-gray-600">{`${this.i18n("declension_of")} «${this.state.subject}»`}</h2>
                 {groups}
+                <div className="m-4">
+                    <p className="text-4xl lg:text-base">{this.i18n("altDeclSources")}:</p>
+                    <ul>
+                        <li className="list-disc mx-4 text-4xl lg:text-base">
+                            <a className="text-green-600 underline" href="https://morpher.kz/" target="_blank">Morpher.kz</a>
+                        </li>
+                        <li className="list-disc mx-4 text-4xl lg:text-base">
+                            <a className="text-green-600 underline" href="https://findhow.org/4083-sklonenie-po-padezham-kazaksha.html" target="_blank">FindHow.org</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         );
     }

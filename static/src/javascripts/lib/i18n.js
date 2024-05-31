@@ -515,6 +515,10 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "Declension of the Kazakh word",
         "Склонение казахского слова",
     );
+    setEnRu(map, "altDeclSources",
+        "Alternative services for declension of Kazakh words",
+        "Альтернативные сервисы для склонения слов на казахском языке",
+    );
     setEnRu(map, "singularSubject",
         "Singular",
         "Единственное число",
