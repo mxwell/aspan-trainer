@@ -55,9 +55,10 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType) {
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
 
     let forms = [];
-    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType), true))
-    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType), true));
-    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType), true));
+    const declinable = (sentenceType == "Statement" || sentenceType == "Negative");
+    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType), declinable))
+    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType), declinable));
+    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType), declinable));
     return new TenseForms("participle", "participle", forms);
 }
 
