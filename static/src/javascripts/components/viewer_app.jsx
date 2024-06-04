@@ -12,6 +12,7 @@ import { getRandomInt, pickRandom } from '../lib/random';
 import { renderOptionsWithI18nKeys, renderOptionsWithKeys } from "../lib/react_util";
 import { makeDetectRequest, makeSuggestRequest } from '../lib/requests';
 import {
+    buildDeclensionUrl,
     buildExplanationUrl,
     buildViewerUrl,
     buildViewerUrl2,
@@ -591,6 +592,23 @@ class ViewerApp extends React.Component {
         );
     }
 
+    buildDeclensionLinkCell(verbForm) {
+        if (!verbForm.declinable) {
+            return null;
+        }
+        const subject = verbForm.verbPhrase.raw;
+        const url = buildDeclensionUrl(subject, false, this.props.lang);
+        return (
+            <td className="pl-1">
+                [<a
+                    className="text-blue-600"
+                    href={url}>
+                    {this.i18n("declLink")}↗
+                </a>]
+            </td>
+        );
+    }
+
     renderFormRows(tenseForms, tense) {
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
@@ -603,6 +621,7 @@ class ViewerApp extends React.Component {
                     <td>{labelText}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
                     {this.buildExplanationLinkCell(tense, i)}
+                    {this.buildDeclensionLinkCell(form)}
                 </tr>
             );
         }

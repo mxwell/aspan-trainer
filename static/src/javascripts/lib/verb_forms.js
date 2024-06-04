@@ -13,10 +13,11 @@ import {
 import { getRandomInt, pickRandom } from './random';
 
 class VerbForm {
-    constructor(pronoun, formKey, verbPhrase) {
+    constructor(pronoun, formKey, verbPhrase, declinable) {
         this.pronoun = pronoun;
         this.formKey = formKey;
         this.verbPhrase = verbPhrase;
+        this.declinable = declinable;
     }
 }
 
@@ -44,7 +45,7 @@ function createForms(tenseNameKey, groupNameKey, pronounType, caseFn) {
         for (const number of GRAMMAR_NUMBERS) {
             const verbPhrase = caseFn(person, number);
             const pronoun = getPronounByParams(pronounType, person, number);
-            forms.push(new VerbForm(pronoun, null, verbPhrase));
+            forms.push(new VerbForm(pronoun, null, verbPhrase, false));
         }
     }
     return new TenseForms(tenseNameKey, groupNameKey, forms);
@@ -54,9 +55,9 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType) {
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
 
     let forms = [];
-    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType)))
-    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType)));
-    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType)));
+    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType), true))
+    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType), true));
+    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType), true));
     return new TenseForms("participle", "participle", forms);
 }
 
