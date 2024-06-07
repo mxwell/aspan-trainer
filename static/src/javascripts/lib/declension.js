@@ -40,9 +40,8 @@ function createForms(tableNameKey, groupNameKey, icons, forceAlternative, septik
     return new DeclensionTable(tableNameKey, groupNameKey, icons, forms);
 }
 
-export function generateDeclensionTables(subject, forceAlternative) {
+export function generateDeclensionTablesOfBuilder(nounBuilder, forceAlternative) {
     let tables = [];
-    let nounBuilder = new NounBuilder(subject);
     tables.push(createForms(
         "singularSubject",
         "",
@@ -112,4 +111,9 @@ export function generateDeclensionTables(subject, forceAlternative) {
         ));
     }
     return tables;
+}
+
+export function generateDeclensionTables(subject, forceAlternative) {
+    let nounBuilder = new NounBuilder(subject);
+    return generateDeclensionTablesOfBuilder(nounBuilder, forceAlternative);
 }

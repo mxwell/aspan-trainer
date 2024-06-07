@@ -1,9 +1,11 @@
 import React from 'react';
 import { buildDeclensionUrl, parseParams } from '../lib/url';
 import { i18n } from '../lib/i18n';
-import { declensionAlternativeInfo, generateDeclensionTables } from '../lib/declension';
+import { declensionAlternativeInfo, generateDeclensionTables, generateDeclensionTablesOfBuilder } from '../lib/declension';
 import { PHRASAL_PART_TYPE } from '../lib/aspan';
 import { getRandomInt, pickRandom } from '../lib/random';
+import { PARTICIPLE_FUTURE, PARTICIPLE_PAST, PARTICIPLE_PRESENT, getParticipleBuilder } from '../lib/verb_forms';
+import { parseSentenceType } from '../lib/sentence';
 
 const PRESET_NOUNS = [
     "алма",
@@ -53,7 +55,6 @@ function highlightPhrasal(phrasal) {
         let part = parts[i];
         let pt = part.partType;
         let partClasses = "";
-        // TODO support more part types
         if (pt == PHRASAL_PART_TYPE.NounBase) {
             partClasses = "text-teal-600 font-bold";
         } else if (pt == PHRASAL_PART_TYPE.PluralAffix) {
@@ -62,6 +63,10 @@ function highlightPhrasal(phrasal) {
             partClasses = "text-indigo-600 font-bold";
         } else if (pt == PHRASAL_PART_TYPE.SeptikAffix) {
             partClasses = "text-orange-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbBase) {
+            partClasses = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
+            partClasses = "text-orange-800 font-bold";
         }
         htmlParts.push(
             <span
@@ -108,13 +113,32 @@ class DeclensionApp extends React.Component {
     readUrlState() {
         const params = parseParams();
         const subject = params.subject;
-        if (subject == null || subject.length <= 0) {
-            return null;
+        if (subject != null) {
+            if (subject.length <= 0) {
+                return null;
+            }
+            const forceAlternative = params.alternative == "true"
+            const declAltInfo = declensionAlternativeInfo(subject);
+            let declTables = generateDeclensionTables(subject, forceAlternative);
+            return this.makeState(subject, declAltInfo, forceAlternative, subject, [], declTables);
         }
-        const forceAlternative = params.alternative == "true"
-        const declAltInfo = declensionAlternativeInfo(subject);
-        let declTables = generateDeclensionTables(subject, forceAlternative);
-        return this.makeState(subject, declAltInfo, forceAlternative, subject, [], declTables);
+        const verb = params.verb;
+        if (verb != null) {
+            if (verb.length <= 0) {
+                return null;
+            }
+            const participle = params.participle;
+            const sentenceType = parseSentenceType(params.sentence_type);
+            const participleBuilder = getParticipleBuilder(verb, participle, sentenceType);
+            if (participleBuilder == null) {
+                console.log(`Failed to get participle builder for ${verb}, ${participle}, ${sentenceType}`);
+                return null;
+            }
+            const participleForm = participleBuilder.form;
+            let declTables = generateDeclensionTablesOfBuilder(participleBuilder.nounBuilder, false);
+            return this.makeState(participleForm.raw, null, false, participleForm.raw, [], declTables);
+        }
+        return null;
     }
 
     i18n(key) {

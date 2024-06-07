@@ -46,6 +46,18 @@ function buildDeclensionUrl(subject, forceAlternative, lang) {
     return buildUrl(path, params);
 }
 
+function buildParticipleDeclensionUrl(verb, participle, sentenceType, lang) {
+    let params = [
+        `verb=${encodeURI(verb)}`,
+        `participle=${participle}`,
+    ];
+    if (sentenceType != null && sentenceType != "Statement") {
+        params.push(`sentence_type=${sentenceType}`);
+    }
+    const path = `/declension_${lang}.html`;
+    return buildUrl(path, params);
+}
+
 function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person, number, lang) {
     let params = [
         `verb=${encodeURI(verb)}`,
@@ -141,6 +153,7 @@ function buildSozdikUrl(verb, lang) {
 
 export {
     buildDeclensionUrl,
+    buildParticipleDeclensionUrl,
     buildExplanationUrl,
     buildVerbDetectorUrl,
     buildViewerUrl,

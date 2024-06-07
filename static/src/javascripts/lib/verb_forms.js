@@ -3,6 +3,7 @@ import {
     GRAMMAR_NUMBERS,
     VerbBuilder,
     getOptExceptVerbMeanings,
+    NounBuilder,
 } from './aspan';
 import { AUX_VERBS } from './aux_verbs';
 import {
@@ -11,6 +12,10 @@ import {
     getPronounByParams,
 } from './grammar_utils';
 import { getRandomInt, pickRandom } from './random';
+
+export const PARTICIPLE_PAST = "pastParticiple";
+export const PARTICIPLE_PRESENT = "presentParticiple";
+export const PARTICIPLE_FUTURE = "futureParticiple";
 
 class VerbForm {
     constructor(pronoun, formKey, verbPhrase, declinable) {
@@ -56,9 +61,9 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType) {
 
     let forms = [];
     const declinable = (sentenceType == "Statement" || sentenceType == "Negative");
-    forms.push(new VerbForm(null, "pastParticiple", verbBuilder.pastParticiple(sentenceType), declinable))
-    forms.push(new VerbForm(null, "presentParticiple", verbBuilder.presentParticiple(sentenceType), declinable));
-    forms.push(new VerbForm(null, "futureParticiple", verbBuilder.futureParticiple(sentenceType), declinable));
+    forms.push(new VerbForm(null, PARTICIPLE_PAST, verbBuilder.pastParticiple(sentenceType), declinable))
+    forms.push(new VerbForm(null, PARTICIPLE_PRESENT, verbBuilder.presentParticiple(sentenceType), declinable));
+    forms.push(new VerbForm(null, PARTICIPLE_FUTURE, verbBuilder.futureParticiple(sentenceType), declinable));
     return new TenseForms("participle", "participle", forms);
 }
 
@@ -276,4 +281,30 @@ export function createFormByParams(verb, forceExceptional, sentenceType, tense, 
 
 export function normalizeVerb(verb) {
     return verb.trim().toLowerCase();
+}
+
+class ParticipleBuilder {
+    constructor(form, nounBuilder) {
+        this.form = form;
+        this.nounBuilder = nounBuilder;
+    }
+}
+
+export function getParticipleBuilder(verb, participle, sentenceType) {
+    let verbBuilder = new VerbBuilder(verb);
+    const soft = verbBuilder.soft;
+    if (participle == PARTICIPLE_PAST) {
+        const builder = verbBuilder.pastParticipleBuilder(sentenceType);
+        const form = builder.build();
+        return new ParticipleBuilder(form, new NounBuilder(builder, soft));
+    } else if (participle == PARTICIPLE_PRESENT) {
+        const builder = verbBuilder.presentParticipleBuilder(sentenceType);
+        const form = builder.build();
+        return new ParticipleBuilder(form, new NounBuilder(builder, soft));
+    } else if (participle == PARTICIPLE_FUTURE) {
+        const builder = verbBuilder.futureParticipleBuilder(sentenceType);
+        const form = builder.build();
+        return new ParticipleBuilder(form, new NounBuilder(builder, soft));
+    }
+    return null;
 }

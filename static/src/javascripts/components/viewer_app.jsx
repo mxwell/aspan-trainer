@@ -14,6 +14,7 @@ import { makeDetectRequest, makeSuggestRequest } from '../lib/requests';
 import {
     buildDeclensionUrl,
     buildExplanationUrl,
+    buildParticipleDeclensionUrl,
     buildViewerUrl,
     buildViewerUrl2,
     extractSsrVerb,
@@ -597,7 +598,7 @@ class ViewerApp extends React.Component {
             return null;
         }
         const subject = verbForm.verbPhrase.raw;
-        const url = buildDeclensionUrl(subject, false, this.props.lang);
+        const url = buildParticipleDeclensionUrl(this.state.verb, verbForm.formKey, this.state.sentenceType, this.props.lang);
         return (
             <td className="pl-1">
                 [<a
