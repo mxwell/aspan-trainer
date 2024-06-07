@@ -67,6 +67,8 @@ function highlightPhrasal(phrasal) {
             partClasses = "text-teal-600 font-bold";
         } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
             partClasses = "text-orange-800 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
+            partClasses = "text-red-600 font-bold";
         }
         htmlParts.push(
             <span
