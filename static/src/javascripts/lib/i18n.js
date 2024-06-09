@@ -563,29 +563,29 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "атау",
     );
     setEnRuKz(map, "septik_1",
-        "original",
-        "исходный",
-        "шығыс",
-    );
-    setEnRuKz(map, "septik_2",
-        "local",
-        "местный",
-        "жатыс",
-    );
-    setEnRuKz(map, "septik_3",
-        "dative",
-        "дательный",
-        "барыс",
-    );
-    setEnRuKz(map, "septik_4",
         "genitive",
         "родительный",
         "ілік",
     );
-    setEnRuKz(map, "septik_5",
+    setEnRuKz(map, "septik_2",
+        "dative",
+        "дательный",
+        "барыс",
+    );
+    setEnRuKz(map, "septik_3",
         "accusative",
         "винительный",
         "табыс",
+    );
+    setEnRuKz(map, "septik_4",
+        "local",
+        "местный",
+        "жатыс",
+    );
+    setEnRuKz(map, "septik_5",
+        "original",
+        "исходный",
+        "шығыс",
     );
     setEnRuKz(map, "septik_6",
         "instrumental",
