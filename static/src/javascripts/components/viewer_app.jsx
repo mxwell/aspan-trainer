@@ -645,7 +645,7 @@ class ViewerApp extends React.Component {
         var titleClasses = "text-red-400 border-b-2";
         if (!collapse || shown) {
             let subtitle = (this.props.lang != I18N_LANG_KK)
-                ? (<h4 className="text-4xl lg:text-base text-gray-500">{this.i18n(tenseForms.tenseNameKey)}</h4>)
+                ? (<h4 className="text-4xl lg:text-base text-gray-500">{i18n(tenseForms.tenseNameKey, I18N_LANG_KK)}</h4>)
                 : null;
             content = (
                 <div className="pb-4 lg:py-6">
@@ -675,7 +675,7 @@ class ViewerApp extends React.Component {
                     className={"text-5xl lg:text-xl font-bold " + titleClasses}>
                     {icon}
                     <span>
-                        {i18n(tenseNameKey, I18N_LANG_KK)}
+                        {this.i18n(tenseNameKey)}
                     </span>
                 </h3>
                 {content}

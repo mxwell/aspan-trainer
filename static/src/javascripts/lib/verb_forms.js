@@ -93,6 +93,12 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         (person, number) => verbBuilder.presentColloquialForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
+        "pastTense",
+        "past",
+        NOMINATIVE_PRONOUN,
+        (person, number) => verbBuilder.pastForm(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
         "remotePastTense",
         "past",
         NOMINATIVE_PRONOUN,
@@ -109,12 +115,6 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         "past",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
-    ));
-    tenses.push(createForms(
-        "pastTense",
-        "past",
-        NOMINATIVE_PRONOUN,
-        (person, number) => verbBuilder.pastForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "possibleFuture",
@@ -160,10 +160,10 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
 const CASE_KEYS = [
     "presentTransitive",
     "presentContinuous",
+    "pastTense",
     "remotePastTense",
     "pastUncertainTense",
     "pastTransitiveTense",
-    "pastTense",
     "possibleFuture",
     "intentionFuture",
     "conditionalMood",
@@ -178,13 +178,13 @@ function createFormById(verbBuider, person, number, sentenceType, id) {
         case 1:
             return verbBuider.presentContinuousForm(person, number, sentenceType, new VerbBuilder("жату"));
         case 2:
-            return verbBuider.remotePastTense(person, number, sentenceType);
-        case 3:
-            return verbBuider.pastUncertainTense(person, number, sentenceType);
-        case 4:
-            return verbBuider.pastTransitiveTense(person, number, sentenceType);
-        case 5:
             return verbBuider.pastForm(person, number, sentenceType);
+        case 3:
+            return verbBuider.remotePastTense(person, number, sentenceType);
+        case 4:
+            return verbBuider.pastUncertainTense(person, number, sentenceType);
+        case 5:
+            return verbBuider.pastTransitiveTense(person, number, sentenceType);
         case 6:
             return verbBuider.possibleFutureForm(person, number, sentenceType);
         case 7:

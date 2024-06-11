@@ -31,31 +31,31 @@ function setEnRuKz(map, key, en, ru, kk) {
 function prepareCommonTranslations(map) {
     setEnRuKz(map, "Verb", "Verb", "Глагол", "Етістік");
     setEnRuKz(map, "infinitive", "Infinitive", "Инфинитив", "Инфинитив");
-    setEnRuKz(map, "presentTransitive", "Present transitive tense", "Настоящее переходное время", "Ауыспалы осы/келер шақ");
-    setEnRuKz(map, "presentContinuous", "Present continuous tense", "Настоящее время", "Нақ осы шақ");
-    setEnRuKz(map, "presentColloquial", "Present tense (colloquial)", "Настоящее время (разговорное)", "Нақ осы шақ (сөйлеу)");
+    setEnRuKz(map, "presentTransitive", "Present Indefinite Tense", "Переходное время", "Ауыспалы осы/келер шақ");
+    setEnRuKz(map, "presentContinuous", "Present Continuous Tense", "Настоящее время", "Нақ осы шақ");
+    setEnRuKz(map, "presentColloquial", "Present Continuous Tense (colloquial)", "Настоящее время (разговорное)", "Нақ осы шақ (сөйлеу)");
     // TODO drop
-    setEnRuKz(map, "remotePastTense", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
-    setEnRuKz(map, "remotePast", "Remote past tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
+    setEnRuKz(map, "remotePastTense", "Remote Past Tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
+    setEnRuKz(map, "remotePast", "Remote Past Tense", "Давнопрошедшее очевидное время", "Бұрынғы өткен шақ");
     // TODO drop
-    setEnRuKz(map, "pastUncertainTense", "Past uncertain tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
-    setEnRuKz(map, "pastUncertain", "Past uncertain tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
+    setEnRuKz(map, "pastUncertainTense", "Past Uncertain Tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
+    setEnRuKz(map, "pastUncertain", "Past Uncertain Tense", "Давнопрошедшее неочевидное время", "Күмәнді өткен шақ");
     // TODO drop
-    setEnRuKz(map, "pastTransitiveTense", "Past transitive tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
-    setEnRuKz(map, "pastTransitive", "Past transitive tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
+    setEnRuKz(map, "pastTransitiveTense", "Past Transitive Tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
+    setEnRuKz(map, "pastTransitive", "Past Transitive Tense", "Прошедшее переходное время", "Ауыспалы өткен шақ");
     // TODO
-    setEnRuKz(map, "pastTense", "Past tense", "Прошедшее время", "Жедел өткен шақ");
-    setEnRuKz(map, "past", "Past tense", "Прошедшее время", "Жедел өткен шақ");
-    setEnRuKz(map, "possibleFuture", "Possible future tense", "Будущее предположительное время", "Болжалды келер шақ");
-    setEnRuKz(map, "intentionFuture", "Intention future tense", "Будущее время намерения", "Мақсатты келер шақ");
-    setEnRuKz(map, "conditionalMood", "Conditional mood", "Условное наклонение", "Шартты рай");
-    setEnRuKz(map, "imperativeMood", "Imperative mood", "Повелительное наклонение", "Бұйрық рай");
-    setEnRuKz(map, "optativeMood", "Optative mood", "Желательное наклонение", "Қалау рай");
+    setEnRuKz(map, "pastTense", "Simple Past Tense", "Прошедшее время", "Жедел өткен шақ");
+    setEnRuKz(map, "past", "Simple Past Tense", "Прошедшее время", "Жедел өткен шақ");
+    setEnRuKz(map, "possibleFuture", "Possible Future Tense", "Будущее предположительное время", "Болжалды келер шақ");
+    setEnRuKz(map, "intentionFuture", "Intended Future Tense", "Будущее время намерения", "Мақсатты келер шақ");
+    setEnRuKz(map, "conditionalMood", "Conditional Mood", "Условное наклонение", "Шартты рай");
+    setEnRuKz(map, "imperativeMood", "Imperative Mood", "Повелительное наклонение", "Бұйрық рай");
+    setEnRuKz(map, "optativeMood", "Optative Mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
     setEnRuKz(map, "participle", "Participle", "Причастие", "Есімше");
-    setEnRuKz(map, "pastParticiple", "Past participle", "Причастие прошедшего времени", "Өткен шақ есімше");
-    setEnRuKz(map, "presentParticiple", "Present participle", "Причастие настоящего времени", "Осы шақ есімше")
-    setEnRuKz(map, "futureParticiple", "Future participle", "Причастие будущего времени", "Келер шақ есімше");
+    setEnRuKz(map, "pastParticiple", "Past Participle", "Причастие прошедшего времени", "Өткен шақ есімше");
+    setEnRuKz(map, "presentParticiple", "Present Participle", "Причастие настоящего времени", "Осы шақ есімше")
+    setEnRuKz(map, "futureParticiple", "Future Participle", "Причастие будущего времени", "Келер шақ есімше");
 
 
     setEnRuKz(map, "chooseVerbExceptionOrNot",
