@@ -687,7 +687,7 @@ class ViewerApp extends React.Component {
         if (this.state.sentenceType != "Negative") {
             return null;
         }
-        if (tenseNameKey != "presentContinuous" && tenseNameKey != "remotePastTense") {
+        if (tenseNameKey != "presentContinuous" && tenseNameKey != "remotePast") {
             return null;
         }
         return (

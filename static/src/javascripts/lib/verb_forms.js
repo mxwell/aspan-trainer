@@ -93,25 +93,25 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         (person, number) => verbBuilder.presentColloquialForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
-        "pastTense",
+        "past",
         "past",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
-        "remotePastTense",
+        "remotePast",
         "past",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.remotePastTense(person, number, sentenceType, auxNeg),
     ));
     tenses.push(createForms(
-        "pastUncertainTense",
+        "pastUncertain",
         "past",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
     ));
     tenses.push(createForms(
-        "pastTransitiveTense",
+        "pastTransitive",
         "past",
         NOMINATIVE_PRONOUN,
         (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
@@ -160,10 +160,10 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
 const CASE_KEYS = [
     "presentTransitive",
     "presentContinuous",
-    "pastTense",
-    "remotePastTense",
-    "pastUncertainTense",
-    "pastTransitiveTense",
+    "past",
+    "remotePast",
+    "pastUncertain",
+    "pastTransitive",
     "possibleFuture",
     "intentionFuture",
     "conditionalMood",

@@ -205,7 +205,7 @@ export class VerbQuizBuilder {
             return this.buildPresentTransitive();
         } else if (this.topic == "presentContinuous") {
             return this.buildPresentContinuous(auxVerb);
-        } else if (this.topic == "pastTense") {
+        } else if (this.topic == "past") {
             return this.buildPast();
         } else if (this.topic == "optativeMood") {
             return this.buildOptativeMood();

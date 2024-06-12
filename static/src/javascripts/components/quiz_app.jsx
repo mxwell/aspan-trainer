@@ -32,7 +32,7 @@ const LANG_KEYS = [I18N_LANG_EN, I18N_LANG_RU];
 const TOPIC_KEYS = [
     "presentTransitive",
     "presentContinuous",
-    "pastTense",
+    "past",
     "optativeMood",
     "canClause",
 ];
