@@ -661,7 +661,7 @@ class ViewerApp extends React.Component {
                     </table>
                 </div>
             );
-            titleClasses = "text-red-600";
+            titleClasses = "text-red-500";
         }
         if (collapse) {
             titleClasses += " cursor-pointer flex"
@@ -672,7 +672,7 @@ class ViewerApp extends React.Component {
                 <h3
                     onClick={clickListener}
                     id={`${tenseNameKey}_title`}
-                    className={"text-5xl lg:text-xl font-bold " + titleClasses}>
+                    className={"text-5xl lg:text-lg font-bold lg:w-48 " + titleClasses}>
                     {icon}
                     <span>
                         {this.i18n(tenseNameKey)}
