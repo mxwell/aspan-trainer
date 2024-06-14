@@ -586,6 +586,13 @@ function prepareDeclensionAppOnlyTranslations(map) {
     );
 }
 
+function prepareGymOnlyTranslations(map) {
+    setEnRu(map, "presentSimple",
+        "Simple Present Tense",
+        "Простое настоящее время",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -596,6 +603,7 @@ function prepareTranslations() {
     prepareQuizOnlyTranslations(map);
     prepareTopOnlyTranslations(map);
     prepareDeclensionAppOnlyTranslations(map);
+    prepareGymOnlyTranslations(map);
 
     return map;
 }
