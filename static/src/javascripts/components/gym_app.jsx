@@ -1,5 +1,5 @@
 import React from "react";
-import { GymLevel } from "../lib/gym_level";
+import { GymLevel, GymLevelStats, zeroStats } from "../lib/gym_level";
 import { GymStart } from "./gym_start";
 
 const APP_STATE_START = 1;
@@ -27,16 +27,16 @@ class GymApp extends React.Component {
 
     loadState() {
         let levels = [
-            new GymLevel("presentTransitive", true, false, null),
-            new GymLevel("presentSimple", false, false, null),
-            new GymLevel("presentContinuous", false, false, null),
-            new GymLevel("presentColloquial", false, false, null),
-            new GymLevel("past", false, false, null),
-            new GymLevel("remotePast", false, false, null),
-            new GymLevel("pastUncertain", false, false, null),
-            new GymLevel("pastTransitive", false, false, null),
-            new GymLevel("intentionFuture", false, false, null),
-            new GymLevel("possibleFuture", false, false, null),
+            new GymLevel("presentTransitive", null, true, true, new GymLevelStats(25, 5, 1)),
+            new GymLevel("presentSimple", "presentTransitive", true, false, zeroStats()),
+            new GymLevel("presentContinuous", "presentSimple", false, false, zeroStats()),
+            new GymLevel("presentColloquial", "presentContinuous", false, false, zeroStats()),
+            new GymLevel("past", "presentTransitive", false, false, zeroStats()),
+            new GymLevel("remotePast", "past", false, false, zeroStats()),
+            new GymLevel("pastUncertain", "remotePast", false, false, zeroStats()),
+            new GymLevel("pastTransitive", "pastUncertain", false, false, zeroStats()),
+            new GymLevel("intentionFuture", "presentTransitive", false, false, zeroStats()),
+            new GymLevel("possibleFuture", "intentionFuture", false, false, zeroStats()),
         ];
         // TODO load stats from local storage
         return this.makeState(levels);

@@ -60,18 +60,31 @@ class GymStart extends React.Component {
 
     renderActions(gymLevel) {
         if (!gymLevel.available) {
+            const parentName = this.i18n(gymLevel.parentKey);
             return (
-                <p className="italic text-center">{this.i18n("levelNotAvailableYet")}</p>
+                <p className="italic text-center m-4 max-w-sm">
+                    {this.i18n("levelAvailAfterTempl")(parentName)}
+                </p>
             );
         }
-        // TODO
+        const stats = gymLevel.stats;
+        const testStatus = (
+            stats.testWins > 0
+            ? this.i18n("testPassed")
+            : this.i18n("testNotPassed")
+        );
+        // TODO add buttons
         return (
             <div className="flex flex-row justify-evenly">
-                <div>
-                    <h3>{this.i18n("practice")}</h3>
+                <div className="border p-4">
+                    <h3 className="text-2xl">{this.i18n("practice")}</h3>
+                    <p>{this.i18n("practiceRunsTempl")(stats.practiceRuns)}</p>
                 </div>
-                <div>
-                    <h3>{this.i18n("test")}</h3>
+                <div className="border p-4">
+                    <h3 className="text-2xl">{this.i18n("test")}</h3>
+                    <p>{this.i18n("testRunsTempl")(stats.testRuns)}</p>
+                    <p>{this.i18n("testWinsTempl")(stats.testWins)}</p>
+                    <strong>{testStatus}</strong>
                 </div>
             </div>
         );
@@ -88,8 +101,8 @@ class GymStart extends React.Component {
         }
         const level = this.props.levels[levelId];
         return (
-            <div className="border-2 border-black p-4">
-                <h2 className="m-4 text-3xl text-center">
+            <div className="border-2 border-black my-6">
+                <h2 className="m-4 text-3xl text-center max-w-sm">
                     {this.i18n(level.levelKey)}
                 </h2>
                 {this.renderActions(level)}
@@ -100,7 +113,7 @@ class GymStart extends React.Component {
     render() {
         return (
             <div>
-                <h1 className="m-4 text-4xl text-center">{this.i18n("verbGym")}</h1>
+                <h1 className="m-4 text-4xl">{this.i18n("verbGym")}</h1>
                 <p className="m-4 italic">{this.i18n("clickToSelect")}</p>
                 {this.renderList()}
                 {this.renderPanel()}

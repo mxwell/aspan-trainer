@@ -603,13 +603,33 @@ function prepareGymOnlyTranslations(map) {
         "Practice",
         "Практика",
     );
+    setEnRu(map, "practiceRunsTempl",
+        (runs) => `${runs} practice runs`,
+        (runs) => `${runs} запусков практики`,
+    );
     setEnRu(map, "test",
         "Test",
         "Тест",
     );
-    setEnRu(map, "levelNotAvailableYet",
-        "Level is not available yet",
-        "Уровень пока не доступен",
+    setEnRu(map, "testRunsTempl",
+        (runs) => `${runs} test runs`,
+        (runs) => `${runs} запусков теста`,
+    );
+    setEnRu(map, "testWinsTempl",
+        (runs) => `${runs} successful passes`,
+        (runs) => `${runs} успешных прохождений`,
+    );
+    setEnRu(map, "testPassed",
+        "Test passed",
+        "Тест пройден",
+    );
+    setEnRu(map, "testNotPassed",
+        "Test not passed",
+        "Тест не пройден",
+    );
+    setEnRu(map, "levelAvailAfterTempl",
+        (level) => `The level becomes available after passing level «${level}»`,
+        (level) => `Этот уровень станет доступным после прохождения уровня «${level}»`,
     );
 }
 
