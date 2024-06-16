@@ -587,9 +587,29 @@ function prepareDeclensionAppOnlyTranslations(map) {
 }
 
 function prepareGymOnlyTranslations(map) {
+    setEnRu(map, "verbGym",
+        "Gym",
+        "Тренажёрка",
+    );
+    setEnRu(map, "clickToSelect",
+        "Click to select a level",
+        "Кликните для выбора уровня",
+    );
     setEnRu(map, "presentSimple",
         "Simple Present Tense",
         "Простое настоящее время",
+    );
+    setEnRu(map, "practice",
+        "Practice",
+        "Практика",
+    );
+    setEnRu(map, "test",
+        "Test",
+        "Тест",
+    );
+    setEnRu(map, "levelNotAvailableYet",
+        "Level is not available yet",
+        "Уровень пока не доступен",
     );
 }
 
