@@ -12,6 +12,8 @@ class GymStart extends React.Component {
         super(props);
 
         this.onLevelClick = this.onLevelClick.bind(this);
+        this.onPracticeClick = this.onPracticeClick.bind(this);
+        this.onTestClick = this.onTestClick.bind(this);
 
         this.state = {
             selectedLevel: null,
@@ -58,6 +60,16 @@ class GymStart extends React.Component {
         );
     }
 
+    onPracticeClick(e) {
+        e.preventDefault();
+        this.props.onSelect(this.state.selectedLevel, "practice");
+    }
+
+    onTestClick(e) {
+        e.preventDefault();
+        this.props.onSelect(this.state.selectedLevel, "test");
+    }
+
     renderActions(gymLevel) {
         if (!gymLevel.available) {
             const parentName = this.i18n(gymLevel.parentKey);
@@ -73,15 +85,30 @@ class GymStart extends React.Component {
             ? this.i18n("testPassed")
             : this.i18n("testNotPassed")
         );
-        // TODO add buttons
         return (
             <div className="flex flex-row justify-evenly">
                 <div className="border p-4">
-                    <h3 className="text-2xl">{this.i18n("practice")}</h3>
+                    <h3 className="text-2xl">
+                        {this.i18n("practice")}
+                        <button
+                            type="submit"
+                            onClick={this.onPracticeClick}
+                            className="text-white font-bold mx-2 px-2 rounded focus:outline-none focus:shadow-outline bg-blue-500 hover:bg-blue-700">
+                            →
+                        </button>
+                    </h3>
                     <p>{this.i18n("practiceRunsTempl")(stats.practiceRuns)}</p>
                 </div>
                 <div className="border p-4">
-                    <h3 className="text-2xl">{this.i18n("test")}</h3>
+                    <h3 className="text-2xl">
+                        {this.i18n("test")}
+                        <button
+                            type="submit"
+                            onClick={this.onTestClick}
+                            className="text-white font-bold mx-2 px-2 rounded focus:outline-none focus:shadow-outline bg-blue-500 hover:bg-blue-700">
+                            →
+                        </button>
+                    </h3>
                     <p>{this.i18n("testRunsTempl")(stats.testRuns)}</p>
                     <p>{this.i18n("testWinsTempl")(stats.testWins)}</p>
                     <strong>{testStatus}</strong>
