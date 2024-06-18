@@ -1,6 +1,7 @@
 import React from "react";
 import { GymLevel, GymLevelStats, zeroStats } from "../lib/gym_level";
 import { GymStart } from "./gym_start";
+import { GymExercise } from "./gym_exercise";
 
 const APP_STATE_START = 1;
 const APP_STATE_LEVEL_SELECTED = 2;
@@ -14,6 +15,7 @@ class GymApp extends React.Component {
         super(props);
 
         this.onLevelSelect = this.onLevelSelect.bind(this);
+        this.closeLevelWithReload = this.closeLevelWithReload.bind(this);
 
         this.state = this.loadState();
     }
@@ -22,6 +24,7 @@ class GymApp extends React.Component {
         return {
             appState: APP_STATE_START,
             levels: levels,
+            selectedLevelIndex: null,
         };
     }
 
@@ -44,6 +47,18 @@ class GymApp extends React.Component {
 
     onLevelSelect(level, action) {
         console.log(`Selected level ${level} with action=${action}`);
+        this.setState({
+            appState: APP_STATE_LEVEL_SELECTED,
+            selectedLevelIndex: level,
+        })
+    }
+
+    closeLevelWithReload() {
+        console.log("Closing level with reload");
+        this.setState({
+            appState: APP_STATE_START,
+            selectedLevel: null,
+        });
     }
 
     render() {
@@ -55,6 +70,15 @@ class GymApp extends React.Component {
                     levels={this.state.levels}
                     onSelect={this.onLevelSelect}
                     />
+            );
+        } else if (appState == APP_STATE_LEVEL_SELECTED) {
+            const level = this.state.levels[this.state.selectedLevelIndex];
+            return (
+                <GymExercise
+                    lang={this.props.lang}
+                    level={level}
+                    finishCallback={this.closeLevelWithReload}
+                />
             );
         } else {
             return (
