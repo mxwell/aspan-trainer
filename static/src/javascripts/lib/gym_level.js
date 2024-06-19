@@ -60,7 +60,7 @@ function generateTasks(levelKey) {
                     makeKeyPart("келу"),
                     makePlainPart("?"),
                 ]),
-                ["Мен мектепке келемін бе?"],
+                ["келемін бе"],
             ),
             new GymTask(
                 new Statement([
@@ -68,7 +68,7 @@ function generateTasks(levelKey) {
                     makeKeyPart("келу"),
                     makePlainPart("?"),
                 ]),
-                ["Біз мектепке келеміз бе?"],
+                ["келеміз бе"],
             ),
         ];
     } else {

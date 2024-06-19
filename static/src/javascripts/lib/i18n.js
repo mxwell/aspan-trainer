@@ -386,6 +386,21 @@ function prepareDetectorOnlyTranslations(map) {
     );
 }
 
+function prepareCommonQuizTranslations(map) {
+    setEnRuKz(map, "feedbackCorrect",
+        "Correct",
+        "Верно",
+        "Дұрыс",
+    );
+    setEnRuKz(map, "feedbackWrongAndHereIsCorrect",
+        "Wrong:",
+        "Неверно:",
+        "Бұрыс:",
+    );
+    setEnRuKz(map, "columnExpected", "Expected", "Ожидалось", "Күтілді");
+    setEnRuKz(map, "columnYourAnswers", "Your answers", "Ваши ответы", "Жауаптарыңыз");
+}
+
 function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "buttonChangeLanguage", "Change interface language", "Изменить язык интерфейса", "Бетбейне тілін өзгерту");
     setEnRuKz(map, "useThisLangInterface", "Use English interface", "Использовать русский интерфейс", "Қазақша бетбейне қолдану");
@@ -415,8 +430,6 @@ function prepareQuizOnlyTranslations(map) {
     );
 
     /* quiz texts */
-    setEnRuKz(map, "feedbackCorrect", "Correct", "Верно", "Дұрыс");
-    setEnRuKz(map, "feedbackWrongAndHereIsCorrect", "Wrong! Correct answer:", "Неверно! Правильный ответ:", "Бұрыс! Дұрыс жауабы:");
     setEnRuKz(map, "buttonSubmit", "Submit", "Отправить", "Жіберу");
     setEnRuKz(map, "statement", "statement", "утвердительное", "болымды");
     setEnRuKz(map, "negative", "negative", "отрицательное", "болымсыз");
@@ -431,8 +444,6 @@ function prepareQuizOnlyTranslations(map) {
 
     /* final form */
     setEnRuKz(map, "quizDone", "Quiz is done! Correct responses:", "Тест завершён! Правильные ответы:", "Тест аяқталды! Дұрыс жауаптар:");
-    setEnRuKz(map, "columnExpected", "Expected", "Ожидалось", "Күтілді");
-    setEnRuKz(map, "columnYourAnswers", "Your answers", "Ваши ответы", "Жауаптарыңыз");
     setEnRuKz(map, "buttonRestartQuiz", "Restart the quiz", "Перезапустить тест", "Тестті жалғастыру");
     setEnRuKz(map, "buttonContinueTopic", "Continue with the topic", "Продолжить тему", "Тақырыпты жалғастыру");
     setEnRuKz(map, "buttonChangeTopic", "Change topic", "Поменять тему", "Тақырыпты ауыстыру");
@@ -631,6 +642,36 @@ function prepareGymOnlyTranslations(map) {
         (level) => `The level becomes available after passing level «${level}»`,
         (level) => `Этот уровень станет доступным после прохождения уровня «${level}»`,
     );
+
+    setEnRu(map, "hintEnterAnswer",
+        "Enter the answer",
+        "Введите ответ",
+    );
+    setEnRu(map, "feedbackUnknownAnswer",
+        "Unknown answer",
+        "Ответ не известен",
+    );
+    setEnRuKz(map, "btnNext",
+        "Next",
+        "Далее",
+        "Келесі",
+    );
+    setEnRu(map, "roundCleared",
+        "Round cleared!",
+        "Раунд пройден!",
+    );
+    setEnRu(map, "youScored",
+        "You scored",
+        "Вы набрали",
+    );
+    setEnRu(map, "columnScore",
+        "Points",
+        "Очки",
+    );
+    setEnRu(map, "btnFinish",
+        "Finish",
+        "Закончить",
+    );
 }
 
 function prepareTranslations() {
@@ -640,6 +681,7 @@ function prepareTranslations() {
     prepareViewerOnlyTranslations(map);
     prepareExplanationOnlyTranslations(map);
     prepareDetectorOnlyTranslations(map);
+    prepareCommonQuizTranslations(map);
     prepareQuizOnlyTranslations(map);
     prepareTopOnlyTranslations(map);
     prepareDeclensionAppOnlyTranslations(map);
