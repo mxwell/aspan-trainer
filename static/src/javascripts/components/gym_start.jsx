@@ -5,10 +5,14 @@ import { i18n } from "../lib/i18n";
  * props:
  * - lang
  * - levels: array of GymLevels
+ * - stats: array of GymLevelStats
  * - callback onSelect(level, action), where action is one of {practice,test}
  */
 class GymStart extends React.Component {
     constructor(props) {
+        if (props.levels.length != props.stats.length) {
+            throw new Error(`Expected ${props.levels.length} stats but got ${props.stats.length}`);
+        }
         super(props);
 
         this.onLevelClick = this.onLevelClick.bind(this);
@@ -70,7 +74,7 @@ class GymStart extends React.Component {
         this.props.onSelect(this.state.selectedLevel, "test");
     }
 
-    renderActions(gymLevel) {
+    renderActions(gymLevel, levelStats) {
         if (!gymLevel.available) {
             const parentName = this.i18n(gymLevel.parentKey);
             return (
@@ -79,9 +83,8 @@ class GymStart extends React.Component {
                 </p>
             );
         }
-        const stats = gymLevel.stats;
         const testStatus = (
-            stats.testWins > 0
+            levelStats.testWins > 0
             ? this.i18n("testPassed")
             : this.i18n("testNotPassed")
         );
@@ -97,7 +100,7 @@ class GymStart extends React.Component {
                             →
                         </button>
                     </h3>
-                    <p>{this.i18n("practiceRunsTempl")(stats.practiceRuns)}</p>
+                    <p>{this.i18n("practiceRunsTempl")(levelStats.practiceRuns)}</p>
                 </div>
                 <div className="border p-4">
                     <h3 className="text-2xl">
@@ -109,8 +112,8 @@ class GymStart extends React.Component {
                             →
                         </button>
                     </h3>
-                    <p>{this.i18n("testRunsTempl")(stats.testRuns)}</p>
-                    <p>{this.i18n("testWinsTempl")(stats.testWins)}</p>
+                    <p>{this.i18n("testRunsTempl")(levelStats.testRuns)}</p>
+                    <p>{this.i18n("testWinsTempl")(levelStats.testWins)}</p>
                     <strong>{testStatus}</strong>
                 </div>
             </div>
@@ -127,12 +130,13 @@ class GymStart extends React.Component {
             return null;
         }
         const level = this.props.levels[levelId];
+        const levelStats = this.props.stats[levelId];
         return (
             <div className="border-2 border-black my-6">
                 <h2 className="m-4 text-3xl text-center max-w-sm">
                     {this.i18n(level.levelKey)}
                 </h2>
-                {this.renderActions(level)}
+                {this.renderActions(level, levelStats)}
             </div>
         );
     }

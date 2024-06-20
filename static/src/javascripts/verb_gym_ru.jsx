@@ -10,6 +10,9 @@ initUiLangSwitcher();
 const root = document.getElementById("gym_root");
 
 render(
-    <GymApp lang={I18N_LANG_RU} />,
+    <GymApp
+        lang={I18N_LANG_RU}
+        name="verb"
+        />,
     root
 );

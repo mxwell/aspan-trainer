@@ -2,6 +2,7 @@ import React from "react";
 import { closeButton } from "./close_button";
 import { PART_TYPE_KEY, PART_TYPE_PLAIN, generateTasks } from "../lib/gym_level";
 import { i18n } from "../lib/i18n";
+import { GymLevelStats, updateGymLevelStats } from "../lib/gym_storage";
 
 const SCORE_CORRECT = 10;
 const SCORE_INCORRECT = 0;
@@ -31,6 +32,7 @@ class GymTaskResult {
 /**
  * props:
  * - lang: string
+ * - name: string
  * - level: GymLevel
  * - finishCallback: function
  */
@@ -122,8 +124,15 @@ class GymExercise extends React.Component {
     }
 
     completeRun() {
-        console.log("completeRun");
-        // TODO
+        const progress = this.state.progress;
+        if (progress.length < this.state.tasks.length) {
+            return;
+        }
+        console.log("completeRun: Saving level stats");
+        // TODO save score to stats
+        // TODO support test runs here
+        const newStats = new GymLevelStats(1, 0, 0);
+        updateGymLevelStats(this.props.name, this.props.level.levelKey, newStats);
     }
 
     onNext(event) {
