@@ -26,8 +26,9 @@ function makeKeyPart(text) {
 }
 
 class Statement {
-    constructor(parts) {
+    constructor(parts, metaParts) {
         this.parts = parts;
+        this.metaParts = metaParts;
     }
 }
 
@@ -68,5 +69,9 @@ export {
     GymLevel,
     PART_TYPE_PLAIN,
     PART_TYPE_KEY,
+    makePlainPart,
+    makeKeyPart,
+    Statement,
+    GymTask,
     generateTasks,
 };

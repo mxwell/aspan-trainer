@@ -387,6 +387,8 @@ function prepareDetectorOnlyTranslations(map) {
 }
 
 function prepareCommonQuizTranslations(map) {
+    setEnRuKz(map, "SentenceType", "Sentence type", "Тип предложения", "Сөйлем түрі");
+
     setEnRuKz(map, "feedbackCorrect",
         "Correct",
         "Верно",
@@ -409,7 +411,6 @@ function prepareQuizOnlyTranslations(map) {
     setEnRuKz(map, "DifficultyLevel", "Difficulty level", "Уровень сложности","Күрделілік деңгейі");
     setEnRuKz(map, "easy", "Easy (one-click)", "Лёгкий (один клик)", "Оңай (бір шерту)");
     setEnRuKz(map, "hard", "Hard (type answer)", "Сложный (печать ответа)", "Қиын (жазып беру)");
-    setEnRuKz(map, "SentenceType", "Sentence type", "Тип предложения", "Сөйлем түрі");
     setEnRuKz(map, "AuxVerb", "Auxiliary verb", "Вспомогательный глагол", "Көмекші етістік");
     setEnRuKz(map, "Statement", "Statement", "Утвердительное", "Болымды");
     setEnRuKz(map, "Negative", "Negative", "Отрицательное", "Болымсыз");
@@ -643,6 +644,10 @@ function prepareGymOnlyTranslations(map) {
         (level) => `Этот уровень станет доступным после прохождения уровня «${level}»`,
     );
 
+    setEnRu(map, "verbSpecialBehavior",
+        "The verb is conjugated in a special way",
+        "Глагол спрягается особым способом",
+    );
     setEnRu(map, "hintEnterAnswer",
         "Enter the answer",
         "Введите ответ",

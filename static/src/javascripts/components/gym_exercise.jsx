@@ -1,8 +1,9 @@
 import React from "react";
 import { closeButton } from "./close_button";
-import { PART_TYPE_KEY, PART_TYPE_PLAIN, generateTasks } from "../lib/gym_level";
+import { PART_TYPE_KEY, PART_TYPE_PLAIN } from "../lib/gym_level";
 import { i18n } from "../lib/i18n";
 import { GymLevelStats, updateGymLevelStats } from "../lib/gym_storage";
+import { generateTasksByLevelKey } from "../lib/verb_gym_gen";
 
 const SCORE_CORRECT = 10;
 const SCORE_INCORRECT = 0;
@@ -62,7 +63,10 @@ class GymExercise extends React.Component {
     }
 
     defaultState() {
-        const tasks = generateTasks(this.props.level.levelKey);
+        const tasks = generateTasksByLevelKey(this.props.level.levelKey);
+        if (tasks == null) {
+            throw new Error(`Unsupported levelKey: ${this.props.level.levelKey}`);
+        }
         return this.makeState(
             /* tasks */ tasks,
             /* progress */ [],
@@ -94,6 +98,37 @@ class GymExercise extends React.Component {
         }
         const correct = correctAnswers.indexOf(lastEntered) >= 0;
         this.setState({ correct });
+    }
+
+    renderStatement(statement) {
+        const metaSentType = statement.metaParts["SentenceType"];
+        const sentType = (
+            metaSentType
+            ? (
+                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                    {this.i18n("SentenceType")}:&nbsp;{this.i18n(metaSentType)}
+                </p>
+            )
+            : null
+        );
+        const specialBehavior = (
+            statement.metaParts["forceExceptional"] == true
+            ? (
+                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                    {this.i18n("verbSpecialBehavior")}
+                </p>
+            )
+            : null
+        );
+        return (
+            <div className="flex flex-col">
+                {sentType}
+                {specialBehavior}
+                <p className="text-5xl lg:text-3xl m-2 lg:max-w-2xl text-center text-gray-600">
+                    {printStatement(statement)}
+                </p>
+            </div>
+        );
     }
 
     renderFeedback(task, correct) {
@@ -191,9 +226,7 @@ class GymExercise extends React.Component {
                     <h1 className="text-5xl lg:text-4xl m-4 text-center text-gray-700">{this.i18n(this.props.level.levelKey)}</h1>
                     {closeButton({ onClick: this.props.finishCallback })}
                 </div>
-                <p className="text-5xl lg:text-3xl m-2 lg:max-w-2xl text-center text-gray-600">
-                    {printStatement(task.statement)}
-                </p>
+                {this.renderStatement(task.statement)}
                 <form onSubmit={this.onSubmit} className="flex">
                     <input
                         type="text"
