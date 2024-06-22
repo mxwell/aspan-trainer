@@ -46,10 +46,25 @@ class GymStart extends React.Component {
                 )
                 : "/check_box_indet.svg"
             );
+            const bgColor = (
+                level.available
+                ? (
+                    level.completed
+                    ? "bg-blue-200"
+                    : "bg-green-200"
+                )
+                : ""
+            );
+            const buttonClass = (
+                i == this.state.selectedLevel
+                ? "underline"
+                : ""
+            );
             listItems.push(
-                <li key={i} className="flex flex-row m-2 text-xl">
+                <li key={i} className={`flex flex-row m-2 p-1 text-xl ${bgColor}`}>
                     <img src={imgSrc} />
                     <button
+                        className={buttonClass}
                         onClick={(e) => this.onLevelClick(e, i)}
                         >
                         {this.i18n(level.levelKey)}
