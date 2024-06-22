@@ -1,6 +1,6 @@
 import { VerbBuilder } from "./aspan";
 import { GymTask, Statement, makeKeyPart, makePlainPart } from "./gym_level";
-import { getRandomInt, pickRandom, shuffleArray } from "./random";
+import { getRandomBool, getRandomInt, pickRandom, shuffleArray } from "./random";
 
 // 6 + 2 + 2
 const SENTENCE_TYPE_LIST = [
@@ -27,6 +27,10 @@ class WeightedSample {
         this.forceExceptional = forceExceptional;
         this.weights = [weight, negativeWeight, contWeight];
     }
+
+    builder() {
+        return new VerbBuilder(this.infinitive, this.forceExceptional);
+    }
 }
 
 function regularSample(infinitive) {
@@ -41,15 +45,15 @@ function negativeSample(infinitive) {
     return new WeightedSample(infinitive, false, 1, 10, 1);
 }
 
-function contSample(infinitive) {
-    return new WeightedSample(infinitive, false, 1, 1, 10);
+function contSample(infinitive, weight) {
+    return new WeightedSample(infinitive, false, 1, 1, weight);
 }
 
 // Add companion words to the verb
 const VERB_POOL = [
-    contSample("құю"),        /* additional й */
-    contSample("сүю"),
-    contSample("шаю"),
+    contSample("құю", 10),    /* additional й */
+    contSample("сүю", 10),
+    contSample("шаю", 10),
     regularSample("оқу"),     /* additional ы */
     regularSample("ренжу"),
     regularSample("тану"),
@@ -64,10 +68,10 @@ const VERB_POOL = [
     new WeightedSample("тебу", false, 1, 10, 10),
     new WeightedSample("қабу", false, 1, 10, 10),
     new WeightedSample("қабу", true, 1, 10, 1),
-    contSample("бару"),       /* special cases for present continuous */
-    contSample("келу"),
-    contSample("апару"),
-    contSample("әкелу"),
+    contSample("бару", 30),   /* special cases for present continuous */
+    contSample("келу", 30),
+    contSample("апару", 30),
+    contSample("әкелу", 30),
 ];
 
 const PRESENT_VERB_POOL = [
@@ -105,6 +109,7 @@ function reservoirSampling(k, wIndex) {
         wSum += curWeight;
         const p = curWeight / wSum;
         const j = Math.random();
+        // console.log(`verb: ${VERB_POOL[i].infinitive}, curWeight: ${curWeight}, wSum: ${wSum}, p: ${p}, j: ${j}`);
         if (j < p) {
             const pos = getRandomInt(k);
             result[pos] = VERB_POOL[i];
@@ -137,10 +142,7 @@ function generatePresentTransitiveTasks() {
         const caseIndex = pickCaseIndex(sentType);
         const [person, number, pronoun] = CASE_LIST[caseIndex];
         const verbInfo = verbs[i];
-        const builder = new VerbBuilder(
-            verbInfo.infinitive,
-            verbInfo.forceExceptional,
-        );
+        const builder = verbInfo.builder();
         const phrasal = builder.presentTransitiveForm(person, number, sentType);
         const form = extractForm(phrasal);
         let parts = [
@@ -167,10 +169,7 @@ function generatePresentSimpleTasks() {
         const caseIndex = getRandomInt(5);
         const [person, number, pronoun] = CASE_LIST[caseIndex];
         const verbInfo = pickRandom(PRESENT_VERB_POOL);
-        const builder = new VerbBuilder(
-            verbInfo.infinitive,
-            verbInfo.forceExceptional,
-        );
+        const builder = verbInfo.builder();
         const phrasal = builder.presentSimpleContinuousForm(person, number, sentType);
         const form = extractForm(phrasal);
         let parts = [
@@ -190,11 +189,54 @@ function generatePresentSimpleTasks() {
     return result;
 }
 
+function generatePresentContinuousTasks() {
+    let verbs = reservoirSampling(LEVEL_SAMPLES, CONTINUOUS_WEIGHT_INDEX);
+    shuffleArray(verbs);
+
+    const onlyJatu = ["бару", "келу", "апару", "әкелу"];
+
+    let result = [];
+    for (let i = 0; i < SENTENCE_TYPE_LIST.length; ++i) {
+        const sentType = SENTENCE_TYPE_LIST[i];
+        const caseIndex = getRandomInt(5);
+        const [person, number, pronoun] = CASE_LIST[caseIndex];
+        const verbInfo = verbs[i];
+
+        const auxVerbInfo = (
+            onlyJatu.includes(verbInfo.infinitive)
+            ? PRESENT_VERB_POOL[0]
+            : pickRandom(PRESENT_VERB_POOL)
+        );
+        const auxBuilder = auxVerbInfo.builder();
+        const negateAux = getRandomBool();
+        const builder = verbInfo.builder();
+        const phrasal = builder.presentContinuousForm(person, number, sentType, auxBuilder, negateAux);
+        const form = extractForm(phrasal);
+        let parts = [
+            makePlainPart(`${pronoun} `),
+            makeKeyPart(`${verbInfo.infinitive} + ${auxVerbInfo.infinitive}`),
+        ];
+        if (sentType == "Question") {
+            parts.push(makePlainPart("?"));
+        }
+        const metaParts = {
+            SentenceType: sentType,
+            forceExceptional: verbInfo.forceExceptional,
+            negateAux: negateAux,
+        };
+        const taskStmt = new Statement(parts, metaParts);
+        result.push(new GymTask(taskStmt, [form]));
+    }
+    return result;
+}
+
 function generateTasksByLevelKey(levelKey) {
     if (levelKey == "presentTransitive") {
         return generatePresentTransitiveTasks();
     } else if (levelKey == "presentSimple") {
         return generatePresentSimpleTasks();
+    } else if (levelKey == "presentContinuous") {
+        return generatePresentContinuousTasks();
     } else {
         console.log(`generateTasksByLevelKey: unsupported levelKey: ${levelKey}`);
         return null;

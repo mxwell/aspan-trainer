@@ -644,6 +644,10 @@ function prepareGymOnlyTranslations(map) {
         (level) => `Этот уровень станет доступным после прохождения уровня «${level}»`,
     );
 
+    setEnRu(map, "negateAux",
+        "Negate the auxiliary verb",
+        "Отрицание вспомогательного глагола",
+    );
     setEnRu(map, "verbSpecialBehavior",
         "The verb is conjugated in a special way",
         "Глагол спрягается особым способом",

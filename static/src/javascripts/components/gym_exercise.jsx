@@ -111,6 +111,16 @@ class GymExercise extends React.Component {
             )
             : null
         );
+        const negateAux = statement.metaParts["negateAux"] == true;
+        const negation = (
+            (metaSentType == "Negative" && negateAux)
+            ? (
+                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                    {this.i18n("negateAux")}
+                </p>
+            )
+            : null
+        );
         const specialBehavior = (
             statement.metaParts["forceExceptional"] == true
             ? (
@@ -123,6 +133,7 @@ class GymExercise extends React.Component {
         return (
             <div className="flex flex-col">
                 {sentType}
+                {negation}
                 {specialBehavior}
                 <p className="text-5xl lg:text-3xl m-2 lg:max-w-2xl text-center text-gray-600">
                     {printStatement(statement)}
