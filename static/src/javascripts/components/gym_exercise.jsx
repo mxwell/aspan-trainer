@@ -59,6 +59,7 @@ class GymExercise extends React.Component {
             progress: progress,
             lastEntered: "",
             correct: null,
+            submitTime: null,
         }
     }
 
@@ -86,7 +87,13 @@ class GymExercise extends React.Component {
             return;
         }
         if (this.state.correct !== null) {
-            console.log("onSubmit: already answered");
+            const now = new Date();
+            const submitTime = this.state.submitTime;
+            if (submitTime != null && now - submitTime > 600) {
+                this.advance(this.state.correct);
+            } else {
+                console.log("onSubmit: too early to advance");
+            }
             return;
         }
         const taskIndex = this.state.progress.length;
@@ -97,7 +104,8 @@ class GymExercise extends React.Component {
             return;
         }
         const correct = correctAnswers.indexOf(lastEntered) >= 0;
-        this.setState({ correct });
+        const submitTime = new Date();
+        this.setState({ correct, submitTime });
     }
 
     renderStatement(statement) {
@@ -181,6 +189,24 @@ class GymExercise extends React.Component {
         updateGymLevelStats(this.props.name, this.props.level.levelKey, newStats);
     }
 
+    advance(curCorrect) {
+        const result = new GymTaskResult(
+            this.state.lastEntered,
+            curCorrect ? SCORE_CORRECT : SCORE_INCORRECT,
+        );
+        const progress = this.state.progress.concat([result]);
+        const lastEntered = "";
+        const correct = null;
+        const submitTime = null;
+        this.setState(
+            { progress, lastEntered, correct, submitTime },
+            () => {
+                window.scrollTo(0, 0);
+                this.completeRun();
+            }
+        );
+    }
+
     onNext(event) {
         event.preventDefault();
         console.log("onNext");
@@ -189,20 +215,7 @@ class GymExercise extends React.Component {
             console.log("onNext: not answered yet");
             return;
         }
-        const result = new GymTaskResult(
-            this.state.lastEntered,
-            curCorrect ? SCORE_CORRECT : SCORE_INCORRECT,
-        );
-        const progress = this.state.progress.concat([result]);
-        const lastEntered = "";
-        const correct = null;
-        this.setState(
-            { progress, lastEntered, correct },
-            () => {
-                window.scrollTo(0, 0);
-                this.completeRun();
-            }
-        );
+        this.advance(curCorrect);
     }
 
     renderNextButton(correct) {
