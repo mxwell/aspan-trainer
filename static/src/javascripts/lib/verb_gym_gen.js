@@ -1,6 +1,6 @@
 import { VerbBuilder } from "./aspan";
 import { GymTask, Statement, makeKeyPart, makePlainPart } from "./gym_level";
-import { getRandomInt } from "./random";
+import { getRandomInt, shuffleArray } from "./random";
 
 // 6 + 2 + 2
 const SENTENCE_TYPE_LIST = [
@@ -70,11 +70,18 @@ const VERB_POOL = [
     contSample("әкелу"),
 ];
 
+/*
+ * Pick random from the first 5 for Statement and Negative,
+ * and from all 8 for Question.
+ **/
 const CASE_LIST = [
     ["First", "Singular", "Мен"],
     ["First", "Plural", "Біз"],
     ["Second", "Singular", "Сен"],
     ["SecondPolite", "Singular", "Сіз"],
+    ["Third", "Singular", "Ол"],
+    ["Third", "Singular", "Ол"],
+    ["Third", "Singular", "Ол"],
     ["Third", "Singular", "Ол"],
 ];
 
@@ -106,17 +113,17 @@ function extractForm(phrasal) {
 }
 
 function generatePresentTransitiveTasks() {
-    // TODO shuffle cases, verbs, sentence types?
-
-    let caseIndex = getRandomInt(CASE_LIST.length);
-    const verbs = reservoirSampling(LEVEL_SAMPLES, REGULAR_WEIGHT_INDEX);
+    let verbs = reservoirSampling(LEVEL_SAMPLES, REGULAR_WEIGHT_INDEX);
+    shuffleArray(verbs);
 
     let result = [];
     for (let i = 0; i < SENTENCE_TYPE_LIST.length; ++i) {
         const sentType = SENTENCE_TYPE_LIST[i];
-        if (caseIndex >= CASE_LIST.length) {
-            caseIndex = 0;
-        }
+        const caseIndex = (
+            sentType == "Question"
+            ? getRandomInt(CASE_LIST.length)
+            : getRandomInt(5)
+        );
         const [person, number, pronoun] = CASE_LIST[caseIndex];
         const verbInfo = verbs[i];
         const builder = new VerbBuilder(
@@ -138,7 +145,6 @@ function generatePresentTransitiveTasks() {
         };
         const taskStmt = new Statement(parts, metaParts);
         result.push(new GymTask(taskStmt, [form]));
-        caseIndex += 1;
     }
     return result;
 }
