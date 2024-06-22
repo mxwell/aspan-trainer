@@ -667,7 +667,7 @@ function prepareGymOnlyTranslations(map) {
     );
     setEnRu(map, "roundCleared",
         "Round cleared!",
-        "Раунд пройден!",
+        "Раунд завершён!",
     );
     setEnRu(map, "youScored",
         "You scored",

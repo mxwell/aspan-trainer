@@ -5,7 +5,8 @@ import { GymExercise } from "./gym_exercise";
 import { loadAllGymStats } from "../lib/gym_storage";
 
 const APP_STATE_START = 1;
-const APP_STATE_LEVEL_SELECTED = 2;
+const APP_STATE_PRACTICE = 2;
+const APP_STATE_TEST = 3;
 
 // TODO Move verb specific parts outside of the gym code
 const LEVEL_KEYS = [
@@ -84,12 +85,16 @@ class GymApp extends React.Component {
         console.log(`Selected level ${level} with action=${action}`);
         if (action == "practice") {
             this.setState({
-                appState: APP_STATE_LEVEL_SELECTED,
+                appState: APP_STATE_PRACTICE,
                 selectedLevelIndex: level,
             });
+        } else if (action == "test") {
+            this.setState({
+                appState: APP_STATE_TEST,
+                selectedLevelIndex: level,
+            })
         } else {
-            // TODO
-            console.log(`Unsupported action ${action}`);
+            console.log(`onLevelSelect: unsupported action ${action}`);
         }
     }
 
@@ -109,13 +114,14 @@ class GymApp extends React.Component {
                     onSelect={this.onLevelSelect}
                     />
             );
-        } else if (appState == APP_STATE_LEVEL_SELECTED) {
+        } else if (appState == APP_STATE_PRACTICE || appState == APP_STATE_TEST) {
             const level = this.state.levels[this.state.selectedLevelIndex];
             return (
                 <GymExercise
                     lang={this.props.lang}
                     name={this.props.name}
                     level={level}
+                    testRun={appState == APP_STATE_TEST}
                     finishCallback={this.closeLevelWithReload}
                 />
             );

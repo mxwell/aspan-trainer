@@ -35,6 +35,7 @@ class GymTaskResult {
  * - lang: string
  * - name: string
  * - level: GymLevel
+ * - testRun: boolean
  * - finishCallback: function
  */
 class GymExercise extends React.Component {
@@ -104,8 +105,12 @@ class GymExercise extends React.Component {
             return;
         }
         const correct = correctAnswers.indexOf(lastEntered) >= 0;
-        const submitTime = new Date();
-        this.setState({ correct, submitTime });
+        if (this.props.testRun) {
+            this.advance(correct);
+        } else {
+            const submitTime = new Date();
+            this.setState({ correct, submitTime });
+        }
     }
 
     renderStatement(statement) {
@@ -151,6 +156,9 @@ class GymExercise extends React.Component {
     }
 
     renderFeedback(task, correct) {
+        if (this.props.testRun) {
+            return null;
+        }
         if (correct == null) {
             /* render something invisible to maintain the layout */
             return <p className="m-4 p-2 text-5xl lg:text-4xl invisible">n/a</p>;
@@ -177,15 +185,27 @@ class GymExercise extends React.Component {
         );
     }
 
+    checkTestWin(progress) {
+        let total = progress.length;
+        let totalScore = 0;
+        for (let i = 0; i < total; i++) {
+            totalScore += progress[i].score;
+        }
+        const threshold = (total - 1) * SCORE_CORRECT;
+        return totalScore >= threshold;
+    }
+
     completeRun() {
         const progress = this.state.progress;
         if (progress.length < this.state.tasks.length) {
             return;
         }
         console.log("completeRun: Saving level stats");
-        // TODO save score to stats
-        // TODO support test runs here
-        const newStats = new GymLevelStats(1, 0, 0);
+        const newStats = (
+            this.props.testRun
+            ? new GymLevelStats(0, 1, this.checkTestWin(progress) ? 1 : 0)
+            : new GymLevelStats(1, 0, 0)
+        );
         updateGymLevelStats(this.props.name, this.props.level.levelKey, newStats);
     }
 
@@ -218,8 +238,8 @@ class GymExercise extends React.Component {
         this.advance(curCorrect);
     }
 
-    renderNextButton(correct) {
-        if (correct == null) {
+    renderNextButton(answered) {
+        if (!answered || this.props.testRun) {
             return null;
         }
         return this.renderButton("btnNext", this.onNext);
@@ -228,9 +248,10 @@ class GymExercise extends React.Component {
     renderTask(taskIndex, total) {
         const task = this.state.tasks[taskIndex];
         const correct = this.state.correct;
+        const answered = correct !== null;
         const enabled = correct == null;
         const inputExtraClass = (
-            enabled
+            enabled || this.props.testRun
             ? ""
             : (
                 correct
@@ -269,8 +290,22 @@ class GymExercise extends React.Component {
                     </button>
                 </form>
                 {this.renderFeedback(task, correct)}
-                {this.renderNextButton(correct)}
+                {this.renderNextButton(answered)}
             </div>
+        );
+    }
+
+    renderTestResult(totalScore, threshold) {
+        if (!this.props.testRun) {
+            return null;
+        }
+        const win = totalScore >= threshold;
+        const colorClass = win ? "text-green-600" : "text-red-600";
+        const verdictKey = win ? "testPassed" : "testFailed";
+        return (
+            <h2 className={`text-5xl lg:text-3xl text-center m-4 ${colorClass}`}>
+                {this.i18n(verdictKey)}
+            </h2>
         );
     }
 
@@ -300,11 +335,13 @@ class GymExercise extends React.Component {
             tableRows.push(row);
         }
         const maxScore = total * SCORE_CORRECT;
+        const thresholdScore = (total - 1) * SCORE_CORRECT;
         const scoreString = `${totalScore} / ${maxScore}`;
         return (
             <div className="flex flex-col">
                 <h1 className="text-3xl lg:text-xl text-center text-gray-600 mt-4">{this.i18n(this.props.level.levelKey)}</h1>
                 <h2 className="text-5xl lg:text-3xl text-center text-gray-600 m-4">{this.i18n("roundCleared")}</h2>
+                {this.renderTestResult(totalScore, thresholdScore)}
                 <table className="table-auto text-center my-10">
                     <thead>
                         <tr className="border-t-2 text-4xl lg:text-2xl">
