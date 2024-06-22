@@ -645,8 +645,8 @@ function prepareGymOnlyTranslations(map) {
     );
 
     setEnRu(map, "negateAux",
-        "Negate the auxiliary verb",
-        "Отрицание вспомогательного глагола",
+        "Negate with an auxiliary verb or word",
+        "Отрицание с помощью вспомогательного глагола или слова",
     );
     setEnRu(map, "verbSpecialBehavior",
         "The verb is conjugated in a special way",
