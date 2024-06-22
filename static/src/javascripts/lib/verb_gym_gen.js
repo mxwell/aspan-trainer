@@ -1,6 +1,6 @@
 import { VerbBuilder } from "./aspan";
 import { GymTask, Statement, makeKeyPart, makePlainPart } from "./gym_level";
-import { getRandomInt, shuffleArray } from "./random";
+import { getRandomInt, pickRandom, shuffleArray } from "./random";
 
 // 6 + 2 + 2
 const SENTENCE_TYPE_LIST = [
@@ -70,6 +70,13 @@ const VERB_POOL = [
     contSample("әкелу"),
 ];
 
+const PRESENT_VERB_POOL = [
+    regularSample("жату"),
+    regularSample("отыру"),
+    regularSample("тұру"),
+    regularSample("жүру"),
+];
+
 /*
  * Pick random from the first 5 for Statement and Negative,
  * and from all 8 for Question.
@@ -106,6 +113,14 @@ function reservoirSampling(k, wIndex) {
     return result;
 }
 
+function pickCaseIndex(sentType) {
+    if (sentType == "Question") {
+        return getRandomInt(CASE_LIST.length);
+    } else {
+        return getRandomInt(5);
+    }
+}
+
 function extractForm(phrasal) {
     const raw = phrasal.raw;
     // remove ? at the end if present
@@ -119,11 +134,7 @@ function generatePresentTransitiveTasks() {
     let result = [];
     for (let i = 0; i < SENTENCE_TYPE_LIST.length; ++i) {
         const sentType = SENTENCE_TYPE_LIST[i];
-        const caseIndex = (
-            sentType == "Question"
-            ? getRandomInt(CASE_LIST.length)
-            : getRandomInt(5)
-        );
+        const caseIndex = pickCaseIndex(sentType);
         const [person, number, pronoun] = CASE_LIST[caseIndex];
         const verbInfo = verbs[i];
         const builder = new VerbBuilder(
@@ -149,9 +160,41 @@ function generatePresentTransitiveTasks() {
     return result;
 }
 
+function generatePresentSimpleTasks() {
+    let result = [];
+    for (let i = 0; i < SENTENCE_TYPE_LIST.length; ++i) {
+        const sentType = SENTENCE_TYPE_LIST[i];
+        const caseIndex = getRandomInt(5);
+        const [person, number, pronoun] = CASE_LIST[caseIndex];
+        const verbInfo = pickRandom(PRESENT_VERB_POOL);
+        const builder = new VerbBuilder(
+            verbInfo.infinitive,
+            verbInfo.forceExceptional,
+        );
+        const phrasal = builder.presentSimpleContinuousForm(person, number, sentType);
+        const form = extractForm(phrasal);
+        let parts = [
+            makePlainPart(`${pronoun} `),
+            makeKeyPart(verbInfo.infinitive),
+        ];
+        if (sentType == "Question") {
+            parts.push(makePlainPart("?"));
+        }
+        const metaParts = {
+            SentenceType: sentType,
+            forceExceptional: verbInfo.forceExceptional,
+        };
+        const taskStmt = new Statement(parts, metaParts);
+        result.push(new GymTask(taskStmt, [form]));
+    }
+    return result;
+}
+
 function generateTasksByLevelKey(levelKey) {
     if (levelKey == "presentTransitive") {
         return generatePresentTransitiveTasks();
+    } else if (levelKey == "presentSimple") {
+        return generatePresentSimpleTasks();
     } else {
         console.log(`generateTasksByLevelKey: unsupported levelKey: ${levelKey}`);
         return null;
