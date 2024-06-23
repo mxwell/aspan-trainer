@@ -279,10 +279,6 @@ export function createFormByParams(verb, forceExceptional, sentenceType, tense, 
     return phrasal;
 }
 
-export function normalizeVerb(verb) {
-    return verb.trim().toLowerCase();
-}
-
 class ParticipleBuilder {
     constructor(form, nounBuilder) {
         this.form = form;

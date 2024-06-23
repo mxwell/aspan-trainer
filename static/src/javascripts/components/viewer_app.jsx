@@ -26,11 +26,10 @@ import {
     createSideQuizTask,
     generateParticipleForms,
     generateVerbForms,
-    normalizeVerb,
 } from '../lib/verb_forms';
 import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
-import { hasMixedAlphabets } from '../lib/input_validation';
+import { hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
 import { unpackDetectResponse } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 
@@ -291,7 +290,7 @@ class ViewerApp extends React.Component {
         }
         let meanings = null;
         try {
-            const verbL = normalizeVerb(verb);
+            const verbL = trimAndLowercase(verb);
             if (this.checkTranslationEnabled()) {
                 this.requestTranslation(verbL);
             }
@@ -460,7 +459,7 @@ class ViewerApp extends React.Component {
     }
 
     startDetection(rawForm) {
-        const form = normalizeVerb(rawForm);
+        const form = trimAndLowercase(rawForm);
 
         if (form.length == 0) {
             return;

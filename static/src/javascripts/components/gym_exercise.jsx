@@ -4,6 +4,7 @@ import { PART_TYPE_KEY, PART_TYPE_PLAIN } from "../lib/gym_level";
 import { i18n } from "../lib/i18n";
 import { GymLevelStats, updateGymLevelStats } from "../lib/gym_storage";
 import { generateTasksByLevelKey } from "../lib/verb_gym_gen";
+import { trimAndLowercase } from "../lib/input_validation";
 
 const SCORE_CORRECT = 10;
 const SCORE_INCORRECT = 0;
@@ -83,7 +84,7 @@ class GymExercise extends React.Component {
     onSubmit(event) {
         event.preventDefault();
         console.log("onSubmit");
-        const lastEntered = this.state.lastEntered.trim();
+        const lastEntered = trimAndLowercase(this.state.lastEntered);
         if (lastEntered.length == 0) {
             return;
         }

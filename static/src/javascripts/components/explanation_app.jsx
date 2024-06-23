@@ -16,9 +16,10 @@ import {
     makeAnimationState,
     buildVerbPhrasalSummary,
 } from "../lib/verb_analysis";
-import { createFormByParams, normalizeVerb } from "../lib/verb_forms";
+import { createFormByParams } from "../lib/verb_forms";
 import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "../lib/aspan";
 import { closeButton } from "./close_button";
+import { trimAndLowercase } from "../lib/input_validation";
 
 const TENSES = [
     "presentTransitive",
@@ -171,7 +172,7 @@ class ExplanationApp extends React.Component {
         const animation = params.animation == "true";
         const form = params.form == "true";
 
-        const verbL = normalizeVerb(verb);
+        const verbL = trimAndLowercase(verb);
 
         const phrasal = createFormByParams(
             verbL,
@@ -214,7 +215,7 @@ class ExplanationApp extends React.Component {
         event.preventDefault();
 
         const verb = this.state.lastEntered || null;
-        const verbL = normalizeVerb(verb);
+        const verbL = trimAndLowercase(verb);
         const sentenceType = this.state.sentenceType;
         const tense = this.state.tense;
         const personNumber = this.state.personNumber;

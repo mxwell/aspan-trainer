@@ -2,10 +2,9 @@ import React from "react";
 import { i18n } from "../lib/i18n";
 import { buildGlosbeUrl, buildLugatUrl, buildSozdikUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
-import { normalizeVerb } from "../lib/verb_forms";
 import { pickRandom } from "../lib/random";
 import { SENTENCE_TYPES } from "../lib/sentence";
-import { hasMixedAlphabets } from "../lib/input_validation";
+import { hasMixedAlphabets, trimAndLowercase } from "../lib/input_validation";
 import { unpackDetectResponse } from "../lib/detector";
 
 const PRESET_VERB_FORMS = [
@@ -91,7 +90,7 @@ class DetectorApp extends React.Component {
     }
 
     startDetection(prevLastEntered, rawForm, suggest) {
-        const form = normalizeVerb(rawForm);
+        const form = trimAndLowercase(rawForm);
 
         if (form.length == 0) {
             const verb = null;

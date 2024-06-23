@@ -5,3 +5,7 @@ export function hasMixedAlphabets(s) {
     const cyrillic = /[а-яА-ЯіІ]/.test(s);
     return latin && cyrillic;
 }
+
+export function trimAndLowercase(s) {
+    return s.trim().toLowerCase();
+}

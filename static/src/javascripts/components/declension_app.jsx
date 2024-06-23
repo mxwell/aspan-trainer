@@ -6,6 +6,7 @@ import { PHRASAL_PART_TYPE } from '../lib/aspan';
 import { getRandomInt, pickRandom } from '../lib/random';
 import { PARTICIPLE_FUTURE, PARTICIPLE_PAST, PARTICIPLE_PRESENT, getParticipleBuilder } from '../lib/verb_forms';
 import { parseSentenceType } from '../lib/sentence';
+import { trimAndLowercase } from '../lib/input_validation';
 
 const PRESET_NOUNS = [
     "алма",
@@ -116,24 +117,26 @@ class DeclensionApp extends React.Component {
         const params = parseParams();
         const subject = params.subject;
         if (subject != null) {
-            if (subject.length <= 0) {
+            const subjectT = subject.trim();
+            if (subjectT.length <= 0) {
                 return null;
             }
             const forceAlternative = params.alternative == "true"
-            const declAltInfo = declensionAlternativeInfo(subject);
-            let declTables = generateDeclensionTables(subject, forceAlternative);
+            const declAltInfo = declensionAlternativeInfo(subjectT);
+            let declTables = generateDeclensionTables(subjectT, forceAlternative);
             return this.makeState(subject, declAltInfo, forceAlternative, subject, [], declTables);
         }
         const verb = params.verb;
         if (verb != null) {
-            if (verb.length <= 0) {
+            const verbL = trimAndLowercase(verb);
+            if (verbL.length <= 0) {
                 return null;
             }
             const participle = params.participle;
             const sentenceType = parseSentenceType(params.sentence_type);
-            const participleBuilder = getParticipleBuilder(verb, participle, sentenceType);
+            const participleBuilder = getParticipleBuilder(verbL, participle, sentenceType);
             if (participleBuilder == null) {
-                console.log(`Failed to get participle builder for ${verb}, ${participle}, ${sentenceType}`);
+                console.log(`Failed to get participle builder for ${verbL}, ${participle}, ${sentenceType}`);
                 return null;
             }
             const participleForm = participleBuilder.form;
