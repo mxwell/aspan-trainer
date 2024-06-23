@@ -118,7 +118,7 @@ class GymExercise extends React.Component {
         const sentType = (
             metaSentType
             ? (
-                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                <p className="text-4xl lg:text-2xl m-2 text-center text-gray-500">
                     {this.i18n("SentenceType")}:&nbsp;{this.i18n(metaSentType)}
                 </p>
             )
@@ -128,7 +128,7 @@ class GymExercise extends React.Component {
         const negation = (
             (metaSentType == "Negative" && negateAux)
             ? (
-                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                <p className="text-4xl lg:text-2xl m-2 text-center text-gray-500">
                     {this.i18n("negateAux")}
                 </p>
             )
@@ -137,7 +137,7 @@ class GymExercise extends React.Component {
         const specialBehavior = (
             statement.metaParts["forceExceptional"] == true
             ? (
-                <p className="text-4xl lg:text-2xl m-2 lg:max-w-2xl text-center text-gray-500">
+                <p className="text-4xl lg:text-2xl m-2 text-center text-gray-500">
                     {this.i18n("verbSpecialBehavior")}
                 </p>
             )
@@ -148,7 +148,7 @@ class GymExercise extends React.Component {
                 {sentType}
                 {negation}
                 {specialBehavior}
-                <p className="text-5xl lg:text-3xl m-2 lg:max-w-2xl text-center text-gray-600">
+                <p className="text-5xl lg:text-3xl m-2 text-center text-gray-600">
                     {printStatement(statement)}
                 </p>
             </div>
@@ -178,7 +178,7 @@ class GymExercise extends React.Component {
     renderButton(key, onClick) {
         return (
             <button
-                className="text-white text-6xl lg:text-4xl my-4 font-bold px-4 rounded focus:outline-none focus:shadow-outline bg-blue-500 hover:bg-blue-700"
+                className="text-white text-5xl lg:text-3xl my-4 font-bold px-4 rounded focus:outline-none focus:shadow-outline bg-blue-500 hover:bg-blue-700"
                 onClick={onClick}>
                 {this.i18n(key)}
             </button>
@@ -260,15 +260,15 @@ class GymExercise extends React.Component {
             )
         );
 
-        const inputClass = `shadow appearance-none border-2 rounded w-full m-4 p-2 text-6xl lg:text-4xl text-gray-700 text-center focus:outline-none focus:shadow-outline${inputExtraClass}`;
+        const inputClass = `shadow appearance-none border-2 rounded w-full m-4 p-2 text-5xl lg:text-3xl text-gray-700 text-center focus:outline-none focus:shadow-outline${inputExtraClass}`;
         const buttonEnabled = enabled && this.state.lastEntered.length > 0;
         const buttonExtraClass = buttonEnabled ? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500";
-        const buttonClass = `text-white text-6xl lg:text-4xl my-4 font-bold px-4 rounded focus:outline-none focus:shadow-outline ${buttonExtraClass}`;
+        const buttonClass = `text-white text-5xl lg:text-3xl my-4 font-bold px-4 rounded focus:outline-none focus:shadow-outline ${buttonExtraClass}`;
         return (
             <div className="px-3 py-2 flex flex-col">
-                <div className="flex justify-between">
-                    <h1 className="text-5xl lg:text-4xl m-4 text-center text-gray-700">{taskIndex + 1} / {total}</h1>
-                    <h1 className="text-5xl lg:text-4xl m-4 text-center text-gray-700">{this.i18n(this.props.level.levelKey)}</h1>
+                <div className="flex justify-between bg-gray-200">
+                    <h1 className="text-4xl lg:text-3xl m-4 text-center text-gray-700">{taskIndex + 1} / {total}</h1>
+                    <h1 className="text-4xl lg:text-3xl m-4 text-center text-gray-700">{this.i18n(this.props.level.levelKey)}</h1>
                     {closeButton({ onClick: this.props.finishCallback })}
                 </div>
                 {this.renderStatement(task.statement)}
