@@ -15,6 +15,7 @@ module.exports = {
         "./static/src/javascripts/components/detector_app.jsx",
         "./static/src/javascripts/components/explanation_app.jsx",
         "./static/src/javascripts/components/gym_app.jsx",
+        "./static/src/javascripts/components/gym_exercise.jsx",
         "./static/src/javascripts/components/gym_start.jsx",
         "./static/src/javascripts/components/viewer_app.jsx",
         "./static/src/javascripts/components/side_quiz.jsx",

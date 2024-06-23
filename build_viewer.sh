@@ -12,7 +12,7 @@ rm -rf $OUTPUT_DIR/*
 parcel build static/src/html/about_{en,kk,ru}.pug
 parcel build static/src/html/present_top_{en,ru}.pug
 parcel build static/src/html/verb_detector_{en,ru}.pug
-parcel build static/src/html/verb_gym_ru.pug
+parcel build static/src/html/verb_gym_{en,ru}.pug
 parcel build static/src/html/declension_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
@@ -20,6 +20,7 @@ parcel build static/src/html/viewer{,_en,_kk}.pug
 cp static/src/images/bg1.webp $OUTPUT_DIR/
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
+cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/
 
 mv "${OUTPUT_DIR}/viewer.html" "${OUTPUT_DIR}/index.html"
 mkdir -p ${EN_OUTPUT}

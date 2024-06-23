@@ -39,32 +39,6 @@ class GymTask {
     }
 }
 
-function generateTasks(levelKey) {
-    if (levelKey == "presentTransitive") {
-        return [
-            new GymTask(
-                new Statement([
-                    makePlainPart("Мен мектепке "),
-                    makeKeyPart("келу"),
-                    makePlainPart("?"),
-                ]),
-                ["келемін бе"],
-            ),
-            new GymTask(
-                new Statement([
-                    makePlainPart("Біз мектепке "),
-                    makeKeyPart("келу"),
-                    makePlainPart("?"),
-                ]),
-                ["келеміз бе"],
-            ),
-        ];
-    } else {
-        console.log(`generateTasks: unknown levelKey: ${levelKey}`)
-        return [];
-    }
-}
-
 export {
     GymLevel,
     PART_TYPE_PLAIN,
@@ -73,5 +47,4 @@ export {
     makeKeyPart,
     Statement,
     GymTask,
-    generateTasks,
 };
