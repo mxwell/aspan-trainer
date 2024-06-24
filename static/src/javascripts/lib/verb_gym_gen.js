@@ -18,15 +18,18 @@ const SENTENCE_TYPE_LIST = [
 const LEVEL_SAMPLES = SENTENCE_TYPE_LIST.length;
 
 const REGULAR_WEIGHT_INDEX = 0;
-const NEGATIVE_WEIGHT_INDEX = 1;
+const PRIOR_CONS_WEIGHT_INDEX = 1;
 const CONTINUOUS_WEIGHT_INDEX = 2;
 const POSS_FUT_WEIGHT_INDEX = 3;
 
+const HEAVY = 80;
+const SUPER_HEAVY = 120;
+
 class WeightedSample {
-    constructor(infinitive, forceExceptional, weight, negativeWeight, contWeight, possFutWeight) {
+    constructor(infinitive, forceExceptional, weight, priorConsWeight, contWeight, possFutWeight) {
         this.infinitive = infinitive;
         this.forceExceptional = forceExceptional;
-        this.weights = [weight, negativeWeight, contWeight, possFutWeight];
+        this.weights = [weight, priorConsWeight, contWeight, possFutWeight];
     }
 
     builder() {
@@ -42,8 +45,8 @@ function forcedException(infinitive) {
     return new WeightedSample(infinitive, true, 1, 1, 1, 1);
 }
 
-function negativeSample(infinitive) {
-    return new WeightedSample(infinitive, false, 1, 10, 1, 1);
+function priorConsSample(infinitive) {
+    return new WeightedSample(infinitive, false, 1, HEAVY, 1, 1);
 }
 
 function contSample(infinitive, weight) {
@@ -51,37 +54,118 @@ function contSample(infinitive, weight) {
 }
 
 function possFutSample(infinitive) {
-    return new WeightedSample(infinitive, false, 1, 1, 1, 30);
+    return new WeightedSample(infinitive, false, 1, 1, 1, SUPER_HEAVY);
 }
 
 // Add companion words to the verb
 const VERB_POOL = [
-    contSample("құю", 10),    /* additional й */
-    contSample("сүю", 10),
-    contSample("шаю", 10),
+    contSample("құю", HEAVY),    /* additional й */
+    contSample("сүю", HEAVY),
+    contSample("шаю", HEAVY),
     regularSample("оқу"),     /* additional ы */
     regularSample("тану"),
     forcedException("тану"),
     regularSample("есту"),    /* additional і */
     regularSample("ренжу"),
     regularSample("сүңгу"),
-    negativeSample("кешігу"), /* base ends with гғб: matters for negative */
-    negativeSample("шығу"),
-    new WeightedSample("жабу", false, 1, 10, 10, 1),  /* base ends with б and special cases for present continuous */
-    new WeightedSample("табу", false, 1, 10, 10, 1),
-    new WeightedSample("тебу", false, 1, 10, 10, 1),
-    new WeightedSample("қабу", false, 1, 10, 10, 1),
-    new WeightedSample("қабу", true, 1, 10, 1, 1),
-    contSample("бару", 30),   /* special cases for present continuous */
-    contSample("келу", 30),
-    contSample("апару", 30),
-    contSample("әкелу", 30),
+    priorConsSample("кешігу"), /* base ends with гғб: matters for negative */
+    priorConsSample("шығу"),
+    new WeightedSample("жабу", false, 1, HEAVY, HEAVY, 1),  /* base ends with б and special cases for present continuous */
+    new WeightedSample("табу", false, 1, HEAVY, HEAVY, 1),
+    new WeightedSample("тебу", false, 1, HEAVY, HEAVY, 1),
+    new WeightedSample("қабу", false, 1, HEAVY, HEAVY, 1),
+    new WeightedSample("қабу", true, 1, HEAVY, 1, 1),
+    contSample("бару", SUPER_HEAVY),   /* special cases for present continuous */
+    contSample("келу", SUPER_HEAVY),
+    contSample("апару", SUPER_HEAVY),
+    contSample("әкелу", SUPER_HEAVY),
     regularSample("ішу"),     /* ends with unvoiced consonant */
     regularSample("айту"),
     regularSample("тырысу"),
     possFutSample("қыдыру"),  /* ends with р */
     possFutSample("кіру"),
     possFutSample("көру"),
+    priorConsSample("қорқу"), /* base has a vowel if followed by a consonant */
+    priorConsSample("қырқу"),
+    priorConsSample("ірку"),
+    priorConsSample("бүрку"),
+    regularSample("істеу"),    /* popular verbs */
+    regularSample("алу"),
+    regularSample("беру"),
+    regularSample("жоспарлау"),
+    regularSample("өту"),
+    regularSample("жасау"),
+    regularSample("көрсету"),
+    regularSample("күту"),
+    regularSample("жүргізу"),
+    regularSample("қарау"),
+    regularSample("жазу"),
+    regularSample("жету"),
+    regularSample("сұрау"),
+    regularSample("қалу"),
+    regularSample("көздеу"),
+    regularSample("түсу"),
+    regularSample("ұсыну"),
+    regularSample("толу"),
+    regularSample("қатысу"),
+    regularSample("жасалу"),
+    regularSample("қабылдау"),
+    regularSample("көзделу"),
+    regularSample("салыну"),
+    regularSample("көріну"),
+    regularSample("қою"),
+    regularSample("бастау"),
+    regularSample("берілу"),
+    regularSample("салу"),
+    regularSample("қосу"),
+    regularSample("кету"),
+    regularSample("тыңдау"),
+    regularSample("тарту"),
+    regularSample("шығару"),
+    regularSample("білу"),
+    regularSample("ұстау"),
+    regularSample("ойлау"),
+    regularSample("қарастыру"),
+    regularSample("анықталу"),
+    regularSample("асу"),
+    regularSample("жалғасу"),
+    regularSample("ұйымдастырылу"),
+    regularSample("іздеу"),
+    regularSample("құрау"),
+    regularSample("өткізу"),
+    regularSample("сүру"),
+    regularSample("дайындалу"),
+    regularSample("қуану"),
+    regularSample("түсіну"),
+    regularSample("білдіру"),
+    regularSample("таныту"),
+    regularSample("атқару"),
+    regularSample("шақыру"),
+    regularSample("айналысу"),
+    regularSample("туындау"),
+    regularSample("ашылу"),
+    regularSample("талқылау"),
+    regularSample("айтылу"),
+    regularSample("бөліну"),
+    regularSample("талқылану"),
+    regularSample("жүзеге"),
+    regularSample("қолдау"),
+    regularSample("қаралу"),
+    regularSample("тіркелу"),
+    regularSample("алыну"),
+    regularSample("өсу"),
+    regularSample("айналу"),
+    regularSample("қамту"),
+    regularSample("анықтау"),
+    regularSample("алаңдату"),
+    regularSample("жылау"),
+    regularSample("келтіру"),
+    regularSample("ұсынылу"),
+    regularSample("ашу"),
+    regularSample("туу"),
+    regularSample("көмектесу"),
+    regularSample("тексеру"),
+    regularSample("тәрбиелеу"),
 ];
 
 const PRESENT_VERB_POOL = [
@@ -262,14 +346,14 @@ function generatePresentColloquialTasks() {
 
 function generatePastTasks() {
     return commonGenerator(
-        REGULAR_WEIGHT_INDEX,
+        PRIOR_CONS_WEIGHT_INDEX,
         false,
         (builder, person, number, sentType) => builder.pastForm(person, number, sentType),
     );
 }
 
 function generateRemotePastTasks() {
-    let verbs = reservoirSampling(LEVEL_SAMPLES, REGULAR_WEIGHT_INDEX);
+    let verbs = reservoirSampling(LEVEL_SAMPLES, PRIOR_CONS_WEIGHT_INDEX);
     shuffleArray(verbs);
 
     let result = [];
@@ -319,7 +403,7 @@ function generatePastTransitiveTasks() {
 
 function generateIntentionFutureTasks() {
     return commonGenerator(
-        REGULAR_WEIGHT_INDEX,
+        PRIOR_CONS_WEIGHT_INDEX,
         false,
         (builder, person, number, sentType) => builder.intentionFutureForm(person, number, sentType),
     );
