@@ -15,6 +15,7 @@ import {
     buildDeclensionUrl,
     buildExplanationUrl,
     buildParticipleDeclensionUrl,
+    buildVerbDetectorUrl,
     buildViewerUrl,
     buildViewerUrl2,
     extractSsrVerb,
@@ -947,28 +948,49 @@ class ViewerApp extends React.Component {
     }
 
     renderLandingPage() {
+        const lang = this.props.lang;
         const verb = "келу";
         const verbForms = generatePromoVerbForms(verb, false);
-        const verbTable = this.renderOneTense(verbForms);
-        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null, false);
+        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, lang, null, false);
+        const verbForm = "келмеймін";
         return (
             <div className="flex flex-col justify-center">
                 <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
-                    <h1 className="text-5xl lg:text-lg font-bold lg:w-48 text-red-500">
+                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500">
                         {this.i18n("titleConjugation")}
                     </h1>
-                    <h2 className="text-3xl lg:text-lg text-gray-500">
-                        «{verb}»
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
+                        {verb}
                     </h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
                     <table className="">
                         <tbody>
                             {this.renderFormRows(verbForms, "")}
                         </tbody>
                     </table>
                     <a
-                        className="text-blue-600 underline px-3 text-3xl lg:text-base"
                         href={verbLink}>
-                        {this.i18n("seeMore")}→
+                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
+                            {this.i18n("tryOut")}&nbsp;→
+                        </h2>
+                    </a>
+                </div>
+                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
+                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
+                        {this.i18n("title_verb_detector")}
+                    </h1>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
+                        {verbForm}
+                    </h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-700">
+                        {verb}
+                    </h2>
+                    <a
+                        href={buildVerbDetectorUrl(verbForm, lang)}>
+                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
+                            {this.i18n("tryOut")}&nbsp;→
+                        </h2>
                     </a>
                 </div>
             </div>

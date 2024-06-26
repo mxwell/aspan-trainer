@@ -136,10 +136,10 @@ function prepareViewerOnlyTranslations(map) {
         "Спряжение",
         "Жіктелу",
     );
-    setEnRuKz(map, "seeMore",
-        "see more",
-        "подробнее",
-        "толығырақ",
+    setEnRuKz(map, "tryOut",
+        "try out",
+        "попробовать",
+        "байқау",
     );
     /* side quiz */
     setEnRuKz(map, "side_quiz", "Fast quiz", "Экспресс-тест");
