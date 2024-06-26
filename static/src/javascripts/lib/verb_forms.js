@@ -67,6 +67,19 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType) {
     return new TenseForms("participle", "participle", forms);
 }
 
+export function generatePromoVerbForms(verb, forceExceptional) {
+    let forms = [];
+    const number = "Singular";
+    const sentenceType = "Statement";
+    for (const person of GRAMMAR_PERSONS) {
+        const verbBuilder = new VerbBuilder(verb, forceExceptional);
+        const phrasal = verbBuilder.presentTransitiveForm(person, number, sentenceType);
+        const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
+        forms.push(new VerbForm(pronoun, null, phrasal, false));
+    }
+    return new TenseForms("presentTransitive", "present", forms);
+}
+
 export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sentenceType) {
     let tenses = [];
     let verbBuilder = new VerbBuilder(verb, forceExceptional);

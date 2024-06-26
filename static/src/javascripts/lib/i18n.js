@@ -131,6 +131,16 @@ function prepareViewerOnlyTranslations(map) {
         "склонение",
         "септелу",
     );
+    setEnRuKz(map, "titleConjugation",
+        "Conjugation",
+        "Спряжение",
+        "Жіктелу",
+    );
+    setEnRuKz(map, "seeMore",
+        "see more",
+        "подробнее",
+        "толығырақ",
+    );
     /* side quiz */
     setEnRuKz(map, "side_quiz", "Fast quiz", "Экспресс-тест");
     setEnRuKz(map, "what_verb_form",

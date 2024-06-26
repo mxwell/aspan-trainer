@@ -26,6 +26,7 @@ import {
     createSideQuizTask,
     generateParticipleForms,
     generateVerbForms,
+    generatePromoVerbForms,
 } from '../lib/verb_forms';
 import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
@@ -911,7 +912,8 @@ class ViewerApp extends React.Component {
 
     renderTenses() {
         if (this.state.tenses.length == 0) {
-            return this.renderImage();
+            // return this.renderImage();
+            return this.renderLandingPage();
         }
         let groupedTables = {};
         let groupNames = [];
@@ -940,6 +942,35 @@ class ViewerApp extends React.Component {
             <div>
                 <h2 className="px-6 text-3xl lg:text-4xl italic text-gray-600">{`${this.i18n("conjugation_kz_verb")} «${this.state.verb}»`}</h2>
                 {groups}
+            </div>
+        );
+    }
+
+    renderLandingPage() {
+        const verb = "келу";
+        const verbForms = generatePromoVerbForms(verb, false);
+        const verbTable = this.renderOneTense(verbForms);
+        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null, false);
+        return (
+            <div className="flex flex-col justify-center">
+                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
+                    <h1 className="text-5xl lg:text-lg font-bold lg:w-48 text-red-500">
+                        {this.i18n("titleConjugation")}
+                    </h1>
+                    <h2 className="text-3xl lg:text-lg text-gray-500">
+                        «{verb}»
+                    </h2>
+                    <table className="">
+                        <tbody>
+                            {this.renderFormRows(verbForms, "")}
+                        </tbody>
+                    </table>
+                    <a
+                        className="text-blue-600 underline px-3 text-3xl lg:text-base"
+                        href={verbLink}>
+                        {this.i18n("seeMore")}→
+                    </a>
+                </div>
             </div>
         );
     }
