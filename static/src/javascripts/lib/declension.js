@@ -117,3 +117,17 @@ export function generateDeclensionTables(subject, forceAlternative) {
     let nounBuilder = new NounBuilder(subject);
     return generateDeclensionTablesOfBuilder(nounBuilder, forceAlternative);
 }
+
+export function generatePromoDeclensionForms(subject) {
+    let nounBuilder = new NounBuilder(subject);
+    let forms = [];
+    let itemsToShow = 4;
+    for (const septik in SEPTIKS) {
+        const phrasal = nounBuilder.septikForm(septik);
+        forms.push(new DeclensionForm(septik, phrasal));
+        if (--itemsToShow <= 0) {
+            break;
+        }
+    }
+    return forms;
+}

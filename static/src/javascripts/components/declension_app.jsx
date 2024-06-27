@@ -7,6 +7,7 @@ import { getRandomInt, pickRandom } from '../lib/random';
 import { PARTICIPLE_FUTURE, PARTICIPLE_PAST, PARTICIPLE_PRESENT, getParticipleBuilder } from '../lib/verb_forms';
 import { parseSentenceType } from '../lib/sentence';
 import { trimAndLowercase } from '../lib/input_validation';
+import { highlightDeclensionPhrasal } from '../lib/highlight';
 
 const PRESET_NOUNS = [
     "алма",
@@ -47,39 +48,6 @@ function pickExamples(exampleCount) {
         }
     }
     return examples;
-}
-
-function highlightPhrasal(phrasal) {
-    let htmlParts = [];
-    let parts = phrasal.parts;
-    for (let i = 0; i < parts.length; ++i) {
-        let part = parts[i];
-        let pt = part.partType;
-        let partClasses = "";
-        if (pt == PHRASAL_PART_TYPE.NounBase) {
-            partClasses = "text-teal-600 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.PluralAffix) {
-            partClasses = "text-pink-600 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.PossessiveAffix) {
-            partClasses = "text-indigo-600 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.SeptikAffix) {
-            partClasses = "text-orange-600 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.VerbBase) {
-            partClasses = "text-teal-600 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
-            partClasses = "text-orange-800 font-bold";
-        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
-            partClasses = "text-red-600 font-bold";
-        }
-        htmlParts.push(
-            <span
-                className={partClasses}
-                key={htmlParts.length}>
-                {part.content}
-            </span>
-        );
-    }
-    return htmlParts;
 }
 
 /**
@@ -300,7 +268,7 @@ class DeclensionApp extends React.Component {
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
                     <td className="italic pr-4">{septik}</td>
-                    <td>{highlightPhrasal(form.phrasal)}</td>
+                    <td>{highlightDeclensionPhrasal(form.phrasal)}</td>
                 </tr>
             );
         }

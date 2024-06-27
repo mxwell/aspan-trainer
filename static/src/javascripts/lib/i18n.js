@@ -136,6 +136,11 @@ function prepareViewerOnlyTranslations(map) {
         "Спряжение",
         "Жіктелу",
     );
+    setEnRuKz(map, "titleDeclension",
+        "Declension",
+        "Склонение",
+        "Септелу",
+    );
     setEnRuKz(map, "tryOut",
         "try out",
         "попробовать",

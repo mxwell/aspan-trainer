@@ -34,6 +34,8 @@ import { buildPersonNumberList } from '../lib/grammar_utils';
 import { hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
 import { unpackDetectResponse } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
+import { generatePromoDeclensionForms } from '../lib/declension';
+import { highlightDeclensionPhrasal } from '../lib/highlight';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -630,6 +632,23 @@ class ViewerApp extends React.Component {
         return rows;
     }
 
+    renderDeclensionForms(declensionForms) {
+        let rows = [];
+        for (let i = 0; i < declensionForms.length; ++i) {
+            const phrasal = declensionForms[i].phrasal;
+            rows.push(
+                <tr
+                    className="border-t-2 text-4xl lg:text-base"
+                    key={i}>
+                    <td>
+                        {highlightDeclensionPhrasal(phrasal)}
+                    </td>
+                </tr>
+            );
+        }
+        return rows;
+    }
+
     renderOneTense(tenseForms) {
         let tenseNameKey = tenseForms.tenseNameKey;
 
@@ -953,6 +972,8 @@ class ViewerApp extends React.Component {
         const verbForms = generatePromoVerbForms(verb, false);
         const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, lang, null, false);
         const verbForm = "келмеймін";
+        const subject = "келген";
+        const declensionForms = generatePromoDeclensionForms(subject);
         return (
             <div className="flex flex-col justify-center">
                 <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
@@ -963,7 +984,7 @@ class ViewerApp extends React.Component {
                         {verb}
                     </h2>
                     <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
-                    <table className="">
+                    <table className="mx-4">
                         <tbody>
                             {this.renderFormRows(verbForms, "")}
                         </tbody>
@@ -988,6 +1009,26 @@ class ViewerApp extends React.Component {
                     </h2>
                     <a
                         href={buildVerbDetectorUrl(verbForm, lang)}>
+                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
+                            {this.i18n("tryOut")}&nbsp;→
+                        </h2>
+                    </a>
+                </div>
+                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
+                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
+                        {this.i18n("titleDeclension")}
+                    </h1>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
+                        {subject}
+                    </h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
+                    <table className="mx-4">
+                        <tbody>
+                            {this.renderDeclensionForms(declensionForms)}
+                        </tbody>
+                    </table>
+                    <a
+                        href={buildDeclensionUrl(subject, false, lang)}>
                         <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
                             {this.i18n("tryOut")}&nbsp;→
                         </h2>

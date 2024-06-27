@@ -66,3 +66,36 @@ export function highlightPhrasal(phrasal, shownParts = -1) {
     }
     return htmlParts;
 }
+
+export function highlightDeclensionPhrasal(phrasal) {
+    let htmlParts = [];
+    let parts = phrasal.parts;
+    for (let i = 0; i < parts.length; ++i) {
+        let part = parts[i];
+        let pt = part.partType;
+        let partClasses = "";
+        if (pt == PHRASAL_PART_TYPE.NounBase) {
+            partClasses = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.PluralAffix) {
+            partClasses = "text-pink-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.PossessiveAffix) {
+            partClasses = "text-indigo-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.SeptikAffix) {
+            partClasses = "text-orange-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbBase) {
+            partClasses = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbTenseAffix) {
+            partClasses = "text-orange-800 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.VerbNegation) {
+            partClasses = "text-red-600 font-bold";
+        }
+        htmlParts.push(
+            <span
+                className={partClasses}
+                key={htmlParts.length}>
+                {part.content}
+            </span>
+        );
+    }
+    return htmlParts;
+}
