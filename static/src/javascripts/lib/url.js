@@ -127,6 +127,13 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
     return buildUrl(path, params);
 }
 
+function buildVerbGymUrl(lang) {
+    if (lang == I18N_LANG_RU) {
+        return "/verb_gym_ru.html";
+    }
+    return "/verb_gym_en.html";
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -158,6 +165,7 @@ export {
     buildVerbDetectorUrl,
     buildViewerUrl,
     buildViewerUrl2,
+    buildVerbGymUrl,
     extractSsrVerb,
     isSsrPage,
     parseParams,

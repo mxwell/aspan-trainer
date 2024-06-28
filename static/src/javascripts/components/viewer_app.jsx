@@ -16,6 +16,7 @@ import {
     buildExplanationUrl,
     buildParticipleDeclensionUrl,
     buildVerbDetectorUrl,
+    buildVerbGymUrl,
     buildViewerUrl,
     buildViewerUrl2,
     extractSsrVerb,
@@ -975,7 +976,7 @@ class ViewerApp extends React.Component {
         const subject = "келген";
         const declensionForms = generatePromoDeclensionForms(subject);
         return (
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col lg:flex-row justify-center">
                 <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
                     <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500">
                         {this.i18n("titleConjugation")}
@@ -1029,6 +1030,24 @@ class ViewerApp extends React.Component {
                     </table>
                     <a
                         href={buildDeclensionUrl(subject, false, lang)}>
+                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
+                            {this.i18n("tryOut")}&nbsp;→
+                        </h2>
+                    </a>
+                </div>
+                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
+                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
+                        {this.i18n("verbGym")}
+                    </h1>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">
+                        «Сіз [ келу ]»
+                    </h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
+                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
+                        келесіз<span className="px-2 text-green-400">✅</span>
+                    </h2>
+                    <a
+                        href={buildVerbGymUrl(lang)}>
                         <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
                             {this.i18n("tryOut")}&nbsp;→
                         </h2>
