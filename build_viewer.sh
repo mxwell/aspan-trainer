@@ -17,7 +17,6 @@ parcel build static/src/html/declension_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
 
-cp static/src/images/bg1.webp $OUTPUT_DIR/
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
 cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/

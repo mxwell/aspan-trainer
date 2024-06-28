@@ -747,14 +747,6 @@ class ViewerApp extends React.Component {
         this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, auxVerb, this.state.auxNeg);
     }
 
-    renderImage() {
-        return (
-            <div className="py-40 flex justify-center">
-                <img src="/bg1.webp"></img>
-            </div>
-        );
-    }
-
     renderSwitcher() {
         const meanings = this.state.meanings;
         if (meanings == null) {
@@ -933,7 +925,6 @@ class ViewerApp extends React.Component {
 
     renderTenses() {
         if (this.state.tenses.length == 0) {
-            // return this.renderImage();
             return this.renderLandingPage();
         }
         let groupedTables = {};
