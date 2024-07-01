@@ -30,6 +30,14 @@ class FormStructure {
     }
 }
 
+class TopicLink {
+    constructor(sourceTitle, title, url) {
+        this.sourceTitle = sourceTitle;
+        this.title = title;
+        this.url = url;
+    }
+}
+
 class FormStructureBuilder {
     constructor() {
         this.parts = [];
@@ -67,7 +75,7 @@ class FormStructureBuilder {
         this.parts.push(new StructurePart(FSPT_QM, null));
         return this;
     }
-    setExamplePhrasal(examplePhrasal) {
+    example(examplePhrasal) {
         this.examplePhrasal = examplePhrasal;
         return this;
     }
@@ -110,6 +118,7 @@ export {
     FSPT_NEG,
     FSPT_Q,
     FSPT_QM,
+    TopicLink,
     newFormStructureBuilder,
     Cheatsheet,
 };

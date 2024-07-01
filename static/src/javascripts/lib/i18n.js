@@ -646,6 +646,10 @@ function prepareGymOnlyTranslations(map) {
         "QUESTION PARTICLE",
         "ВОПРОСИТЕЛЬНАЯ ЧАСТИЦА",
     );
+    setEnRu(map, "links",
+        "Links",
+        "Ссылки",
+    );
     setEnRu(map, "practice",
         "Practice",
         "Практика",
