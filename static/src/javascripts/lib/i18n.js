@@ -626,6 +626,26 @@ function prepareGymOnlyTranslations(map) {
         "Simple Present Tense",
         "Простое настоящее время",
     );
+    setEnRu(map, "base",
+        "BASE",
+        "ОСНОВА",
+    );
+    setEnRu(map, "tenseAffix",
+        "TENSE AFFIX",
+        "АФФИКС ВРЕМЕНИ",
+    );
+    setEnRu(map, "persAffix",
+        "PERSONAL AFFIX",
+        "ЛИЧНОЕ ОКОНЧАНИЕ",
+    );
+    setEnRu(map, "neg",
+        "NEGATION PARTICLE",
+        "ЧАСТИЦА ОТРИЦАНИЯ",
+    );
+    setEnRu(map, "q",
+        "QUESTION PARTICLE",
+        "ВОПРОСИТЕЛЬНАЯ ЧАСТИЦА",
+    );
     setEnRu(map, "practice",
         "Practice",
         "Практика",
