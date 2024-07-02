@@ -630,6 +630,10 @@ function prepareGymOnlyTranslations(map) {
         "BASE",
         "ОСНОВА",
     );
+    setEnRu(map, "baseAux",
+        "AUXILIARY VERB",
+        "ВСПОМОГАТЕЛЬНЫЙ ГЛАГОЛ",
+    );
     setEnRu(map, "tenseAffix",
         "TENSE AFFIX",
         "АФФИКС ВРЕМЕНИ",

@@ -1,9 +1,11 @@
 const FSPT_SPACE = "space";
 const FSPT_BASE = "base";
 const FSPT_BASE_EXT = "baseExt";
+const FSPT_BASE_AUX = "baseAux";
 const FSPT_TENSE_AFFIX = "tenseAffix";
 const FSPT_PERS_AFFIX = "persAffix";
 const FSPT_NEG = "neg";  // negation particle
+const FSPT_NEG_WORD = "negWord";  // negation word
 const FSPT_Q = "q";  // question particle
 const FSPT_QM = "qm";  // question mark
 
@@ -55,6 +57,10 @@ class FormStructureBuilder {
         this.parts.push(new StructurePart(FSPT_BASE_EXT, content));
         return this;
     }
+    baseAux(content) {
+        this.parts.push(new StructurePart(FSPT_BASE_AUX, content));
+        return this;
+    }
     tenseAffix(content) {
         this.parts.push(new StructurePart(FSPT_TENSE_AFFIX, content));
         return this;
@@ -65,6 +71,10 @@ class FormStructureBuilder {
     }
     neg() {
         this.parts.push(new StructurePart(FSPT_NEG, null));
+        return this;
+    }
+    negWord(content) {
+        this.parts.push(new StructurePart(FSPT_NEG_WORD, content));
         return this;
     }
     q() {
@@ -113,9 +123,11 @@ export {
     FSPT_SPACE,
     FSPT_BASE,
     FSPT_BASE_EXT,
+    FSPT_BASE_AUX,
     FSPT_TENSE_AFFIX,
     FSPT_PERS_AFFIX,
     FSPT_NEG,
+    FSPT_NEG_WORD,
     FSPT_Q,
     FSPT_QM,
     TopicLink,

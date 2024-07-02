@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { FSPT_BASE, FSPT_BASE_EXT, FSPT_NEG, FSPT_PERS_AFFIX, FSPT_Q, FSPT_QM, FSPT_SPACE, FSPT_TENSE_AFFIX } from "../lib/cheatsheet";
+import { FSPT_BASE, FSPT_BASE_AUX, FSPT_BASE_EXT, FSPT_NEG, FSPT_NEG_WORD, FSPT_PERS_AFFIX, FSPT_Q, FSPT_QM, FSPT_SPACE, FSPT_TENSE_AFFIX } from "../lib/cheatsheet";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { generateCheatsheetByLevelKey } from "../lib/cheatsheet_gen";
 import { closeButton } from "./close_button";
@@ -18,12 +18,16 @@ function highlightFormStructure(structure, lang) {
             htmlItems.push(<span key={i} className="p-2 bg-teal-400 text-white rounded">{i18n(partType, lang)}</span>);
         } else if (partType == FSPT_BASE_EXT) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-teal-400 text-white rounded">{content}</span>);
+        } else if (partType == FSPT_BASE_AUX) {
+            htmlItems.push(<span key={i} className="p-2 ml-2 bg-teal-600 text-white rounded">{content || i18n(partType, lang)}</span>);
         } else if (partType == FSPT_TENSE_AFFIX) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-orange-400 text-white rounded">{content}</span>);
         } else if (partType == FSPT_PERS_AFFIX) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-indigo-500 text-white rounded">{i18n(partType, lang)}</span>);
         } else if (partType == FSPT_NEG) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-red-400 text-white rounded">{i18n(partType, lang)}</span>);
+        } else if (partType == FSPT_NEG_WORD) {
+            htmlItems.push(<span key={i} className="p-2 ml-2 bg-red-400 text-white rounded">{content}</span>);
         } else if (partType == FSPT_Q) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-blue-800 text-white rounded">{i18n(partType, lang)}</span>);
         } else if (partType == FSPT_QM) {
