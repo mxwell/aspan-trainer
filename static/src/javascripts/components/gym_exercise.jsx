@@ -302,7 +302,7 @@ class GymExercise extends React.Component {
         }
         const win = totalScore >= threshold;
         const colorClass = win ? "text-green-600" : "text-red-600";
-        const verdictKey = win ? "testPassed" : "testFailed";
+        const verdictKey = win ? "testPassed" : "testNotPassed";
         return (
             <h2 className={`text-5xl lg:text-3xl text-center m-4 ${colorClass}`}>
                 {this.i18n(verdictKey)}
