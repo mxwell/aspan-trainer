@@ -21,7 +21,7 @@ function highlightFormStructure(structure, lang) {
         } else if (partType == FSPT_BASE_AUX) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-teal-600 text-white rounded">{content || i18n(partType, lang)}</span>);
         } else if (partType == FSPT_TENSE_AFFIX) {
-            htmlItems.push(<span key={i} className="p-2 ml-2 bg-orange-400 text-white rounded">{content}</span>);
+            htmlItems.push(<span key={i} className="p-2 ml-2 bg-orange-400 text-white rounded">{content || i18n(partType, lang)}</span>);
         } else if (partType == FSPT_PERS_AFFIX) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-indigo-500 text-white rounded">{i18n(partType, lang)}</span>);
         } else if (partType == FSPT_NEG) {

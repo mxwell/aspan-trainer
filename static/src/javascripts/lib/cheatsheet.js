@@ -85,6 +85,12 @@ class FormStructureBuilder {
         this.parts.push(new StructurePart(FSPT_QM, null));
         return this;
     }
+    qPartsIf(condition) {
+        if (condition) {
+            this.space().q().qM();
+        }
+        return this;
+    }
     example(examplePhrasal) {
         this.examplePhrasal = examplePhrasal;
         return this;
