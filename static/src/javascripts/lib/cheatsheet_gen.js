@@ -329,7 +329,8 @@ function generateCheatsheetByLevelKey(levelKey) {
     } else if (levelKey == "presentContinuous") {
         return buildPresentContinuousCheatsheet();
     } else {
-        throw new Error(`generateCheatsheetByLevelKey: unsupported level key: ${levelKey}`);
+        console.log(`generateCheatsheetByLevelKey: unsupported level key: ${levelKey}`);
+        return null;
     }
 }
 

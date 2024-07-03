@@ -50,9 +50,12 @@ class GymCheatsheet extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            cheatsheet: generateCheatsheetByLevelKey(this.props.levelKey),
-        };
+        const cheatsheet = generateCheatsheetByLevelKey(this.props.levelKey);
+        this.state = { cheatsheet };
+        if (cheatsheet == null) {
+            console.log(`No cheatsheet for level=${this.props.levelKey}, forwarding to next level`);
+            this.props.forwardCallback();
+        }
     }
 
     i18n(key) {
@@ -116,7 +119,9 @@ class GymCheatsheet extends React.Component {
     render() {
         const levelKey = this.props.levelKey;
         const cheatsheet = this.state.cheatsheet;
-        // TODO add links
+        if (cheatsheet == null) {
+            return null;
+        }
         return (
             <div className="flex flex-col">
                 <div className="flex flex-row justify-between bg-gray-200 p-4">
