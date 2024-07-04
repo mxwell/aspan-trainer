@@ -25,7 +25,7 @@ function highlightFormStructure(structure, lang) {
         } else if (partType == FSPT_PERS_AFFIX) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-indigo-500 text-white rounded">{i18n(partType, lang)}</span>);
         } else if (partType == FSPT_NEG) {
-            htmlItems.push(<span key={i} className="p-2 ml-2 bg-red-400 text-white rounded">{i18n(partType, lang)}</span>);
+            htmlItems.push(<span key={i} className="p-2 ml-2 bg-red-400 text-white rounded">{content || i18n(partType, lang)}</span>);
         } else if (partType == FSPT_NEG_WORD) {
             htmlItems.push(<span key={i} className="p-2 ml-2 bg-red-400 text-white rounded">{content}</span>);
         } else if (partType == FSPT_Q) {
@@ -63,6 +63,9 @@ class GymCheatsheet extends React.Component {
     }
 
     renderStructures(structures, sentenceType) {
+        if (structures.length == 0) {
+            return null;
+        }
         let tableRows = [];
         for (let i = 0; i < structures.length; i++) {
             const s = structures[i];

@@ -70,7 +70,10 @@ class FormStructureBuilder {
         return this;
     }
     neg() {
-        this.parts.push(new StructurePart(FSPT_NEG, null));
+        return this.negC(null);
+    }
+    negC(content) {
+        this.parts.push(new StructurePart(FSPT_NEG, content));
         return this;
     }
     negWord(content) {
