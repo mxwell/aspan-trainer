@@ -630,6 +630,10 @@ function prepareGymOnlyTranslations(map) {
         "BASE",
         "ОСНОВА",
     );
+    setEnRu(map, "baseExt",
+        "BASE ADDENDUM",
+        "ДОПОЛНЕНИЕ ОСНОВЫ",
+    );
     setEnRu(map, "baseAux",
         "AUXILIARY VERB",
         "ВСПОМОГАТЕЛЬНЫЙ ГЛАГОЛ",

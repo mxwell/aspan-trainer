@@ -20,8 +20,8 @@ const LEVEL_KEYS = [
     "remotePast",
     "pastUncertain",
     "pastTransitive",
-    "intentionFuture",
     "possibleFuture",
+    "intentionFuture",
 ];
 
 const LEVEL_PARENTS = {
@@ -33,8 +33,8 @@ const LEVEL_PARENTS = {
     remotePast: "past",
     pastUncertain: "remotePast",
     pastTransitive: "pastUncertain",
-    intentionFuture: "presentTransitive",
-    possibleFuture: "intentionFuture",
+    possibleFuture: "presentTransitive",
+    intentionFuture: "possibleFuture",
 };
 
 /**

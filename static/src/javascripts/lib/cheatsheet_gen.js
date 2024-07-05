@@ -726,6 +726,168 @@ function buildPastTransitive() {
     return new Cheatsheet(statement, negative, [], links);
 }
 
+function buildPossibleFutureCheatsheet() {
+    const firstPerson = GRAMMAR_PERSONS[0];
+    const singular = GRAMMAR_NUMBERS[0];
+
+    const statementType = SENTENCE_TYPES[0];
+    let statement = [];
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("ар").persAffix()
+        .example(new VerbBuilder("алу").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("ер").persAffix()
+        .example(new VerbBuilder("беру").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("р").persAffix()
+        .example(new VerbBuilder("қарау").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("і").tenseAffix("р").persAffix()
+        .example(new VerbBuilder("есту").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("ы").tenseAffix("р").persAffix()
+        .example(new VerbBuilder("оқу").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("й").tenseAffix("ер").persAffix()
+        .example(new VerbBuilder("сүю").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("яр").persAffix()
+        .example(new VerbBuilder("шаю").possibleFutureForm(firstPerson, singular, statementType))
+        .build());
+
+    const negativeType = SENTENCE_TYPES[1];
+    let negative = [];
+    negative.push(newFormStructureBuilder()
+        .base().neg().tenseAffix("с").persAffix()
+        .example(new VerbBuilder("алу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("і").negC("ме").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("есту").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ы").negC("ма").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("оқу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("й").neg().tenseAffix("с").persAffix()
+        .example(new VerbBuilder("сүю").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("к").negC("пе").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("кешігу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("п").neg().tenseAffix("с").persAffix()
+        .example(new VerbBuilder("жабу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("қ").negC("па").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("шығу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ік").negC("пе").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("ірку").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ық").negC("па").tenseAffix("с").persAffix()
+        .example(new VerbBuilder("қорқу").possibleFutureForm(firstPerson, singular, negativeType))
+        .build());
+
+    let links = [
+        new TopicLink("Казахский язык. Просто о сложном", "Будущее предположительное время глагола", "https://www.kaz-tili.kz/glag7.htm"),
+    ];
+
+    return new Cheatsheet(statement, negative, [], links);
+}
+
+function buildIntentionFutureCheatsheet() {
+    const firstPerson = GRAMMAR_PERSONS[0];
+    const singular = GRAMMAR_NUMBERS[0];
+
+    const statementType = SENTENCE_TYPES[0];
+    let statement = [];
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("бақ").persAffix()
+        .example(new VerbBuilder("жазу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("бек").persAffix()
+        .example(new VerbBuilder("үйрену").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("пақ").persAffix()
+        .example(new VerbBuilder("айту").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("пек").persAffix()
+        .example(new VerbBuilder("көрсету").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("мақ").persAffix()
+        .example(new VerbBuilder("алу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("мек").persAffix()
+        .example(new VerbBuilder("беру").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("і").tenseAffix("мек").persAffix()
+        .example(new VerbBuilder("есту").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("ы").tenseAffix("мақ").persAffix()
+        .example(new VerbBuilder("оқу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("й").tenseAffix(null).persAffix()
+        .example(new VerbBuilder("сүю").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("к").tenseAffix("пек").persAffix()
+        .example(new VerbBuilder("кешігу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("п").tenseAffix(null).persAffix()
+        .example(new VerbBuilder("жабу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("қ").tenseAffix("пақ").persAffix()
+        .example(new VerbBuilder("шығу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("ік").tenseAffix("пек").persAffix()
+        .example(new VerbBuilder("ірку").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("ық").tenseAffix("пақ").persAffix()
+        .example(new VerbBuilder("қорқу").intentionFutureForm(firstPerson, singular, statementType))
+        .build());
+
+    const negativeType = SENTENCE_TYPES[1];
+    let negative = [];
+    negative.push(newFormStructureBuilder()
+        .base().tenseAffix(null).space().negWord("емес").persAffix()
+        .example(new VerbBuilder("алу").intentionFutureForm(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt(null).tenseAffix(null).space().negWord("емес").persAffix()
+        .example(new VerbBuilder("есту").intentionFutureForm(firstPerson, singular, negativeType))
+        .build());
+
+    let links = [
+        new TopicLink("Казахский язык. Просто о сложном", "Будущее время намерения", "https://www.kaz-tili.kz/glag8.htm"),
+    ];
+
+    return new Cheatsheet(statement, negative, [], links);
+}
+
 function generateCheatsheetByLevelKey(levelKey) {
     if (levelKey == "presentTransitive") {
         return buildPresentTransitiveCheatsheet();
@@ -741,6 +903,10 @@ function generateCheatsheetByLevelKey(levelKey) {
         return buildPastUncertainCheatsheet();
     } else if (levelKey == "pastTransitive") {
         return buildPastTransitive();
+    } else if (levelKey == "possibleFuture") {
+        return buildPossibleFutureCheatsheet();
+    } else if (levelKey == "intentionFuture") {
+        return buildIntentionFutureCheatsheet();
     } else {
         console.log(`generateCheatsheetByLevelKey: unsupported level key: ${levelKey}`);
         return null;

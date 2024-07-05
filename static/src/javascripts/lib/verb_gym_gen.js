@@ -434,10 +434,10 @@ function generateTasksByLevelKey(levelKey) {
         return generatePastUncertainTasks();
     } else if (levelKey == "pastTransitive") {
         return generatePastTransitiveTasks();
-    } else if (levelKey == "intentionFuture") {
-        return generateIntentionFutureTasks();
     } else if (levelKey == "possibleFuture") {
         return generatePossibleFutureTasks();
+    } else if (levelKey == "intentionFuture") {
+        return generateIntentionFutureTasks();
     } else {
         console.log(`generateTasksByLevelKey: unsupported levelKey: ${levelKey}`);
         return null;
