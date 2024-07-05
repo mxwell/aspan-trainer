@@ -560,6 +560,172 @@ function buildRemotePastCheatsheet() {
     return new Cheatsheet(statement, negative, [], links);
 }
 
+function buildPastUncertainCheatsheet() {
+    const firstPerson = GRAMMAR_PERSONS[0];
+    const singular = GRAMMAR_NUMBERS[0];
+
+    const statementType = SENTENCE_TYPES[0];
+    let statement = [];
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("ып").persAffix()
+        .example(new VerbBuilder("алу").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("іп").persAffix()
+        .example(new VerbBuilder("беру").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("п").persAffix()
+        .example(new VerbBuilder("қарау").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("і").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("есту").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("ы").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("оқу").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("й").tenseAffix(null).persAffix()
+        .example(new VerbBuilder("сүю").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("у").tenseAffix(null).persAffix()
+        .example(new VerbBuilder("жабу").pastUncertainTense(firstPerson, singular, statementType))
+        .build());
+
+    const negativeType = SENTENCE_TYPES[1];
+    let negative = [];
+    negative.push(newFormStructureBuilder()
+        .base().neg().tenseAffix("п").persAffix()
+        .example(new VerbBuilder("алу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("і").negC("ме").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("есту").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ы").negC("ма").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("оқу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("й").neg().tenseAffix("п").persAffix()
+        .example(new VerbBuilder("сүю").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("к").negC("пе").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("кешігу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("қ").negC("па").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("шығу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("п").neg().tenseAffix(null).persAffix()
+        .example(new VerbBuilder("жабу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ік").negC("пе").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("ірку").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ық").negC("па").tenseAffix("п").persAffix()
+        .example(new VerbBuilder("қорқу").pastUncertainTense(firstPerson, singular, negativeType))
+        .build());
+
+    let links = [
+        new TopicLink("Казахский язык. Просто о сложном", "Давнопрошедшее неочевидное время глагола", "https://www.kaz-tili.kz/glag10.htm"),
+    ];
+
+    return new Cheatsheet(statement, negative, [], links);
+}
+
+function buildPastTransitive() {
+    const firstPerson = GRAMMAR_PERSONS[0];
+    const singular = GRAMMAR_NUMBERS[0];
+
+    const statementType = SENTENCE_TYPES[0];
+    let statement = [];
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("атын").persAffix()
+        .example(new VerbBuilder("алу").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("етін").persAffix()
+        .example(new VerbBuilder("беру").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("йтын").persAffix()
+        .example(new VerbBuilder("қарау").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("йтін").persAffix()
+        .example(new VerbBuilder("істеу").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("итін").persAffix()
+        .example(new VerbBuilder("есту").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("итын").persAffix()
+        .example(new VerbBuilder("оқу").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().baseExt("й").tenseAffix("етін").persAffix()
+        .example(new VerbBuilder("сүю").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+    statement.push(newFormStructureBuilder()
+        .base().tenseAffix("ятын").persAffix()
+        .example(new VerbBuilder("шаю").pastTransitiveTense(firstPerson, singular, statementType))
+        .build());
+
+    const negativeType = SENTENCE_TYPES[1];
+    let negative = [];
+    negative.push(newFormStructureBuilder()
+        .base().neg().tenseAffix(null).persAffix()
+        .example(new VerbBuilder("алу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("і").negC("ме").tenseAffix("йтін").persAffix()
+        .example(new VerbBuilder("есту").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ы").negC("ма").tenseAffix("йтын").persAffix()
+        .example(new VerbBuilder("оқу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("й").neg().tenseAffix(null).persAffix()
+        .example(new VerbBuilder("сүю").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("к").negC("пе").tenseAffix("йтін").persAffix()
+        .example(new VerbBuilder("кешігу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("п").neg().tenseAffix(null).persAffix()
+        .example(new VerbBuilder("жабу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("қ").negC("па").tenseAffix("йтын").persAffix()
+        .example(new VerbBuilder("шығу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ік").negC("пе").tenseAffix("йтін").persAffix()
+        .example(new VerbBuilder("ірку").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+    negative.push(newFormStructureBuilder()
+        .base().baseExt("ық").negC("па").tenseAffix("йтын").persAffix()
+        .example(new VerbBuilder("қорқу").pastTransitiveTense(firstPerson, singular, negativeType))
+        .build());
+
+    let links = [
+        new TopicLink("Казахский язык. Просто о сложном", "Переходное прошедшее время глагола", "https://www.kaz-tili.kz/glag11.htm"),
+    ];
+
+    return new Cheatsheet(statement, negative, [], links);
+}
+
 function generateCheatsheetByLevelKey(levelKey) {
     if (levelKey == "presentTransitive") {
         return buildPresentTransitiveCheatsheet();
@@ -571,6 +737,10 @@ function generateCheatsheetByLevelKey(levelKey) {
         return buildPastCheatsheet();
     } else if (levelKey == "remotePast") {
         return buildRemotePastCheatsheet();
+    } else if (levelKey == "pastUncertain") {
+        return buildPastUncertainCheatsheet();
+    } else if (levelKey == "pastTransitive") {
+        return buildPastTransitive();
     } else {
         console.log(`generateCheatsheetByLevelKey: unsupported level key: ${levelKey}`);
         return null;
