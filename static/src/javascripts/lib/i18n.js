@@ -631,28 +631,28 @@ function prepareGymOnlyTranslations(map) {
         "ОСНОВА",
     );
     setEnRu(map, "baseExt",
-        "BASE ADDENDUM",
-        "ДОПОЛНЕНИЕ ОСНОВЫ",
+        "ADDITION",
+        "ДОБАВЛЕНИЕ",
     );
     setEnRu(map, "baseAux",
-        "AUXILIARY VERB",
-        "ВСПОМОГАТЕЛЬНЫЙ ГЛАГОЛ",
+        "AUX.",
+        "ВСПОМ.",
     );
     setEnRu(map, "tenseAffix",
-        "TENSE AFFIX",
-        "АФФИКС ВРЕМЕНИ",
+        "AFFIX",
+        "АФФИКС",
     );
     setEnRu(map, "persAffix",
-        "PERSONAL AFFIX",
-        "ЛИЧНОЕ ОКОНЧАНИЕ",
+        "PERS.",
+        "ЛИЧН.",
     );
     setEnRu(map, "neg",
-        "NEGATION PARTICLE",
-        "ЧАСТИЦА ОТРИЦАНИЯ",
+        "NEGATION",
+        "ОТРИЦ.",
     );
     setEnRu(map, "q",
-        "QUESTION PARTICLE",
-        "ВОПРОСИТЕЛЬНАЯ ЧАСТИЦА",
+        "QUESTION",
+        "ВОПРОС.",
     );
     setEnRu(map, "links",
         "Links",
