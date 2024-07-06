@@ -23,8 +23,9 @@ class StructurePart {
 }
 
 class FormStructure {
-    constructor(parts, examplePhrasal) {
+    constructor(parts, exampleVerb, examplePhrasal) {
         this.parts = parts;
+        this.exampleVerb = exampleVerb;
         this.examplePhrasal = examplePhrasal;
     }
     toString() {
@@ -43,6 +44,7 @@ class TopicLink {
 class FormStructureBuilder {
     constructor() {
         this.parts = [];
+        this.exampleVerb = null;
         this.examplePhrasal = null;
     }
     space() {
@@ -94,12 +96,13 @@ class FormStructureBuilder {
         }
         return this;
     }
-    example(examplePhrasal) {
+    example(exampleVerb, examplePhrasal) {
+        this.exampleVerb = exampleVerb;
         this.examplePhrasal = examplePhrasal;
         return this;
     }
     build() {
-        return new FormStructure(this.parts, this.examplePhrasal);
+        return new FormStructure(this.parts, this.exampleVerb, this.examplePhrasal);
     }
 }
 

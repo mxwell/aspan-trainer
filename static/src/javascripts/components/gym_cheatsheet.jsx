@@ -71,8 +71,9 @@ class GymCheatsheet extends React.Component {
             const s = structures[i];
             tableRows.push(
                 <tr key={i}>
-                    <td className="px-6 py-4 border-2 w-12">{i + 1}</td>
+                    <td className="px-6 py-4 border-2 w-12 text-gray-600">{i + 1}</td>
                     <td className="px-6 py-4 border-2 text-left">{highlightFormStructure(s, this.props.lang)}</td>
+                    <td className="px-6 py-4 border-2 text-left text-gray-600">{s.exampleVerb}</td>
                     <td className="px-6 py-4 border-2 text-left">{highlightPhrasal(s.examplePhrasal)}</td>
                 </tr>
             );
@@ -99,7 +100,7 @@ class GymCheatsheet extends React.Component {
         for (let i = 0; i < links.length; i++) {
             const link = links[i];
             linksHtml.push(
-                <li className="text-3xl lg:text-xl">
+                <li className="text-3xl lg:text-xl" key={i}>
                     <a key={i} href={link.url} className="text-blue-500 underline">
                         {link.title}
                     </a>
