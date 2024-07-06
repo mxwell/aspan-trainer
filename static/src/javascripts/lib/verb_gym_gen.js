@@ -22,6 +22,7 @@ const PRIOR_CONS_WEIGHT_INDEX = 1;
 const CONTINUOUS_WEIGHT_INDEX = 2;
 const POSS_FUT_WEIGHT_INDEX = 3;
 
+const INTEREST = 10;
 const HEAVY = 80;
 const SUPER_HEAVY = 120;
 
@@ -41,54 +42,31 @@ function regularSample(infinitive) {
     return new WeightedSample(infinitive, false, 1, 1, 1, 1);
 }
 
+function interestingSample(infinitive) {
+    return new WeightedSample(infinitive, false, INTEREST, INTEREST, INTEREST, INTEREST);
+}
+
 function forcedException(infinitive) {
-    return new WeightedSample(infinitive, true, 1, 1, 1, 1);
+    return new WeightedSample(infinitive, true, INTEREST, INTEREST, INTEREST, INTEREST);
 }
 
 function priorConsSample(infinitive) {
-    return new WeightedSample(infinitive, false, 1, HEAVY, 1, 1);
+    return new WeightedSample(infinitive, false, INTEREST, HEAVY, INTEREST, INTEREST);
 }
 
 function contSample(infinitive, weight) {
-    return new WeightedSample(infinitive, false, 1, 1, weight, 1);
+    return new WeightedSample(infinitive, false, INTEREST, INTEREST, weight, INTEREST);
 }
 
 function possFutSample(infinitive) {
-    return new WeightedSample(infinitive, false, 1, 1, 1, SUPER_HEAVY);
+    return new WeightedSample(infinitive, false, INTEREST, INTEREST, INTEREST, SUPER_HEAVY);
 }
 
-// Add companion words to the verb
+/**
+ * Order approximately by increasing weight, so that regular samples get more chances to be shuffled among themselves.
+ * If we allow heavy samples to be picked first, they would stabilize the selection and make later swaps less likely.
+ */
 const VERB_POOL = [
-    contSample("құю", HEAVY),    /* additional й */
-    contSample("сүю", HEAVY),
-    contSample("шаю", HEAVY),
-    regularSample("оқу"),     /* additional ы */
-    regularSample("тану"),
-    forcedException("тану"),
-    regularSample("есту"),    /* additional і */
-    regularSample("ренжу"),
-    regularSample("сүңгу"),
-    priorConsSample("кешігу"), /* base ends with гғб: matters for negative */
-    priorConsSample("шығу"),
-    new WeightedSample("жабу", false, 1, HEAVY, HEAVY, 1),  /* base ends with б and special cases for present continuous */
-    new WeightedSample("табу", false, 1, HEAVY, HEAVY, 1),
-    new WeightedSample("тебу", false, 1, HEAVY, HEAVY, 1),
-    new WeightedSample("қабу", false, 1, HEAVY, HEAVY, 1),
-    new WeightedSample("қабу", true, 1, HEAVY, 1, 1),
-    contSample("бару", SUPER_HEAVY),   /* special cases for present continuous */
-    contSample("келу", SUPER_HEAVY),
-    contSample("апару", SUPER_HEAVY),
-    contSample("әкелу", SUPER_HEAVY),
-    regularSample("ішу"),     /* ends with unvoiced consonant */
-    regularSample("айту"),
-    regularSample("тырысу"),
-    possFutSample("қыдыру"),  /* ends with р */
-    possFutSample("кіру"),
-    possFutSample("көру"),
-    priorConsSample("қорқу"), /* base has a vowel if followed by a consonant */
-    priorConsSample("қырқу"),
-    priorConsSample("ірку"),
-    priorConsSample("бүрку"),
     regularSample("істеу"),    /* popular verbs */
     regularSample("алу"),
     regularSample("беру"),
@@ -161,11 +139,59 @@ const VERB_POOL = [
     regularSample("жылау"),
     regularSample("келтіру"),
     regularSample("ұсынылу"),
-    regularSample("ашу"),
     regularSample("туу"),
     regularSample("көмектесу"),
     regularSample("тексеру"),
     regularSample("тәрбиелеу"),
+
+    interestingSample("ішу"),     /* ends with unvoiced consonant */
+    interestingSample("айту"),
+    interestingSample("тырысу"),
+    interestingSample("оқу"),     /* additional ы */
+    interestingSample("қобалжу"),
+    interestingSample("аршу"),
+    interestingSample("баю"),
+    interestingSample("тану"),    /* optionally exceptional */
+    forcedException("тану"),
+    interestingSample("жану"),
+    forcedException("жану"),
+    interestingSample("жуу"),
+    forcedException("жуу"),
+    interestingSample("құру"),
+    forcedException("құру"),
+    interestingSample("ию"),
+    forcedException("ию"),
+    interestingSample("ашу"),
+    forcedException("ашу"),
+    interestingSample("есту"),    /* additional і */
+    interestingSample("ренжу"),
+    interestingSample("сүңгу"),
+
+    contSample("құю", HEAVY),    /* additional й */
+    contSample("сүю", HEAVY),
+    contSample("шаю", HEAVY),
+    priorConsSample("кешігу"), /* base ends with гғб: matters for negative */
+    priorConsSample("шығу"),
+
+    priorConsSample("қорқу"), /* base has a vowel if followed by a consonant */
+    priorConsSample("қырқу"),
+    priorConsSample("ірку"),
+    priorConsSample("бүрку"),
+
+    new WeightedSample("жабу", false, 1, HEAVY, SUPER_HEAVY, 1),  /* base ends with б and special cases for present continuous */
+    new WeightedSample("табу", false, 1, HEAVY, SUPER_HEAVY, 1),
+    new WeightedSample("тебу", false, 1, HEAVY, SUPER_HEAVY, 1),
+    new WeightedSample("қабу", false, 1, HEAVY, SUPER_HEAVY, 1),
+    new WeightedSample("қабу", true, 1, HEAVY, INTEREST, 1),
+
+    contSample("бару", SUPER_HEAVY),   /* special cases for present continuous */
+    contSample("келу", SUPER_HEAVY),
+    contSample("апару", SUPER_HEAVY),
+    contSample("әкелу", SUPER_HEAVY),
+
+    possFutSample("қыдыру"),  /* ends with р */
+    possFutSample("кіру"),
+    possFutSample("көру"),
 ];
 
 const PRESENT_VERB_POOL = [
