@@ -626,6 +626,12 @@ function prepareGymOnlyTranslations(map) {
         "Simple Present Tense",
         "Простое настоящее время",
     );
+    setEnRu(map, "cheatsheetIntro",
+        "The cheatsheet below shows formulas that cover all conjugation forms used on this level. " +
+          "The question forms are skipped if they differ from the statement forms only by question particles.",
+        "Шпаргалка ниже показывает формулы, которые покрывают все формы спряжения, используемые на этом уровне. " +
+          "Вопросительные формы опущены, если они отличаются от утвердительных только вопросительными частицами.",
+    );
     setEnRu(map, "base",
         "BASE",
         "ОСНОВА",
@@ -657,6 +663,10 @@ function prepareGymOnlyTranslations(map) {
     setEnRu(map, "links",
         "Links",
         "Ссылки",
+    );
+    setEnRu(map, "linksIntro",
+        "To learn more about the topic, you can follow the links below.",
+        "Подробнее тему можно изучить по ссылкам ниже.",
     );
     setEnRu(map, "practice",
         "Practice",

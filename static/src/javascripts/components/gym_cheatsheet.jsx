@@ -99,7 +99,7 @@ class GymCheatsheet extends React.Component {
         for (let i = 0; i < links.length; i++) {
             const link = links[i];
             linksHtml.push(
-                <li className="text-4xl lg:text-2xl">
+                <li className="text-3xl lg:text-xl">
                     <a key={i} href={link.url} className="text-blue-500 underline">
                         {link.title}
                     </a>
@@ -112,6 +112,9 @@ class GymCheatsheet extends React.Component {
                 <h2 className="text-4xl lg:text-2xl text-gray-600 my-10">
                     {this.i18n("links")}
                 </h2>
+                <p className="text-3xl lg:text-xl my-2 p-4 lg:max-w-4xl">
+                    {this.i18n("linksIntro")}
+                </p>
                 <ol className="list-decimal list-inside">
                     {linksHtml}
                 </ol>
@@ -133,6 +136,9 @@ class GymCheatsheet extends React.Component {
                     </h1>
                     {closeButton({ onClick: this.props.backCallback })}
                 </div>
+                <p className="text-3xl lg:text-xl my-2 p-4 lg:max-w-4xl">
+                    {this.i18n("cheatsheetIntro")}
+                </p>
                 {this.renderStructures(cheatsheet.statement, SENTENCE_TYPES[0])}
                 {this.renderStructures(cheatsheet.negative, SENTENCE_TYPES[1])}
                 {this.renderStructures(cheatsheet.question, SENTENCE_TYPES[2])}
