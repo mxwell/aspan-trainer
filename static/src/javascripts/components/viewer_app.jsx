@@ -206,6 +206,7 @@ class ViewerApp extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.clearSearch = this.clearSearch.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
         this.onSuggestionClick = this.onSuggestionClick.bind(this);
@@ -398,6 +399,11 @@ class ViewerApp extends React.Component {
                 this.clearSuggestions();
             }
         }
+        this.setState({ lastEntered });
+    }
+
+    clearSearch(e) {
+        const lastEntered = "";
         this.setState({ lastEntered });
     }
 
@@ -1061,6 +1067,19 @@ class ViewerApp extends React.Component {
         }
     }
 
+    renderClearButton() {
+        if (this.state.lastEntered.length == 0) {
+            return null;
+        }
+        return (
+            <input
+                type="reset"
+                onClick={this.clearSearch}
+                className="ml-2 px-6 lg:px-4 text-4xl lg:text-2xl text-white font-bold rounded bg-gray-400 hover:bg-gray-600"
+                value="X" />
+        );
+    }
+
     renderSuggestions() {
         let suggestions = this.state.suggestions;
         if (suggestions.length == 0) {
@@ -1179,14 +1198,25 @@ class ViewerApp extends React.Component {
     }
 
     render () {
+        const clearButton = (
+            this.state.lastEntered.length > 0
+            ? (
+                <input
+                    type="reset"
+                    onClick={this.clearSearch}
+                    className="ml-2 px-6 lg:px-4 text-4xl lg:text-2xl text-white font-bold rounded bg-gray-400 hover:bg-gray-600"
+                    value="X" />
+            )
+            : null
+        );
         return (
             <div className="flex">
                 <div className="md:py-6" onClick={this.onBgClick}>
                     <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
                         <div className="lg:px-2">
-                            <div className="relative">
+                            <div className="relative flex flex-row">
                                 <input
-                                    type="text"
+                                    type="search"
                                     size="20"
                                     maxLength="100"
                                     value={this.state.lastEntered}
@@ -1195,6 +1225,7 @@ class ViewerApp extends React.Component {
                                     placeholder={this.i18n("hintEnterVerb")}
                                     className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                                     autoFocus />
+                                {this.renderClearButton()}
                                 {this.renderSuggestions()}
                             </div>
                             {this.renderExampleVerbs()}
