@@ -127,6 +127,17 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
     return buildUrl(path, params);
 }
 
+function buildVerbFormAudioUrl(verb, fe, text) {
+    let params = [
+        `v=${encodeURI(verb)}`,
+        `f=${encodeURI(text)}`,
+    ];
+    if (fe == true) {
+        params.push(`fe=1`);
+    }
+    return buildUrl("https://kazakhverb.khairulin.com/api/v1/tts", params);
+}
+
 function buildVerbGymUrl(lang) {
     if (lang == I18N_LANG_RU) {
         return "/verb_gym_ru.html";
@@ -165,6 +176,7 @@ export {
     buildVerbDetectorUrl,
     buildViewerUrl,
     buildViewerUrl2,
+    buildVerbFormAudioUrl,
     buildVerbGymUrl,
     extractSsrVerb,
     isSsrPage,

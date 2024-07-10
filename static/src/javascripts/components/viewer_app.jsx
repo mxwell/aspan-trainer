@@ -16,6 +16,7 @@ import {
     buildExplanationUrl,
     buildParticipleDeclensionUrl,
     buildVerbDetectorUrl,
+    buildVerbFormAudioUrl,
     buildVerbGymUrl,
     buildViewerUrl,
     buildViewerUrl2,
@@ -217,6 +218,7 @@ class ViewerApp extends React.Component {
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
+        this.playSound = this.playSound.bind(this);
         this.onPlusClick = this.onPlusClick.bind(this);
         this.onMinusClick = this.onMinusClick.bind(this);
         this.onQuestionClick = this.onQuestionClick.bind(this);
@@ -620,17 +622,41 @@ class ViewerApp extends React.Component {
         );
     }
 
+    playSound(audioUrl) {
+        const audio = this.refs.audio;
+        const audioSrc = this.refs.audioSrc;
+        audioSrc.src = audioUrl;
+        audio.load();
+        audio.play();
+    }
+
     renderFormRows(tenseForms, tense) {
+        const verb = this.state.verb;
+        const fe = this.state.forceExceptional;
+
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             const labelText = form.pronoun || this.i18n(form.formKey);
+            const audioTextPrefix = (
+                form.pronoun
+                ? `${form.pronoun.toLowerCase()} `
+                : ""
+            );
+            const audioText = `${audioTextPrefix}${form.verbPhrase.raw}`;
+            const audioUrl = buildVerbFormAudioUrl(verb, fe, audioText);
             rows.push(
                 <tr
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
                     <td>{labelText}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
+                    <td>
+                        <img
+                            className="h-12 lg:h-6"
+                            onClick={() => this.playSound(audioUrl)}
+                            src="/sound.svg" />
+                    </td>
                     {this.buildExplanationLinkCell(tense, i)}
                     {this.buildDeclensionLinkCell(form)}
                 </tr>
@@ -959,6 +985,7 @@ class ViewerApp extends React.Component {
         return (
             <div>
                 <h2 className="px-6 text-3xl lg:text-4xl italic text-gray-600">{`${this.i18n("conjugation_kz_verb")} «${this.state.verb}»`}</h2>
+                <audio preload="none" ref="audio"><source type="audio/mpeg" ref="audioSrc"/></audio>
                 {groups}
             </div>
         );
