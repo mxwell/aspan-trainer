@@ -634,7 +634,7 @@ class ViewerApp extends React.Component {
             const labelText = form.pronoun || this.i18n(form.formKey);
             const audioTextPrefix = (
                 form.pronoun
-                ? `${form.pronoun.toLowerCase()} `
+                ? `${form.pronoun} `
                 : ""
             );
             const audioText = `${audioTextPrefix}${form.verbPhrase.raw}`;

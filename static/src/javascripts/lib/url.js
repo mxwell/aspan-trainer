@@ -129,8 +129,8 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
 
 function buildVerbFormAudioUrl(verb, fe, text) {
     let params = [
-        `v=${encodeURI(verb)}`,
-        `f=${encodeURI(text)}`,
+        `v=${encodeURI(verb.toLowerCase())}`,
+        `f=${encodeURI(text.toLowerCase())}`,
     ];
     if (fe == true) {
         params.push(`fe=1`);
