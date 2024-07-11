@@ -1,4 +1,5 @@
 import { I18N_LANG_EN, I18N_LANG_RU } from "./i18n";
+import { trimAndLowercase } from "./input_validation";
 
 function parseParams() {
     const search = location.search;
@@ -129,7 +130,7 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
 
 function buildVerbFormAudioUrl(verb, fe, text) {
     let params = [
-        `v=${encodeURI(verb.toLowerCase())}`,
+        `v=${encodeURI(trimAndLowercase(verb))}`,
         `f=${encodeURI(text.toLowerCase())}`,
     ];
     if (fe == true) {
