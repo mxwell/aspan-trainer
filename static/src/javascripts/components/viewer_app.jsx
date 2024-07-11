@@ -227,15 +227,17 @@ class ViewerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.buildSideQuizState = this.buildSideQuizState.bind(this);
 
-        this.state = this.readUrlState() || this.defaultState();
+        this.state = this.requestInfo() || this.defaultState();
     }
 
-    makeState(verb, forceExceptional, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
+    makeState(loading, verb, forceExceptional, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
+            loading: loading,
             verb: verb,
             forceExceptional: forceExceptional,
+            known: known,
             auxVerb: auxVerb,
             auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
             lastEntered: lastEntered,
@@ -255,10 +257,12 @@ class ViewerApp extends React.Component {
         };
     }
 
-    defaultState() {
+    makeInitialState(loading) {
         return this.makeState(
+            /* loading */ loading,
             /* verb */ "",
             /* forceExceptional */ false,
+            /* known */ false,
             /* auxVerb */ AUX_VERBS[0],
             /* auxNeg */ false,
             /* lastEntered */ "",
@@ -270,18 +274,40 @@ class ViewerApp extends React.Component {
         );
     }
 
+    defaultState() {
+        return this.makeInitialState(false);
+    }
+
+    loadingState() {
+        return this.makeInitialState(true);
+    }
+
     checkTranslationEnabled() {
         return ENABLE_SUGGEST && ENABLE_TRANSLATIONS && (this.props.lang != I18N_LANG_KK);
     }
 
-    readUrlState() {
+    requestInfo() {
+        const params = parseParams();
+        /* If we don't need translation, then we have everything and can render the page right away */
+        if (!this.checkTranslationEnabled()) {
+            return this.readUrlState(params, false, null);
+        }
+        const verb = params.verb;
+        if (verb == null || verb.length <= 0) {
+            return null;
+        }
+        const verbL = trimAndLowercase(verb);
+        this.requestTranslation(params, verbL);
+        return this.loadingState();
+    }
+
+    readUrlState(params, known, translation) {
         if (isSsrPage()) {
             const verb = extractSsrVerb();
             const url = buildViewerUrl(verb, SENTENCE_TYPES[0], false);
             window.location.href = url;
             return;
         }
-        const params = parseParams();
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
             return null;
@@ -298,9 +324,6 @@ class ViewerApp extends React.Component {
         let meanings = null;
         try {
             const verbL = trimAndLowercase(verb);
-            if (this.checkTranslationEnabled()) {
-                this.requestTranslation(verbL);
-            }
             tenses = generateVerbForms(verbL, auxVerb, auxNeg, forceExceptional, sentenceType);
             setPageTitle(verb);
             meanings = getOptionalExceptionalVerbMeanings(verbL);
@@ -314,13 +337,15 @@ class ViewerApp extends React.Component {
             this.startDetection(verb);
         }
         return this.makeState(
+            /* loading */ false,
             verb,
             forceExceptional,
+            known,
             auxVerb,
             auxNeg,
             /* lastEntered */ verb,
             sentenceType,
-            /* translation */ null,
+            translation,
             tenses,
             warning,
             meanings,
@@ -405,8 +430,10 @@ class ViewerApp extends React.Component {
 
     async handleTranslateResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
+        let params = context.params;
         let verb = context.verb;
         let parts = [];
+        let known = response.length > 0;
         for (let i = 0; i < response.length; ++i) {
             let item = response[i].data;
             let glosses = this.extractGlosses(item);
@@ -423,21 +450,30 @@ class ViewerApp extends React.Component {
             src_link: `https://${wiktionaryLang}.wiktionary.org/wiki/${verb}`,
             src_title: this.i18n("wiktionary_title"),
         };
-        this.setState({ translation });
+        this.setState(
+            this.readUrlState(params, known, translation)
+        );
     }
 
     async handleTranslateError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
         console.log(`Got error from suggest: ${responseText}, verb for translation was ${context.verb}.`);
+
+        let params = context.params;
+        let known = false;
+        let translation = null;
+        this.setState(
+            this.readUrlState(params, known, translation)
+        );
     }
 
-    requestTranslation(verb) {
+    requestTranslation(params, verb) {
         if (verb.length > 0) {
             makeSuggestRequest(
                 verb,
                 this.handleTranslateResponse,
                 this.handleTranslateError,
-                { verb }
+                { params, verb }
             );
         }
     }
@@ -624,33 +660,45 @@ class ViewerApp extends React.Component {
         audio.play();
     }
 
+    renderAudio(verb, fe, known, form) {
+        if (!known) {
+            return null;
+        }
+        const audioTextPrefix = (
+            form.pronoun
+            ? `${form.pronoun} `
+            : ""
+        );
+        const audioText = `${audioTextPrefix}${form.verbPhrase.raw}`;
+        const audioUrl = buildVerbFormAudioUrl(verb, fe, audioText);
+        return (
+            <td>
+                <img
+                    className="h-12 lg:h-6"
+                    onClick={() => this.playSound(audioUrl)}
+                    src="/sound.svg" />
+            </td>
+        );
+    }
+
     renderFormRows(tenseForms, tense) {
         const verb = this.state.verb;
         const fe = this.state.forceExceptional;
+        const known = this.state.known;
 
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             const labelText = form.pronoun || this.i18n(form.formKey);
-            const audioTextPrefix = (
-                form.pronoun
-                ? `${form.pronoun} `
-                : ""
-            );
-            const audioText = `${audioTextPrefix}${form.verbPhrase.raw}`;
-            const audioUrl = buildVerbFormAudioUrl(verb, fe, audioText);
+
+
             rows.push(
                 <tr
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
                     <td>{labelText}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
-                    <td>
-                        <img
-                            className="h-12 lg:h-6"
-                            onClick={() => this.playSound(audioUrl)}
-                            src="/sound.svg" />
-                    </td>
+                    {this.renderAudio(verb, fe, known, form)}
                     {this.buildExplanationLinkCell(tense, i)}
                     {this.buildDeclensionLinkCell(form)}
                 </tr>
@@ -1206,6 +1254,11 @@ class ViewerApp extends React.Component {
     }
 
     render () {
+        if (this.state.loading) {
+            return (
+                <div>{this.i18n("isLoading")}</div>
+            );
+        }
         return (
             <div className="flex">
                 <div className="md:py-6" onClick={this.onBgClick}>

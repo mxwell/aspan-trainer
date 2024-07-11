@@ -59,6 +59,11 @@ function prepareCommonTranslations(map) {
 
 function prepareViewerOnlyTranslations(map) {
     /* viewer texts */
+    setEnRuKz(map, "isLoading",
+        "Loading..",
+        "Загрузка..",
+        "Жүктелуде..",
+    );
     setEnRuKz(map, "hintEnterVerb",
         "Enter verb",
         "Введите глагол",

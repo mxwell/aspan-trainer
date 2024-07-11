@@ -19,3 +19,6 @@ sitemap.xml: ${SSR_OUTPUT}
 
 clean_ssr:
 	rm -rf ${SSR_OUTPUT} sitemap.xml
+
+deploy_local: dist
+	sudo rm -rf /var/www/kazakhverb && sudo cp -r dist /var/www/kazakhverb
