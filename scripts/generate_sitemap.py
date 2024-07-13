@@ -1,12 +1,5 @@
 #! /usr/bin/python3
 
-"""
-Usage example:
-
- python3 scripts/generate_sitemap.py --host https://kazakhverb.khairulin.com --input-directory ssr/output --lastmod 2024-03-15
-
-"""
-
 import argparse
 from dataclasses import dataclass, field
 import logging
@@ -16,15 +9,10 @@ from typing import List
 import urllib.parse
 
 
-def collect_html_names(input_directory):
-    result = []
-    for item in os.scandir(input_directory):
-        if not item.is_file():
-            continue
-        if not item.name.endswith(".html"):
-            continue
-        result.append(item.name)
-    return result
+@dataclass
+class VerbInfo:
+    text: str
+    fe: bool
 
 
 @dataclass
@@ -43,27 +31,28 @@ def make_ssr_urls(prefix, html_names, lastmod):
     return result
 
 
-def make_spa_urls(host, prefix_by_language, main_language, html_names, lastmod):
+def make_spa_urls(host, prefix_by_language, main_language, verbs, lastmod):
     result = []
 
-    def make_url(escaped_verb, language):
+    def make_url(escaped_verb, fe, language):
         prefix = prefix_by_language[language]
-        return f"{host}/{prefix}?verb={escaped_verb}"
+        if fe:
+            fe_part = "&exception=true"
+        else:
+            fe_part = ""
+        return f"{host}/{prefix}?verb={escaped_verb}{fe_part}"
 
-    for name in html_names:
-        if not name.endswith(".html"):
-            continue
-        verb = name[:-5].replace("_", " ")
-        escaped = urllib.parse.quote_plus(verb)
+    for verb in verbs:
+        escaped = urllib.parse.quote(verb.text)
         assert main_language in prefix_by_language
-        main_url = make_url(escaped, main_language)
+        main_url = make_url(escaped, verb.fe, main_language)
         languages = []
         alternates = []
         for language, prefix in prefix_by_language.items():
             if language == main_language:
                 continue
             languages.append(language)
-            alternates.append(make_url(escaped, language))
+            alternates.append(make_url(escaped, verb.fe, language))
         result.append(WebsiteInfo(main_url, lastmod, languages, alternates))
     return result
 
@@ -138,32 +127,55 @@ def generate_sitemap(url_list):
         f.write(sitemap)
 
 
+def collect_verbs(verbs_path):
+    result = []
+    for line in open(verbs_path):
+        parts = line.strip().split("\t")
+        assert len(parts) >= 2
+        assert len(parts[0]) > 0
+        fe_part = parts[1]
+        assert fe_part == "0" or fe_part == "1"
+        result.append(VerbInfo(parts[0], fe_part == "1"))
+    logging.info("Loaded %d verbs", len(result))
+    return result
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Modify scrapped viewer page to produce a prerendered version.")
+    parser = argparse.ArgumentParser(description="Prepare sitemap data from a list of verbs")
     parser.add_argument("--host", type=str, required=True, help="Host name for the website")
-    parser.add_argument("--input-directory", "-i", type=str, required=True, help="Directory with HTML pages to put into sitemap")
+    parser.add_argument("--verbs-path", type=str, required=True, help="Path to verbs file")
     parser.add_argument("--lastmod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as URLs lastmod")
     args = parser.parse_args()
+
+    main_language = "ru"
+    alt_langs = ["en", "kk"]
+
+    def make_section(templ):
+        ru = templ.format(args.host, "ru")
+        alts = [templ.format(args.host, lang) for lang in alt_langs]
+        return WebsiteInfo(ru, args.lastmod, alt_langs, alts)
+
+    section_paths = [
+        WebsiteInfo("{}/".format(args.host), args.lastmod, alt_langs, ["{}/en".format(args.host), "{}/kk".format(args.host)]),
+        # make_section("{}/verb_detector_{}.html"),
+        # make_section("{}/declension_{}.html"),
+        make_section("{}/present_top_{}.html"),
+        # make_section("{}/verb_gym_{}.html"),
+        make_section("{}/timeline_{}.html"),
+        make_section("{}/about_{}.html"),
+    ]
 
     prefix_by_language = dict(
         en="en/",
         kk="kk/",
         ru="",
     )
-    suffix_by_language = dict(
-        en="en",
-        kk="kk",
-        ru="ru",
-    )
-    main_language = "ru"
 
-    html_names = collect_html_names(args.input_directory)
-    urls = []
-    # urls += make_ssr_urls(prefix_by_language[main_language], html_names, "2024-01-14")
-    urls += make_spa_urls(args.host, prefix_by_language, main_language, html_names, args.lastmod)
-    urls += make_meta_urls(args.host, suffix_by_language, main_language, args.lastmod)
+    verbs = collect_verbs(args.verbs_path)
+    urls = section_paths
+    urls += make_spa_urls(args.host, prefix_by_language, main_language, verbs, args.lastmod)
     generate_sitemap(urls)
 
 
