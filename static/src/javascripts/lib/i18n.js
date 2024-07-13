@@ -64,6 +64,11 @@ function prepareViewerOnlyTranslations(map) {
         "Загрузка..",
         "Жүктелуде..",
     );
+    setEnRuKz(map, "useFormToFindVerbConj",
+        "To find the conjugation of any verb in the Kazakh language, enter the dictionary form of the verb in the field and click 'Submit'.",
+        "Чтобы найти спряжение любого глагола в казахском языке, введите словарную форму глагола в поле и нажмите 'Отправить'.",
+        "Қазақ тілінде кез келген етістіктің жіктелуін табу үшін, етістіктің сөздік түрін өріске енгізіп, 'Жіберу' түймесін басыңыз.",
+    );
     setEnRuKz(map, "hintEnterVerb",
         "Enter verb",
         "Введите глагол",
@@ -130,6 +135,16 @@ function prepareViewerOnlyTranslations(map) {
         "Conjugation of Kazakh verb",
         "Спряжение казахского глагола",
         "Етістіктің жіктелуі",
+    );
+    setEnRuKz(map, "conjInAllTensesTempl",
+        (verb) => `Conjugation of the verb «${verb}» in all tenses and moods of the Kazakh language`,
+        (verb) => `Спряжение глагола «${verb}» во всех временах и наклонениях казахского языка`,
+        (verb) => `Қазақ тілінің барлық шақтары мен райларындағы «${verb}» етістігінің жіктелуі`,
+    );
+    setEnRuKz(map, "conjTablesDescrTempl",
+        (verb) => `The forms of the verb «${verb}» in the tables have audio pronunciation and highlighting for stems, tense affixes, negative particles, and personal endings.`,
+        (verb) => `Формы глагола «${verb}» в таблицах имеют озвучку и подсветку для основ, аффиксов времени, отрицательных частиц и личных окончаний.`,
+        (verb) => `Кестелердегі «${verb}» етістігінің формалары түбір, шақ жұрнақтары, болымсыздық бөлшектері мен жіктік жалғауларының дыбысталуы мен бөлектенуін қамтиды.`,
     );
     setEnRuKz(map, "declLink",
         "declension",

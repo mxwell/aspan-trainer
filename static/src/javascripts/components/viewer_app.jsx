@@ -1024,9 +1024,11 @@ class ViewerApp extends React.Component {
                 </div>
             );
         }
+        const verb = this.state.verb;
         return (
             <div>
-                <h2 className="px-6 text-3xl lg:text-4xl italic text-gray-600">{`${this.i18n("conjugation_kz_verb")} «${this.state.verb}»`}</h2>
+                <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">{this.i18n("conjInAllTensesTempl")(verb)}</h2>
+                <p className="px-6 py-2 text-3xl lg:text-base text-gray-600 lg:max-w-3xl">{this.i18n("conjTablesDescrTempl")(verb)}</p>
                 <audio preload="none" ref="audio"><source type="audio/mpeg" ref="audioSrc"/></audio>
                 {groups}
             </div>
@@ -1262,6 +1264,9 @@ class ViewerApp extends React.Component {
         return (
             <div className="flex">
                 <div className="md:py-6" onClick={this.onBgClick}>
+                    <div className="px-6 py-4 text-3xl lg:text-base text-gray-700 lg:max-w-3xl">
+                        <p>{this.i18n("useFormToFindVerbConj")}</p>
+                    </div>
                     <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
                         <div className="lg:px-2">
                             <div className="relative">
