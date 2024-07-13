@@ -131,11 +131,6 @@ function prepareViewerOnlyTranslations(map) {
         "перевод не найден",
         "аударма табылмады"
     );
-    setEnRuKz(map, "conjugation_kz_verb",
-        "Conjugation of Kazakh verb",
-        "Спряжение казахского глагола",
-        "Етістіктің жіктелуі",
-    );
     setEnRuKz(map, "conjInAllTensesTempl",
         (verb) => `Conjugation of the verb «${verb}» in all tenses and moods of the Kazakh language`,
         (verb) => `Спряжение глагола «${verb}» во всех временах и наклонениях казахского языка`,
@@ -146,6 +141,64 @@ function prepareViewerOnlyTranslations(map) {
         (verb) => `Формы глагола «${verb}» в таблицах имеют озвучку и подсветку для основ, аффиксов времени, отрицательных частиц и личных окончаний.`,
         (verb) => `Кестелердегі «${verb}» етістігінің формалары түбір, шақ жұрнақтары, болымсыздық бөлшектері мен жіктік жалғауларының дыбысталуы мен бөлектенуін қамтиды.`,
     );
+
+    setEnRu(map, "presentTransitiveDescr",
+        "Ауыспалы осы/келер шақ: habitual actions or certain future. Time determined by context",
+        "Ауыспалы осы/келер шақ: обычные действия или уверенное будущее. Время определяется контекстом",
+    );
+    setEnRu(map, "presentContinuousDescr",
+        "Нақ осы шақ: action occurring at the current moment",
+        "Нақ осы шақ: действие, происходящее в данный момент",
+    );
+    setEnRu(map, "presentColloquialDescr",
+        "Нақ осы шақ: action occurring at the current moment. Colloquial version",
+        "Нақ осы шақ: действие, происходящее в данный момент. Разговорная версия",
+    );
+    setEnRu(map, "pastDescr",
+        "Жедел өткен шақ: recently completed action witnessed by the speaker",
+        "Жедел өткен шақ: недавно завершенное действие, очевидцем которого был говорящий",
+    );
+    setEnRu(map, "remotePastDescr",
+        "Бұрынғы өткен шақ: action in distant past, witnessed by the speaker",
+        "Бұрынғы өткен шақ: действие в далеком прошлом, очевидцем которого был говорящий ",
+    );
+    setEnRu(map, "pastUncertainDescr",
+        "Бұрынғы өткен шақ (күмәнді): action in distant past, not witnessed by the speaker",
+        "Бұрынғы өткен шақ (күмәнді): действие в далеком прошлом, которому говорящий не был свидетелем",
+    );
+    setEnRu(map, "pastTransitiveDescr",
+        "Ауыспалы өткен шақ: prolonged, repetitive, or habitual action in the past",
+        "Ауыспалы өткен шақ: длительное, повторяющееся или привычное действие в прошлом",
+    );
+    setEnRu(map, "possibleFutureDescr",
+        "Болжалды келер шақ: probable future action",
+        "Болжалды келер шақ: вероятное будущее действие",
+    );
+    setEnRu(map, "intentionFutureDescr",
+        "Мақсатты келер шақ: future action expressing intention to do something",
+        "Мақсатты келер шақ: действие в будущем, выражающее намерение что-либо сделать",
+    );
+    setEnRu(map, "conditionalMoodDescr",
+        "Шартты рай: action serving as a condition for another action",
+        "Шартты рай: действие, являющееся условием для совершения другого действия",
+    );
+    setEnRu(map, "imperativeMoodDescr",
+        "Бұйрық рай: urging to action in the form of command, request, advice",
+        "Бұйрық рай: побуждение к действию в виде приказа, просьбы, совета",
+    );
+    setEnRu(map, "optativeMoodDescr",
+        "Қалау рай: the speaker's desire to perform an action",
+        "Қалау рай: желание говорящего совершить действие",
+    );
+    setEnRu(map, "canClauseDescr",
+        "Ability or possibility to perform an action",
+        "Способность или возможность совершить действие",
+    );
+    setEnRu(map, "participleDescr",
+        "Verbal form denoting object's characteristic through action",
+        "Глагольная форма, обозначающая признак предмета по действию",
+    );
+
     setEnRuKz(map, "declLink",
         "declension",
         "склонение",

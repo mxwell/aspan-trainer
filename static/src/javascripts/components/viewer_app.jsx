@@ -739,15 +739,31 @@ class ViewerApp extends React.Component {
         var content = null;
         var titleClasses = "text-red-400 border-b-2";
         if (!collapse || shown) {
+            titleClasses = "text-red-500";
+            if (collapse) {
+                titleClasses += " cursor-pointer flex"
+            }
+
             let subtitle = (this.props.lang != I18N_LANG_KK)
-                ? (<h4 className="text-4xl lg:text-base text-gray-500">{i18n(tenseForms.tenseNameKey, I18N_LANG_KK)}</h4>)
+                ? (<h4 className="lg:max-w-xs pt-4 text-4xl lg:text-base text-gray-500">{this.i18n(`${tenseForms.tenseNameKey}Descr`)}</h4>)
                 : null;
             content = (
                 <div className="pb-4 lg:py-6">
-                    <div className="flex flex-row justify-between">
+                    <div className="lg:h-40">
+                        <h3
+                            onClick={clickListener}
+                            id={`${tenseNameKey}_title`}
+                            className={"text-5xl lg:text-lg font-bold lg:w-48 " + titleClasses}>
+                            {icon}
+                            <span>
+                                {this.i18n(tenseNameKey)}
+                            </span>
+                        </h3>
                         {subtitle}
-                        {this.renderNegationToggler(tenseNameKey)}
-                        {this.renderAuxVerbSelector(tenseNameKey)}
+                        <div className="flex flex-row justify-between">
+                            {this.renderNegationToggler(tenseNameKey)}
+                            {this.renderAuxVerbSelector(tenseNameKey)}
+                        </div>
                     </div>
                     <table className="lg:w-full">
                         <tbody>
@@ -756,23 +772,25 @@ class ViewerApp extends React.Component {
                     </table>
                 </div>
             );
-            titleClasses = "text-red-500";
-        }
-        if (collapse) {
-            titleClasses += " cursor-pointer flex"
-        }
-
-        return (
-            <div className="px-6 flex flex-col" key={tenseNameKey}>
+        } else {
+            if (collapse) {
+                titleClasses += " cursor-pointer flex"
+            }
+            content = (
                 <h3
                     onClick={clickListener}
                     id={`${tenseNameKey}_title`}
-                    className={"text-5xl lg:text-lg font-bold lg:w-48 " + titleClasses}>
+                    className={"lg:h-10 text-5xl lg:text-lg font-bold lg:w-48 " + titleClasses}>
                     {icon}
                     <span>
                         {this.i18n(tenseNameKey)}
                     </span>
                 </h3>
+            );
+        }
+
+        return (
+            <div className="px-6 flex flex-col" key={tenseNameKey}>
                 {content}
             </div>
         );
@@ -780,10 +798,10 @@ class ViewerApp extends React.Component {
 
     renderNegationToggler(tenseNameKey) {
         if (this.state.sentenceType != "Negative") {
-            return null;
+            return (<span></span>);
         }
         if (tenseNameKey != "presentContinuous" && tenseNameKey != "remotePast") {
-            return null;
+            return (<span></span>);
         }
         return (
             <img
@@ -1263,7 +1281,7 @@ class ViewerApp extends React.Component {
         }
         return (
             <div className="flex">
-                <div className="md:py-6" onClick={this.onBgClick}>
+                <div className="md:py-6 lg:max-w-6xl" onClick={this.onBgClick}>
                     <div className="px-6 py-4 text-3xl lg:text-base text-gray-700 lg:max-w-3xl">
                         <p>{this.i18n("useFormToFindVerbConj")}</p>
                     </div>
