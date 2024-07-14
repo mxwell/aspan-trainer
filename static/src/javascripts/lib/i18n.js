@@ -155,8 +155,8 @@ function prepareViewerOnlyTranslations(map) {
         "Нақ осы шақ: действие, происходящее в данный момент. Разговорная версия",
     );
     setEnRu(map, "pastDescr",
-        "Жедел өткен шақ: recently completed action witnessed by the speaker",
-        "Жедел өткен шақ: недавно завершенное действие, очевидцем которого был говорящий",
+        "Жедел өткен шақ: past action without specifying exact time",
+        "Жедел өткен шақ: действие в прошлом без уточнения времени",
     );
     setEnRu(map, "remotePastDescr",
         "Бұрынғы өткен шақ: action in distant past, witnessed by the speaker",
@@ -179,24 +179,24 @@ function prepareViewerOnlyTranslations(map) {
         "Мақсатты келер шақ: действие в будущем, выражающее намерение что-либо сделать",
     );
     setEnRu(map, "conditionalMoodDescr",
-        "Шартты рай: action serving as a condition for another action",
-        "Шартты рай: действие, являющееся условием для совершения другого действия",
+        "Шартты рай: desired or possible action under certain conditions",
+        "Шартты рай: желаемое или возможное действие при определенных условиях",
     );
     setEnRu(map, "imperativeMoodDescr",
         "Бұйрық рай: urging to action in the form of command, request, advice",
         "Бұйрық рай: побуждение к действию в виде приказа, просьбы, совета",
     );
     setEnRu(map, "optativeMoodDescr",
-        "Қалау рай: the speaker's desire to perform an action",
-        "Қалау рай: желание говорящего совершить действие",
+        "Қалау рай: desire or intention of the speaker or others",
+        "Қалау рай: желание или намерение говорящего или другого лица",
     );
     setEnRu(map, "canClauseDescr",
         "Ability or possibility to perform an action",
         "Способность или возможность совершить действие",
     );
     setEnRu(map, "participleDescr",
-        "Verbal form denoting object's characteristic through action",
-        "Глагольная форма, обозначающая признак предмета по действию",
+        "Hybrid verb form combining properties of verb and adjective",
+        "Гибридная форма глагола, сочетающая свойства глагола и прилагательного",
     );
 
     setEnRuKz(map, "declLink",
