@@ -245,7 +245,7 @@ class ViewerApp extends React.Component {
             warning: warning,
             meanings: meanings,
             sentenceType: sentenceType,
-            enableTranslation: this.checkTranslationEnabled(),
+            enableTranslation: ENABLE_TRANSLATIONS && this.props.lang != I18N_LANG_KK,
             translation: translation,
             tenses: tenses,
             tensesSentenceType: sentenceType,
@@ -283,13 +283,13 @@ class ViewerApp extends React.Component {
     }
 
     checkTranslationEnabled() {
-        return ENABLE_SUGGEST && ENABLE_TRANSLATIONS && (this.props.lang != I18N_LANG_KK);
+        return ENABLE_SUGGEST && ENABLE_TRANSLATIONS;
     }
 
     requestInfo() {
         const params = parseParams();
         /* If we don't need translation, then we have everything and can render the page right away */
-        if (!this.checkTranslationEnabled()) {
+        if (!ENABLE_TRANSLATIONS) {
             return this.readUrlState(params, false, null);
         }
         const verb = params.verb;
@@ -434,6 +434,12 @@ class ViewerApp extends React.Component {
         let verb = context.verb;
         let parts = [];
         let known = response.length > 0;
+        if (this.props.lang == I18N_LANG_KK) {
+            this.setState(
+                this.readUrlState(params, known, null)
+            );
+            return;
+        }
         for (let i = 0; i < response.length; ++i) {
             let item = response[i].data;
             let glosses = this.extractGlosses(item);
@@ -1043,10 +1049,15 @@ class ViewerApp extends React.Component {
             );
         }
         const verb = this.state.verb;
+        const descr = (
+            this.state.known
+            ? (<p className="px-6 py-2 text-3xl lg:text-base text-gray-600 lg:max-w-3xl">{this.i18n("conjTablesDescrTempl")(verb)}</p>)
+            : null
+        );
         return (
             <div>
                 <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">{this.i18n("conjInAllTensesTempl")(verb)}</h2>
-                <p className="px-6 py-2 text-3xl lg:text-base text-gray-600 lg:max-w-3xl">{this.i18n("conjTablesDescrTempl")(verb)}</p>
+                {descr}
                 <audio preload="none" ref="audio"><source type="audio/mpeg" ref="audioSrc"/></audio>
                 {groups}
             </div>
