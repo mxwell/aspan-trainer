@@ -6,6 +6,8 @@ mixin a_viewer_page(l10n, js_path)
             meta(property="og:title", content= l10n.title)
             meta(property="og:description", content= l10n.description)
             meta(property="og:site_name", content= l10n.title)
+            meta(name="referrer", content="no-referrer-when-downgrade")
+            meta(name="Cross-Origin-Opener-Policy", content="same-origin-allow-popups")
             title= l10n.title
             link(rel="stylesheet", href="../css/page.pcss")
             link(rel="icon", href="../images/favicon.png", type="image/png")

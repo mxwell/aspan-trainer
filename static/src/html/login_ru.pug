@@ -1,0 +1,21 @@
+include partials/viewer_page_ru
++a_viewer_page_ru("../javascripts/login_ru.jsx")
+    div(class="m-4 flex flex-row justify-center")
+        div(class="md:py-6 lg:max-w-6xl")
+            h1(class="text-4xl py-6") Вход на сайт
+            div(
+                id="g_id_onload",
+                data-client_id="523831376166-4cphvm3ftfo9e83co9m3itfms3fsf13h.apps.googleusercontent.com",
+                data-context="signin",
+                data-ux_mode="popup",
+                data-callback="handleCredentialResponse",
+                data-auto_prompt="false")
+            div(
+                class="g_id_signin",
+                data-type="standard",
+                data-shape="rectangular",
+                data-theme="filled_blue",
+                data-text="signin_with",
+                data-size="large",
+                data-logo_alignment="left")
+    script(src="https://accounts.google.com/gsi/client")
