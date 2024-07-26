@@ -813,6 +813,29 @@ function prepareGymOnlyTranslations(map) {
     );
 }
 
+function prepareGcOnlyTranslations(map) {
+    setEnRu(map, "titleGcSearch",
+        "Translation search",
+        "Поиск перевода",
+    );
+    setEnRu(map, "hintEnterWord",
+        "Enter a word for search",
+        "Введите слово для поиска",
+    );
+    setEnRu(map, "kkru",
+        "Kaz -> Rus",
+        "Каз -> Рус",
+    );
+    setEnRu(map, "kken",
+        "Kaz -> Eng",
+        "Каз -> Англ",
+    );
+    setEnRu(map, "searchInProgress",
+        "Searching…",
+        "Поиск…",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -825,6 +848,7 @@ function prepareTranslations() {
     prepareTopOnlyTranslations(map);
     prepareDeclensionAppOnlyTranslations(map);
     prepareGymOnlyTranslations(map);
+    prepareGcOnlyTranslations(map);
 
     return map;
 }

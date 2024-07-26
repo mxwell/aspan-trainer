@@ -146,6 +146,16 @@ function buildVerbGymUrl(lang) {
     return "/verb_gym_en.html";
 }
 
+function buildGcSearchUrl(word, src, dst) {
+    let params = [
+        `w=${encodeURI(trimAndLowercase(word))}`,
+        `src=${encodeURI(src)}`,
+        `dst=${encodeURI(dst)}`,
+    ];
+    const path = "/gc_search_ru.html";
+    return buildUrl(path, params);
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -179,6 +189,7 @@ export {
     buildViewerUrl2,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
+    buildGcSearchUrl,
     extractSsrVerb,
     isSsrPage,
     parseParams,
