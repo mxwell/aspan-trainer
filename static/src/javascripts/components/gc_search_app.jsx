@@ -1,6 +1,8 @@
 import React from "react";
 import { buildGcSearchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
+import { trimAndLowercase } from "../lib/input_validation";
+import { gcGetTranslations } from "../lib/gc_api";
 
 class TransDirection {
     constructor(src, dst) {
@@ -49,6 +51,8 @@ class GcSearchApp extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleSearchResponse = this.handleSearchResponse.bind(this);
+        this.handleSearchError = this.handleSearchError.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDirectionChange = this.onDirectionChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -66,6 +70,7 @@ class GcSearchApp extends React.Component {
             lastEntered: word,
             loading: true,
             translations: [],
+            error: false,
         };
     }
 
@@ -98,8 +103,40 @@ class GcSearchApp extends React.Component {
         return i18n(key, this.props.lang);
     }
 
+    async handleSearchResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const translations = response.translations;
+        const loading = false;
+        this.setState({ translations, loading });
+    }
+
+    async handleSearchError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from search: ${responseText}, params were: ${context.w}, ${context.src}, ${context.dst}`);
+        const error = true;
+        this.setState({ error });
+    }
+
     startSearch(word, direction) {
-        // TODO
+        const w = trimAndLowercase(word);
+        if (w.length == 0) {
+            const word = w;
+            this.setState({ word });
+            return;
+        }
+
+        gcGetTranslations(
+            w,
+            direction.src,
+            direction.dst,
+            this.handleSearchResponse,
+            this.handleSearchError,
+            {
+                w: w,
+                src: direction.src,
+                dst: direction.dst,
+            }
+        );
     }
 
     onChange(event) {
@@ -167,18 +204,67 @@ class GcSearchApp extends React.Component {
         )
     }
 
+    renderPos(pos, excVerb) {
+        if (pos) {
+            if (excVerb > 0) {
+                return (<span className="text-blue-500 text-xs italic pl-2">
+                    &nbsp;{pos}, {this.i18n("feVerb")}
+                </span>);
+            }
+            return (<span className="text-blue-500 text-xs italic pl-2">
+                &nbsp;{pos}
+            </span>);
+        }
+        return null;
+    }
+
+    renderTranslationRows(translations) {
+        let rows = [];
+        for (let entry of translations) {
+            rows.push(
+                <tr
+                    className="border-t-2 text-base"
+                    key={rows.length}>
+                    <td className="bg-gray-200 pl-4 py-2">{entry.word}{this.renderPos(entry.pos, entry.exc_verb)}</td>
+                    <td className="border-l-2 bg-gray-100 pl-4 py-2">{entry.translation_word}{this.renderPos(entry.translation_pos, 0)}</td>
+                </tr>
+            );
+        }
+        return rows;
+    }
+
     renderFindings() {
-        if (this.state.word.length == 0) {
-            return null;
+        if (this.state.error) {
+            return (
+                <p className="m-10 text-center text-red-600">{this.i18n("service_error")}</p>
+            );
         }
         if (this.state.loading) {
             return (
-                <p>{this.i18n("searchInProgress")}</p>
+                <p className="m-10 text-center">{this.i18n("searchInProgress")}</p>
             );
         }
-        // TODO
+        if (this.state.word.length == 0) {
+            return null;
+        }
+        const translations = this.state.translations;
+        if (translations.length == 0) {
+            return (
+                <p className="m-10 text-center">{this.i18n("nothingFound")}</p>
+            );
+        }
+        const direction = this.state.direction;
+
         return (
-            <p>Result rendering is not implemented</p>
+            <table className="my-4 w-full">
+                <tbody>
+                    <tr className="bg-gray-600 text-white">
+                        <th className="w-1/2 py-2">{this.i18n(direction.src)}</th>
+                        <th className="w-1/2 py-2 border-l-2">{this.i18n(direction.dst)}</th>
+                    </tr>
+                    {this.renderTranslationRows(translations)}
+                </tbody>
+            </table>
         );
     }
 

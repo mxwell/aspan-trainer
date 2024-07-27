@@ -73,6 +73,8 @@ function loadTopList(successCallback, errorCallback) {
 }
 
 export {
+    makeGetApiRequest,
+    encodeQueryData,
     makeSuggestRequest,
     makeDetectRequest,
     loadTopList,

@@ -49,6 +49,11 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "presentParticiple", "Present Participle", "Причастие настоящего времени", "Осы шақ есімше")
     setEnRuKz(map, "futureParticiple", "Future Participle", "Причастие будущего времени", "Келер шақ есімше");
 
+    setEnRuKz(map, "service_error",
+        "Service error",
+        "Ошибка сервиса",
+        "Қызмет қатесі",
+    );
 
     setEnRuKz(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
@@ -451,10 +456,6 @@ function prepareDetectorOnlyTranslations(map) {
         "Failed to detect verb in the entered text",
         "Не удалось обнаружить глагол в введённом тексте",
     );
-    setEnRu(map, "service_error",
-        "Service error",
-        "Ошибка сервиса",
-    );
     setEnRuKz(map, "mixedAlphabetsInForm",
         "Entered form has both Latin and Cyrillic letters. It might affect the detection result.",
         "Введённая форма содержит и латинские, и кириллические буквы. Это может повлиять на результат определения.",
@@ -833,6 +834,27 @@ function prepareGcOnlyTranslations(map) {
     setEnRu(map, "searchInProgress",
         "Searching…",
         "Поиск…",
+    );
+    setEnRu(map, "nothingFound",
+        "Nothing found",
+        "Ничего не найдено",
+    );
+    setEnRu(map, "en",
+        "English",
+        "Английский",
+    );
+    setEnRu(map, "kk",
+        "Kazakh",
+        "Казахский",
+    );
+    setEnRu(map, "ru",
+        "Russian",
+        "Русский",
+    );
+    setEnRuKz(map, "feVerb",
+        "exceptional verb",
+        "глагол-исключение",
+        "ережеден тыс етістік",
     );
 }
 
