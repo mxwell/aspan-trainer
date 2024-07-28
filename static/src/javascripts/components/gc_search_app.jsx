@@ -179,7 +179,7 @@ class GcSearchApp extends React.Component {
                     →
                 </button>
             </form>
-        )
+        );
     }
 
     renderPos(pos, excVerb) {

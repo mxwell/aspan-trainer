@@ -869,6 +869,26 @@ function prepareGcOnlyTranslations(map) {
         "Select",
         "Выберите",
     );
+    setEnRu(map, "srcWord",
+        "Source word",
+        "Исходное слово",
+    );
+    setEnRu(map, "enterLangWord_en",
+        "Enter an English word",
+        "Введите английское слово",
+    );
+    setEnRu(map, "enterLangWord_kk",
+        "Enter a Kazakh word",
+        "Введите казахское слово",
+    );
+    setEnRu(map, "enterLangWord_ru",
+        "Enter a Russian word",
+        "Введите русское слово",
+    );
+    setEnRu(map, "loadingWords",
+        "Loading words...",
+        "Загрузка слов...",
+    );
 }
 
 function prepareTranslations() {
