@@ -856,6 +856,19 @@ function prepareGcOnlyTranslations(map) {
         "глагол-исключение",
         "ережеден тыс етістік",
     );
+
+    setEnRu(map, "titleGcCreate",
+        "Create translation",
+        "Создать перевод",
+    );
+    setEnRu(map, "transDirection",
+        "Translation direction",
+        "Направление перевода",
+    );
+    setEnRu(map, "select",
+        "Select",
+        "Выберите",
+    );
 }
 
 function prepareTranslations() {

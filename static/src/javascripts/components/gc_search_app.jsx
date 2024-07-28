@@ -3,29 +3,7 @@ import { buildGcSearchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetTranslations } from "../lib/gc_api";
-
-class TransDirection {
-    constructor(src, dst) {
-        this.src = src;
-        this.dst = dst;
-    }
-
-    toKey() {
-        return `${this.src}${this.dst}`;
-    }
-
-    toString() {
-        return `${this.src} → ${this.dst}`;
-    }
-}
-
-function buildDirectionByKeyMap(dirs) {
-    let result = {};
-    for (let d of dirs) {
-        result[d.toKey()] = d;
-    }
-    return result;
-}
+import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -192,7 +170,7 @@ class GcSearchApp extends React.Component {
                     required
                     onChange={this.onDirectionChange}
                     value={this.state.direction.toKey()}
-                    class="text-gray-800 text-2xl mx-2 px-4 py-2">
+                    className="text-gray-800 text-2xl mx-2 px-4 py-2">
                     {selectOptions}
                 </select>
                 <button
