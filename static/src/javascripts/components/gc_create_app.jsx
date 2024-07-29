@@ -3,6 +3,7 @@ import { closeButton } from "./close_button";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
+import { gcGetWords } from "../lib/gc_api";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -22,8 +23,13 @@ class GcCreateApp extends React.Component {
         this.onDirectionChange = this.onDirectionChange.bind(this);
         this.onDirectionReset = this.onDirectionReset.bind(this);
         this.onWordChange = this.onWordChange.bind(this);
+        this.handleGetWordsResponse = this.handleGetWordsResponse.bind(this);
+        this.handleGetWordsError = this.handleGetWordsError.bind(this);
         this.onWordSubmit = this.onWordSubmit.bind(this);
         this.onWordReset = this.onWordReset.bind(this);
+        this.onWordSelect = this.onWordSelect.bind(this);
+        this.onWordSelectionSubmit = this.onWordSelectionSubmit.bind(this);
+        this.onWordSelectionReset = this.onWordSelectionReset.bind(this);
 
         this.state = this.defaultState();
     }
@@ -34,6 +40,9 @@ class GcCreateApp extends React.Component {
             word: null,
             lastEnteredWord: "",
             foundWords: null,
+            preselectedWordId: null,
+            selectedWordId: null,
+            error: false,
         };
     }
 
@@ -66,6 +75,33 @@ class GcCreateApp extends React.Component {
         this.setState({ lastEnteredWord });
     }
 
+    async handleGetWordsResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const foundWords = response.words;
+        console.log(`Got words: ${JSON.stringify(foundWords)}`);
+        this.setState({ foundWords });
+    }
+
+    async handleGetWordsError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from get_words: ${responseText}, params were: ${context.w}, ${context.word}, ${context.lang}`);
+        const error = true;
+        this.setState({ error });
+    }
+
+    startGetWords(word, lang) {
+        gcGetWords(
+            word,
+            lang,
+            this.handleGetWordsResponse,
+            this.handleGetWordsError,
+            {
+                word: word,
+                lang: lang,
+            }
+        );
+    }
+
     onWordSubmit(event) {
         event.preventDefault();
         const lastEntered = this.state.lastEnteredWord;
@@ -74,14 +110,36 @@ class GcCreateApp extends React.Component {
             console.log(`onWordSubmit: empty input [${lastEntered}]`)
             return;
         }
-        // TODO load existing words from /gcapi/v1/get_words
+        this.startGetWords(word, this.state.direction.src);
         this.setState({ word });
     }
 
     onWordReset(event) {
         event.preventDefault();
-        const word = null;
-        this.setState({ word });
+        this.setState({
+            word: null,
+            foundWords: null,
+            preselectedWordId: null,
+            selectedWordId: null,
+            error: null,
+        });
+    }
+
+    onWordSelect(index) {
+        const preselectedWordId = index;
+        this.setState({ preselectedWordId });
+    }
+
+    onWordSelectionSubmit(event) {
+        event.preventDefault();
+        const selectedWordId = this.state.preselectedWordId;
+        this.setState({ selectedWordId });
+    }
+
+    onWordSelectionReset(event) {
+        event.preventDefault();
+        const selectedWordId = null;
+        this.setState({ selectedWordId });
     }
 
     renderDirectionPart(direction) {
@@ -171,7 +229,95 @@ class GcCreateApp extends React.Component {
         }
     }
 
-    renderWordSelection(word, foundWords) {
+    renderPos(pos, excVerb) {
+        if (pos) {
+            if (excVerb > 0) {
+                return (<span className="text-blue-500 text-xs italic pl-2">
+                    &nbsp;{pos}, {this.i18n("feVerb")}
+                </span>);
+            }
+            return (<span className="text-blue-500 text-xs italic pl-2">
+                &nbsp;{pos}
+            </span>);
+        }
+        return null;
+    }
+
+    renderWordSelector(foundWords) {
+        let radios = [];
+        for (let index in foundWords) {
+            const entry = foundWords[index];
+            radios.push(
+                <div
+                    className="my-2"
+                    key={radios.length} >
+                    <input
+                        type="radio"
+                        id={index}
+                        onChange={(e) => { this.onWordSelect(index) }}
+                        name="wordSelector" />
+                    <label
+                        className="mx-2"
+                        htmlFor={index} >
+                        {entry.word}{this.renderPos(entry.pos, entry.exc_verb)}
+                    </label>
+                </div>
+            );
+        }
+        radios.push(
+            <div
+                className="my-2"
+                key={radios.length} >
+                <input
+                    type="radio"
+                    id={foundWords.length}
+                    onChange={(e) => { this.onWordSelect(foundWords.length) }}
+                    name="wordSelector" />
+                <label
+                    className="mx-2 italic text-green-900"
+                    htmlFor={foundWords.length} >
+                    {this.i18n("createNewWord")}
+                </label>
+            </div>
+        );
+        return (
+            <form
+                onSubmit={this.onWordSelectionSubmit}
+                className="my-2 p-2 w-full bg-gray-200 rounded">
+                <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
+                    <legend className="px-2 text-base">{this.i18n("selectExistingOrCreateNew")}</legend>
+                    {radios}
+                </fieldset>
+                <div className="flex flex-row justify-end">
+                    <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        →
+                    </button>
+                </div>
+            </form>
+        );
+    }
+
+    renderSelectedWord(foundWords, selectedWordId) {
+        const index = Number(selectedWordId);
+        if (index >= foundWords.length) {
+            return (
+                <span
+                    className="italic text-green-900" >
+                    {this.i18n("createNewWord")}
+                </span>
+            );
+        }
+        const entry = foundWords[index];
+        return (
+            <span>
+                {entry.word}{this.renderPos(entry.pos, entry.exc_verb)}
+            </span>
+        );
+    }
+
+    renderWordSelection(word, foundWords, selectedWordId) {
         if (word == null) {
             return null;
         }
@@ -182,20 +328,36 @@ class GcCreateApp extends React.Component {
                 </div>
             );
         }
-        return (
-            <p>Not impl.</p>
-        );
+        if (selectedWordId == null) {
+            return this.renderWordSelector(foundWords);
+        } else {
+            return (
+                <div className="my-2 flex flex-row justify-between w-full bg-gray-200 rounded">
+                    <span className="px-4 py-4 text-2xl">
+                        {this.renderSelectedWord(foundWords, selectedWordId)}
+                    </span>
+                    {closeButton({ onClick: this.onWordSelectionReset })}
+                </div>
+            );
+        }
     }
 
     renderForm() {
+        if (this.state.error) {
+            return (
+                <p className="text-red-600">{this.i18n("service_error")}</p>
+            );
+        }
+
         const direction = this.state.direction;
         const word = this.state.word;
         const foundWords = this.state.foundWords;
+        const selectedWordId = this.state.selectedWordId;
         return (
             <div>
                 {this.renderDirectionPart(direction)}
                 {this.renderWordPart(direction, word)}
-                {this.renderWordSelection(word, foundWords)}
+                {this.renderWordSelection(word, foundWords, selectedWordId)}
             </div>
         );
     }

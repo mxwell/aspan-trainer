@@ -889,6 +889,14 @@ function prepareGcOnlyTranslations(map) {
         "Loading words...",
         "Загрузка слов...",
     );
+    setEnRu(map, "selectExistingOrCreateNew",
+        "Select existing word or create a new one",
+        "Выберите существующее слово или создайте новое",
+    );
+    setEnRu(map, "createNewWord",
+        "create a new word",
+        "создать новое слово",
+    );
 }
 
 function prepareTranslations() {
