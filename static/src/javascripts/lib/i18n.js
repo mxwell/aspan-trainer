@@ -977,6 +977,10 @@ function prepareGcOnlyTranslations(map) {
         "Created translation",
         "Перевод создан",
     );
+    setEnRu(map, "translationAlreadyExists",
+        "translation already exists",
+        "перевод уже существует",
+    );
 }
 
 function prepareTranslations() {

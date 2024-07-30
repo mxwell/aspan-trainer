@@ -329,13 +329,13 @@ class GcCreateApp extends React.Component {
         const message = response.message;
         if (message != "ok") {
             console.log(`handleAddTranslationResponse: error message: ${message}`);
-            this.setCreateError(context);
+            this.setCreateError(context, null);
             return;
         }
         const translationId = response.translation_id;
         if (translationId == null) {
             console.log("handleAddTranslationResponse: null translationId");
-            this.setCreateError(context);
+            this.setCreateError(context, null);
             return;
         }
         console.log(`Created with ID: ${translationId}`);
@@ -346,7 +346,16 @@ class GcCreateApp extends React.Component {
     async handleAddTranslationError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
         console.log(`Got error from add_translation: ${responseText}`);
-        this.setCreateError(context);
+        try {
+            const response = JSON.parse(responseText);
+            if (response.message == "duplicate") {
+                this.setCreateError(context, this.i18n("translationAlreadyExists"));
+                return;
+            }
+        } catch (e) {
+            console.log("handleAddWordError: failed to parse as JSON");
+        }
+        this.setCreateError(context, null);
     }
 
     startAddTranslation(wordId, translationWordId) {
@@ -370,9 +379,9 @@ class GcCreateApp extends React.Component {
         return "failed to store translation";
     }
 
-    setCreateError(context) {
+    setCreateError(context, errorMessage) {
         const creating = false;
-        const createError = this.createErrorMessage(context)
+        const createError = errorMessage || this.createErrorMessage(context)
         this.setState({ creating, createError });
     }
 
@@ -381,13 +390,13 @@ class GcCreateApp extends React.Component {
         const message = response.message;
         if (message != "ok") {
             console.log(`handleAddWordResponse: error message: ${message}, ctx: ${context.isTranslation}`);
-            this.setCreateError(context);
+            this.setCreateError(context, null);
             return;
         }
         const wordId = response.word_id;
         if (wordId == null) {
             console.log("handleAddWordResponse: null wordId");
-            this.setCreateError(context);
+            this.setCreateError(context, null);
             return;
         }
         console.log(`handleAddWordResponse: wordId ${wordId}`);
@@ -395,7 +404,7 @@ class GcCreateApp extends React.Component {
             const srcWordId = context.srcWordId;
             if (srcWordId == null) {
                 console.log("handleAddWordResponse: null srcWordId");
-                this.setCreateError(context);
+                this.setCreateError(context, null);
                 return;
             }
             this.startAddTranslation(srcWordId, wordId);
@@ -407,7 +416,7 @@ class GcCreateApp extends React.Component {
     async handleAddWordError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
         console.log(`Got error from add_word: ${responseText}, ctx: ${context.isTranslation}`);
-        this.setCreateError(context);
+        this.setCreateError(context, null);
     }
 
     startAddWord(word, pos, excVerb, lang, context) {
@@ -645,10 +654,10 @@ class GcCreateApp extends React.Component {
                 onSubmit={this.onCreate}
                 className="my-4 flex justify-center w-full">
                 <button
-                        type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
-                        {this.i18n("titleGcCreate")}
-                    </button>
+                    type="submit"
+                    className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
+                    {this.i18n("titleGcCreate")}
+                </button>
             </form>
         );
     }
