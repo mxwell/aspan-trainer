@@ -21,7 +21,26 @@ function buildDirectionByKeyMap(dirs) {
     return result;
 }
 
+const PARTS_OF_SPEECH = [
+    "ADJ",
+    "ADP",
+    "ADV",
+    "AUX",
+    "CCONJ",
+    "DET",
+    "INTJ",
+    "NOUN",
+    "NUM",
+    "PART",
+    "PRON",
+    "PROPN",
+    "SCONJ",
+    "VERB",
+    "X",
+];
+
 export {
     TransDirection,
     buildDirectionByKeyMap,
+    PARTS_OF_SPEECH,
 };

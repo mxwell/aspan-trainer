@@ -897,6 +897,70 @@ function prepareGcOnlyTranslations(map) {
         "create a new word",
         "создать новое слово",
     );
+    setEnRu(map, "selectPos",
+        "Select part of speech",
+        "Выберите часть речи",
+    );
+    setEnRu(map, "hintADJ",
+        "adjectives, including participles",
+        "прилагательные, включая причастия",
+    );
+    setEnRu(map, "hintADP",
+        "adpositions, including prepositions and postpositions",
+        "адлоги, то есть предлоги и послелоги",
+    );
+    setEnRu(map, "hintADV",
+        "adverbs, including adverbial participles",
+        "наречия, включая деепричастия",
+    );
+    setEnRu(map, "hintAUX",
+        "auxiliary, used in verbal phrases",
+        "вспомотельные слова для глагольных фраз",
+    );
+    setEnRu(map, "hintCCONJ",
+        "coordinating conjunctions, such as 'and', 'or', 'but'",
+        "соединительные союзы, такие как 'и', 'или', 'но'",
+    );
+    setEnRu(map, "hintDET",
+        "determiners, e.g. articles",
+        "определяющие слова, например, артикли",
+    );
+    setEnRu(map, "hintINTJ",
+        "interjections, e.g. exclamations",
+        "междометия, например, слова восклицания",
+    );
+    setEnRu(map, "hintNOUN",
+        "common nouns",
+        "имена нарицательные (обычные)",
+    );
+    setEnRu(map, "hintNUM",
+        "numerals",
+        "числительные",
+    );
+    setEnRu(map, "hintPART",
+        "particles, e.g. negation and question particles",
+        "частицы, например, отрицания и вопросительные",
+    );
+    setEnRu(map, "hintPRON",
+        "pronouns",
+        "местоимения",
+    );
+    setEnRu(map, "hintPROPN",
+        "proper nouns",
+        "имена собственные (названия)",
+    );
+    setEnRu(map, "hintSCONJ",
+        "subordinating conjunctions, e.g. 'that', 'if'",
+        "подчинительные союзы, например, 'что', 'если'",
+    );
+    setEnRu(map, "hintVERB",
+        "verbs",
+        "глаголы",
+    );
+    setEnRu(map, "hintX",
+        "other",
+        "другое",
+    );
 }
 
 function prepareTranslations() {

@@ -1,6 +1,6 @@
 import React from "react";
 import { closeButton } from "./close_button";
-import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
+import { PARTS_OF_SPEECH, TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetWords } from "../lib/gc_api";
@@ -30,6 +30,9 @@ class GcCreateApp extends React.Component {
         this.onWordSelect = this.onWordSelect.bind(this);
         this.onWordSelectionSubmit = this.onWordSelectionSubmit.bind(this);
         this.onWordSelectionReset = this.onWordSelectionReset.bind(this);
+        this.onExcVerbChange = this.onExcVerbChange.bind(this);
+        this.onNewWordSubmit = this.onNewWordSubmit.bind(this);
+        this.onNewWordDetailsReset = this.onNewWordDetailsReset.bind(this);
 
         this.state = this.defaultState();
     }
@@ -42,6 +45,10 @@ class GcCreateApp extends React.Component {
             foundWords: null,
             preselectedWordId: null,
             selectedWordId: null,
+            preselectedPos: null,
+            selectedPos: null,
+            preExcVerb: false,
+            excVerb: null,
             error: false,
         };
     }
@@ -121,6 +128,10 @@ class GcCreateApp extends React.Component {
             foundWords: null,
             preselectedWordId: null,
             selectedWordId: null,
+            preselectedPos: null,
+            selectedPos: null,
+            preExcVerb: null,
+            excVerb: null,
             error: null,
         });
     }
@@ -138,8 +149,40 @@ class GcCreateApp extends React.Component {
 
     onWordSelectionReset(event) {
         event.preventDefault();
-        const selectedWordId = null;
-        this.setState({ selectedWordId });
+        this.setState({
+            selectedWordId: null,
+            preselectedPos: null,
+            selectedPos: null,
+            preExcVerb: null,
+            excVerb: null,
+        });
+    }
+
+    onNewWordPosSelect(pos) {
+        const preselectedPos = pos;
+        this.setState({ preselectedPos });
+    }
+
+    onExcVerbChange(event) {
+        const preExcVerb = event.target.checked;
+        this.setState({ preExcVerb });
+    }
+
+    onNewWordSubmit(event) {
+        event.preventDefault();
+        const selectedPos = this.state.preselectedPos;
+        const excVerb = selectedPos == "VERB" && this.state.preExcVerb;
+        this.setState({ selectedPos, excVerb });
+    }
+
+    onNewWordDetailsReset(event) {
+        event.preventDefault();
+        this.setState({
+            preselectedPos: null,
+            selectedPos: null,
+            preExcVerb: null,
+            excVerb: null,
+        });
     }
 
     renderDirectionPart(direction) {
@@ -229,15 +272,16 @@ class GcCreateApp extends React.Component {
         }
     }
 
-    renderPos(pos, excVerb) {
+    renderPos(pos, excVerb, textSize) {
         if (pos) {
+            const spanClass = `text-blue-500 ${textSize} italic`
             if (excVerb > 0) {
-                return (<span className="text-blue-500 text-xs italic pl-2">
-                    &nbsp;{pos}, {this.i18n("feVerb")}
+                return (<span className={spanClass}>
+                    {pos},&nbsp;{this.i18n("feVerb")}
                 </span>);
             }
-            return (<span className="text-blue-500 text-xs italic pl-2">
-                &nbsp;{pos}
+            return (<span className={spanClass}>
+                {pos}
             </span>);
         }
         return null;
@@ -259,7 +303,7 @@ class GcCreateApp extends React.Component {
                     <label
                         className="mx-2"
                         htmlFor={index} >
-                        {entry.word}{this.renderPos(entry.pos, entry.exc_verb)}
+                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb, "text-xs")}
                     </label>
                 </div>
             );
@@ -312,7 +356,7 @@ class GcCreateApp extends React.Component {
         const entry = foundWords[index];
         return (
             <span>
-                {entry.word}{this.renderPos(entry.pos, entry.exc_verb)}
+                {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb, "text-xs")}
             </span>
         );
     }
@@ -342,6 +386,84 @@ class GcCreateApp extends React.Component {
         }
     }
 
+    renderNewWordForm(direction, word, foundWords, selectedWordId) {
+        if (word == null || foundWords == null || selectedWordId != foundWords.length) {
+            return null;
+        }
+        let radios = [];
+        for (let item of PARTS_OF_SPEECH) {
+            const hint = this.i18n(`hint${item}`);
+            radios.push(
+                <div
+                    className="my-2"
+                    key={radios.length} >
+                    <input
+                        type="radio"
+                        id={item}
+                        onChange={(e) => { this.onNewWordPosSelect(item) }}
+                        name="wordPosSelector" />
+                    <label
+                        className="mx-2"
+                        htmlFor={item} >
+                        <span className="text-blue-500 italic">
+                            {item}
+                        </span>
+                        <span className="text-sm pl-2">
+                            {hint}
+                        </span>
+                    </label>
+                </div>
+            );
+        }
+        const excVerbCheckbox = (
+            (direction.src == "kk")
+            ? (<div className="text-xl mx-4">
+                <input
+                    type="checkbox"
+                    id="excVerb"
+                    onChange={this.onExcVerbChange} />
+                <label
+                    className="mx-2"
+                    htmlFor="excVerb">
+                    {this.i18n("feVerb")}
+                </label>
+            </div>)
+            : null
+        );
+        return (
+            <form
+                onSubmit={this.onNewWordSubmit}
+                className="my-2 p-2 w-full bg-gray-200 rounded">
+                <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
+                    <legend className="px-2 text-base">{this.i18n("selectPos")}</legend>
+                    {radios}
+                </fieldset>
+                <div className="flex flex-row justify-between">
+                    {excVerbCheckbox}
+                    <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        →
+                    </button>
+                </div>
+            </form>
+        );
+    }
+
+    renderNewWordDetails(direction, word, foundWords, selectedWordId, selectedPos, excVerb) {
+        if (selectedPos == null) {
+            return this.renderNewWordForm(direction, word, foundWords, selectedWordId);
+        }
+        return (
+            <div className="my-2 flex flex-row justify-between w-full bg-gray-200 rounded">
+                <span className="px-4 py-4 text-2xl">
+                    {this.renderPos(selectedPos, excVerb, "text-xl")}
+                </span>
+                {closeButton({ onClick: this.onNewWordDetailsReset })}
+            </div>
+        );
+    }
+
     renderForm() {
         if (this.state.error) {
             return (
@@ -353,11 +475,14 @@ class GcCreateApp extends React.Component {
         const word = this.state.word;
         const foundWords = this.state.foundWords;
         const selectedWordId = this.state.selectedWordId;
+        const selectedPos = this.state.selectedPos;
+        const excVerb = this.state.excVerb;
         return (
             <div>
                 {this.renderDirectionPart(direction)}
                 {this.renderWordPart(direction, word)}
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
+                {this.renderNewWordDetails(direction, word, foundWords, selectedWordId, selectedPos, excVerb)}
             </div>
         );
     }
