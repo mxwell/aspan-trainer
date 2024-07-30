@@ -1,6 +1,6 @@
 import React from "react";
 import { closeButton } from "./close_button";
-import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
+import { TransDirection } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcAddTranslation, gcAddWord, gcGetWords } from "../lib/gc_api";
@@ -13,8 +13,6 @@ const DIRECTIONS = [
     new TransDirection("kk", "en"),
 ];
 
-const DIRECTION_BY_KEY = buildDirectionByKeyMap(DIRECTIONS);
-
 /**
  * props:
  * - lang
@@ -23,7 +21,8 @@ class GcCreateApp extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onDirectionChange = this.onDirectionChange.bind(this);
+        this.onDirectionSelect = this.onDirectionSelect.bind(this);
+        this.onDirectionSubmit = this.onDirectionSubmit.bind(this);
         this.onDirectionReset = this.onDirectionReset.bind(this);
         this.onWordChange = this.onWordChange.bind(this);
         this.handleGetWordsResponse = this.handleGetWordsResponse.bind(this);
@@ -59,6 +58,7 @@ class GcCreateApp extends React.Component {
 
     makeState(direction) {
         return {
+            preselectedDirectionId: null,
             direction: direction,
             word: null,
             lastEnteredWord: "",
@@ -101,13 +101,24 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    onDirectionChange(event) {
-        let key = event.target.value;
-        console.log(`onDirectionChange: key ${key}`);
-        let direction = DIRECTION_BY_KEY[key];
-        if (direction) {
-            this.setState({ direction });
+    onDirectionSelect(index) {
+        const preselectedDirectionId = index;
+        this.setState({ preselectedDirectionId });
+    }
+
+    onDirectionSubmit(event) {
+        event.preventDefault();
+        const preselected = this.state.preselectedDirectionId;
+        if (preselected == null) {
+            console.log("onDirectionSubmit: null preselectedDirectionId");
+            return;
         }
+        const direction = DIRECTIONS[preselected];
+        if (direction == null) {
+            console.log("onDirectionSubmit: null direction");
+            return;
+        }
+        this.setState({ direction });
     }
 
     onDirectionReset(event) {
@@ -124,10 +135,11 @@ class GcCreateApp extends React.Component {
         const response = await responseJsonPromise;
         const words = response.words;
         console.log(`Got words: ${JSON.stringify(words)}`);
+        const selected = words.length == 0 ? 0 : null;
         if (context.isTranslation == true) {
-            this.setState({ foundTranslations: words })
+            this.setState({ foundTranslations: words, selectedTranslationId: selected })
         } else {
-            this.setState({ foundWords: words });
+            this.setState({ foundWords: words, selectedWordId: selected });
         }
     }
 
@@ -482,29 +494,49 @@ class GcCreateApp extends React.Component {
 
     renderDirectionPart(direction) {
         if (direction == null) {
-            let selectOptions = [
-                <option key="start" value="">{this.i18n("select")}</option>
-            ];
-            for (let d of DIRECTIONS) {
+            let radios = [];
+            for (let index in DIRECTIONS) {
+                const d = DIRECTIONS[index];
                 const key = d.toKey();
-                selectOptions.push(
-                    <option key={key} value={key}>
-                        {this.i18n(key)}
-                    </option>
+                const autoFocus = (
+                    radios.length == 0
+                    ? "autoFocus"
+                    : null
+                );
+                radios.push(
+                    <div
+                        className="my-2"
+                        key={radios.length} >
+                        <input
+                            type="radio"
+                            id={index}
+                            onChange={(e) => { this.onDirectionSelect(index) }}
+                            className="focus:shadow-outline"
+                            autoFocus={autoFocus}
+                            name="directionSelector" />
+                        <label
+                            className="mx-2"
+                            htmlFor={index} >
+                            {this.i18n(key)}
+                        </label>
+                    </div>
                 );
             }
             return (
-                <form className="my-2 flex flex-row w-full bg-gray-200 rounded">
-                    <p className="px-4 py-4 text-2xl">
-                        {this.i18n("transDirection")}:
-                    </p>
-                    <select
-                        required
-                        onChange={this.onDirectionChange}
-                        value=""
-                        className="text-gray-800 text-2xl mx-2 px-4 py-2">
-                        {selectOptions}
-                    </select>
+                <form
+                    onSubmit={this.onDirectionSubmit}
+                    className="my-2 p-2 w-full bg-gray-200 rounded">
+                    <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
+                        <legend className="px-2 text-base">{this.i18n("transDirection")}</legend>
+                        {radios}
+                    </fieldset>
+                    <div className="flex flex-row justify-end">
+                        <button
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            →
+                        </button>
+                    </div>
                 </form>
             );
         } else {
@@ -655,6 +687,7 @@ class GcCreateApp extends React.Component {
                 className="my-4 flex justify-center w-full">
                 <button
                     type="submit"
+                    autoFocus
                     className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
                     {this.i18n("titleGcCreate")}
                 </button>

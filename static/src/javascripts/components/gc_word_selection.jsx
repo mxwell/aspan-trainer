@@ -40,6 +40,11 @@ class GcWordSelection extends React.Component {
         let radios = [];
         for (let index in foundWords) {
             const entry = foundWords[index];
+            const autoFocus = (
+                radios.length == 0
+                ? "autoFocus"
+                : null
+            );
             radios.push(
                 <div
                     className="my-2"
@@ -48,6 +53,8 @@ class GcWordSelection extends React.Component {
                         type="radio"
                         id={index}
                         onChange={(e) => { this.props.selectCallback(index) }}
+                        className="focus:shadow-outline"
+                        autoFocus={autoFocus}
                         name="wordSelector" />
                     <label
                         className="mx-2"
