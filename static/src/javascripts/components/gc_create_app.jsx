@@ -35,6 +35,10 @@ class GcCreateApp extends React.Component {
         this.onNewWordSubmit = this.onNewWordSubmit.bind(this);
         this.onNewWordDetailsReset = this.onNewWordDetailsReset.bind(this);
 
+        this.onTranslationChange = this.onTranslationChange.bind(this);
+        this.onTranslationSubmit = this.onTranslationSubmit.bind(this);
+        this.onTranslationReset = this.onTranslationReset.bind(this);
+
         this.state = this.defaultState();
     }
 
@@ -50,6 +54,9 @@ class GcCreateApp extends React.Component {
             selectedPos: null,
             preExcVerb: false,
             excVerb: null,
+            translation: null,
+            lastEnteredTranslation: "",
+            foundTranslations: null,
             error: false,
         };
     }
@@ -85,27 +92,32 @@ class GcCreateApp extends React.Component {
 
     async handleGetWordsResponse(context, responseJsonPromise) {
         const response = await responseJsonPromise;
-        const foundWords = response.words;
-        console.log(`Got words: ${JSON.stringify(foundWords)}`);
-        this.setState({ foundWords });
+        const words = response.words;
+        console.log(`Got words: ${JSON.stringify(words)}`);
+        if (context.isTranslation == true) {
+            this.setState({ foundTranslations: words })
+        } else {
+            this.setState({ foundWords: words });
+        }
     }
 
     async handleGetWordsError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`Got error from get_words: ${responseText}, params were: ${context.w}, ${context.word}, ${context.lang}`);
+        console.log(`Got error from get_words: ${responseText}, params were: ${context.w}, ${context.word}, ${context.lang}, ${context.isTranslation}`);
         const error = true;
         this.setState({ error });
     }
 
-    startGetWords(word, lang) {
+    startGetWords(word, lang, isTranslation) {
         gcGetWords(
             word,
             lang,
             this.handleGetWordsResponse,
             this.handleGetWordsError,
             {
-                word: word,
-                lang: lang,
+                word,
+                lang,
+                isTranslation,
             }
         );
     }
@@ -118,7 +130,7 @@ class GcCreateApp extends React.Component {
             console.log(`onWordSubmit: empty input [${lastEntered}]`)
             return;
         }
-        this.startGetWords(word, this.state.direction.src);
+        this.startGetWords(word, this.state.direction.src, false);
         this.setState({ word });
     }
 
@@ -183,6 +195,32 @@ class GcCreateApp extends React.Component {
             selectedPos: null,
             preExcVerb: null,
             excVerb: null,
+        });
+    }
+
+    onTranslationChange(event) {
+        let lastEnteredTranslation = event.target.value;
+        this.setState({ lastEnteredTranslation });
+    }
+
+    onTranslationSubmit(event) {
+        event.preventDefault();
+        const lastEntered = this.state.lastEnteredTranslation;
+        const translation = trimAndLowercase(lastEntered);
+        if (translation.length == 0) {
+            console.log(`onTranslationSubmit: empty input [${lastEntered}]`)
+            return;
+        }
+        this.startGetWords(translation, this.state.direction.dst, true);
+        this.setState({ translation });
+    }
+
+    onTranslationReset(event) {
+        event.preventDefault();
+        this.setState({
+            translation: null,
+            foundTranslations: null,
+            error: null,
         });
     }
 
@@ -437,6 +475,22 @@ class GcCreateApp extends React.Component {
         );
     }
 
+    renderTranslationPart(direction, foundWords, selectedWordId, selectedPos, translation) {
+        if (foundWords == null || selectedWordId == null || (selectedWordId >= foundWords.length && selectedPos == null)) {
+            return null;
+        }
+        return (
+            <GcWordStart
+                lang={this.props.lang}
+                wordLang={direction.dst}
+                lastEntered={this.state.lastEnteredTranslation}
+                word={translation}
+                changeCallback={this.onTranslationChange}
+                submitCallback={this.onTranslationSubmit}
+                resetCallback={this.onTranslationReset} />
+        );
+    }
+
     renderForm() {
         if (this.state.error) {
             return (
@@ -450,12 +504,14 @@ class GcCreateApp extends React.Component {
         const selectedWordId = this.state.selectedWordId;
         const selectedPos = this.state.selectedPos;
         const excVerb = this.state.excVerb;
+        const translation = this.state.translation;
         return (
             <div>
                 {this.renderDirectionPart(direction)}
                 {this.renderWordPart(direction, word)}
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
                 {this.renderNewWordDetails(direction, word, foundWords, selectedWordId, selectedPos, excVerb)}
+                {this.renderTranslationPart(direction, foundWords, selectedWordId, selectedPos, translation)}
             </div>
         );
     }
