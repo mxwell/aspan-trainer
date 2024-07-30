@@ -36,7 +36,7 @@ class GcCreateApp extends React.Component {
         this.onNewWordPosSelect = this.onNewWordPosSelect.bind(this);
         this.onExcVerbChange = this.onExcVerbChange.bind(this);
         this.onNewWordSubmit = this.onNewWordSubmit.bind(this);
-        this.onNewWordDetailsReset = this.onNewWordDetailsReset.bind(this);
+        this.onNewWordReset = this.onNewWordReset.bind(this);
 
         this.onTranslationChange = this.onTranslationChange.bind(this);
         this.onTranslationSubmit = this.onTranslationSubmit.bind(this);
@@ -44,6 +44,9 @@ class GcCreateApp extends React.Component {
         this.onTranslationSelect = this.onTranslationSelect.bind(this);
         this.onTranslationSelectionSubmit = this.onTranslationSelectionSubmit.bind(this);
         this.onTranslationSelectionReset = this.onTranslationSelectionReset.bind(this);
+        this.onNewTranslationPosSelect = this.onNewTranslationPosSelect.bind(this);
+        this.onNewTranslationSubmit = this.onNewTranslationSubmit.bind(this);
+        this.onNewTranslationReset = this.onNewTranslationReset.bind(this);
 
         this.state = this.defaultState();
     }
@@ -65,6 +68,8 @@ class GcCreateApp extends React.Component {
             foundTranslations: null,
             preselectedTranslationId: null,
             selectedTranslationId: null,
+            preselectedTranslationPos: null,
+            selectedTranslationPos: null,
             error: false,
         };
     }
@@ -198,7 +203,7 @@ class GcCreateApp extends React.Component {
         this.setState({ selectedPos, excVerb });
     }
 
-    onNewWordDetailsReset(event) {
+    onNewWordReset(event) {
         event.preventDefault();
         this.setState({
             preselectedPos: null,
@@ -206,6 +211,7 @@ class GcCreateApp extends React.Component {
             preExcVerb: null,
             excVerb: null,
             selectedTranslationId: null,
+            selectedTranslationPos: null,
         });
     }
 
@@ -231,6 +237,9 @@ class GcCreateApp extends React.Component {
         this.setState({
             translation: null,
             foundTranslations: null,
+            selectedTranslationId: null,
+            preselectedTranslationPos: null,
+            selectedTranslationPos: null,
             error: null,
         });
     }
@@ -250,6 +259,27 @@ class GcCreateApp extends React.Component {
         event.preventDefault();
         this.setState({
             selectedTranslationId: null,
+            preselectedTranslationPos: null,
+            selectedTranslationPos: null,
+        });
+    }
+
+    onNewTranslationPosSelect(pos) {
+        const preselectedTranslationPos = pos;
+        this.setState({ preselectedTranslationPos });
+    }
+
+    onNewTranslationSubmit(event) {
+        event.preventDefault();
+        const selectedTranslationPos = this.state.preselectedTranslationPos;
+        this.setState({ selectedTranslationPos });
+    }
+
+    onNewTranslationReset(event) {
+        event.preventDefault();
+        this.setState({
+            preselectedTranslationPos: null,
+            selectedTranslationPos: null,
         });
     }
 
@@ -340,7 +370,7 @@ class GcCreateApp extends React.Component {
                 selectCallback={this.onNewWordPosSelect}
                 excVerbCallback={this.onExcVerbChange}
                 submitCallback={this.onNewWordSubmit}
-                resetCallback={this.onNewWordDetailsReset} />
+                resetCallback={this.onNewWordReset} />
         );
     }
 
@@ -375,6 +405,23 @@ class GcCreateApp extends React.Component {
         );
     }
 
+    renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, selectedTranslationPos) {
+        if (!readyForTranslation || foundTranslations == null || selectedTranslationId != foundTranslations.length) {
+            return null;
+        }
+        return (
+            <GcWordCreate
+                lang={this.props.lang}
+                wordLang={direction.dst}
+                selectedPos={selectedTranslationPos}
+                excVerb={false}
+                selectCallback={this.onNewTranslationPosSelect}
+                excVerbCallback={() => {}}
+                submitCallback={this.onNewTranslationSubmit}
+                resetCallback={this.onNewTranslationReset} />
+        );
+    }
+
     renderForm() {
         if (this.state.error) {
             return (
@@ -396,6 +443,7 @@ class GcCreateApp extends React.Component {
         const translation = this.state.translation;
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
+        const selectedTranslationPos = this.state.selectedTranslationPos;
         return (
             <div>
                 {this.renderDirectionPart(direction)}
@@ -404,6 +452,7 @@ class GcCreateApp extends React.Component {
                 {this.renderNewWordDetails(direction, foundWords, selectedWordId, selectedPos, excVerb)}
                 {this.renderTranslationPart(readyForTranslation, direction, translation)}
                 {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId)}
+                {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, selectedTranslationPos)}
             </div>
         );
     }

@@ -63,7 +63,7 @@ class GcWordCreate extends React.Component {
                     {this.i18n("feVerb")}
                 </label>
             </div>)
-            : null
+            : (<span />)
         );
         return (
             <form
