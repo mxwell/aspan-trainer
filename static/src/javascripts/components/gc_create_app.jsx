@@ -3,7 +3,7 @@ import { closeButton } from "./close_button";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
-import { gcGetWords } from "../lib/gc_api";
+import { gcAddTranslation, gcAddWord, gcGetWords } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
@@ -48,6 +48,12 @@ class GcCreateApp extends React.Component {
         this.onNewTranslationSubmit = this.onNewTranslationSubmit.bind(this);
         this.onNewTranslationReset = this.onNewTranslationReset.bind(this);
 
+        this.handleAddWordResponse = this.handleAddWordResponse.bind(this);
+        this.handleAddWordError = this.handleAddWordError.bind(this);
+        this.handleAddTranslationResponse = this.handleAddTranslationResponse.bind(this);
+        this.handleAddTranslationError = this.handleAddTranslationError.bind(this);
+        this.onCreate = this.onCreate.bind(this);
+
         this.state = this.defaultState();
     }
 
@@ -70,7 +76,10 @@ class GcCreateApp extends React.Component {
             selectedTranslationId: null,
             preselectedTranslationPos: null,
             selectedTranslationPos: null,
+            creating: false,
+            translationId: null,
             error: false,
+            createError: null,
         };
     }
 
@@ -82,6 +91,14 @@ class GcCreateApp extends React.Component {
 
     i18n(key) {
         return i18n(key, this.props.lang);
+    }
+
+    isLocked() {
+        return (
+            this.state.creating
+            || this.state.translationId != null
+            || this.state.createError != null
+        );
     }
 
     onDirectionChange(event) {
@@ -149,6 +166,10 @@ class GcCreateApp extends React.Component {
 
     onWordReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             word: null,
             foundWords: null,
@@ -176,6 +197,10 @@ class GcCreateApp extends React.Component {
 
     onWordSelectionReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             selectedWordId: null,
             preselectedPos: null,
@@ -205,6 +230,10 @@ class GcCreateApp extends React.Component {
 
     onNewWordReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             preselectedPos: null,
             selectedPos: null,
@@ -234,6 +263,10 @@ class GcCreateApp extends React.Component {
 
     onTranslationReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             translation: null,
             foundTranslations: null,
@@ -257,6 +290,10 @@ class GcCreateApp extends React.Component {
 
     onTranslationSelectionReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             selectedTranslationId: null,
             preselectedTranslationPos: null,
@@ -277,10 +314,161 @@ class GcCreateApp extends React.Component {
 
     onNewTranslationReset(event) {
         event.preventDefault();
+        if (this.isLocked()) {
+            console.log("Ignoring click while form is locked");
+            return;
+        }
         this.setState({
             preselectedTranslationPos: null,
             selectedTranslationPos: null,
         });
+    }
+
+    async handleAddTranslationResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleAddTranslationResponse: error message: ${message}`);
+            this.setCreateError(context);
+            return;
+        }
+        const translationId = response.translation_id;
+        if (translationId == null) {
+            console.log("handleAddTranslationResponse: null translationId");
+            this.setCreateError(context);
+            return;
+        }
+        console.log(`Created with ID: ${translationId}`);
+        const creating = false;
+        this.setState({ creating, translationId });
+    }
+
+    async handleAddTranslationError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from add_translation: ${responseText}`);
+        this.setCreateError(context);
+    }
+
+    startAddTranslation(wordId, translationWordId) {
+        console.log(`startAddTranslation: ${wordId} -> ${translationWordId}`);
+        gcAddTranslation(
+            wordId,
+            translationWordId,
+            this.handleAddTranslationResponse,
+            this.handleAddTranslationError,
+            {},
+        );
+    }
+
+    createErrorMessage(context) {
+        const isTranslation = context.isTranslation;
+        if (isTranslation == true) {
+            return "failed to store translation word"
+        } else if (isTranslation == false) {
+            return "failed to store original word";
+        }
+        return "failed to store translation";
+    }
+
+    setCreateError(context) {
+        const creating = false;
+        const createError = this.createErrorMessage(context)
+        this.setState({ creating, createError });
+    }
+
+    async handleAddWordResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleAddWordResponse: error message: ${message}, ctx: ${context.isTranslation}`);
+            this.setCreateError(context);
+            return;
+        }
+        const wordId = response.word_id;
+        if (wordId == null) {
+            console.log("handleAddWordResponse: null wordId");
+            this.setCreateError(context);
+            return;
+        }
+        console.log(`handleAddWordResponse: wordId ${wordId}`);
+        if (context.isTranslation == true) {
+            const srcWordId = context.srcWordId;
+            if (srcWordId == null) {
+                console.log("handleAddWordResponse: null srcWordId");
+                this.setCreateError(context);
+                return;
+            }
+            this.startAddTranslation(srcWordId, wordId);
+        } else {
+            this.createTranslationWordIfNeeded(wordId);
+        }
+    }
+
+    async handleAddWordError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from add_word: ${responseText}, ctx: ${context.isTranslation}`);
+        this.setCreateError(context);
+    }
+
+    startAddWord(word, pos, excVerb, lang, context) {
+        gcAddWord(
+            word,
+            pos,
+            excVerb,
+            lang,
+            this.handleAddWordResponse,
+            this.handleAddWordError,
+            context,
+        );
+    }
+
+    createTranslationWordIfNeeded(wordId) {
+        console.log(`createTranslationWordIfNeeded: wordId ${wordId}`);
+        const foundTranslations = this.state.foundTranslations;
+        const selectedTranslationId = this.state.selectedTranslationId;
+        if (selectedTranslationId < foundTranslations.length) {
+            this.startAddTranslation(wordId, foundTranslations[selectedTranslationId].word_id);
+        } else {
+            this.startAddWord(
+                this.state.translation,
+                this.state.selectedTranslationPos,
+                /* excVerb */ false,
+                this.state.direction.dst,
+                {
+                    isTranslation: true,
+                    srcWordId: wordId,
+                }
+            );
+        }
+    }
+
+    createWordIfNeeded() {
+        const foundWords = this.state.foundWords;
+        const selectedWordId = this.state.selectedWordId;
+        if (selectedWordId < foundWords.length) {
+            this.createTranslationWordIfNeeded(foundWords[selectedWordId].word_id);
+        } else {
+            this.startAddWord(
+                this.state.word,
+                this.state.selectedPos,
+                this.state.excVerb,
+                this.state.direction.src,
+                {
+                    isTranslation: false,
+                }
+            );
+        }
+    }
+
+    onCreate(event) {
+        event.preventDefault();
+        if (this.state.creating) {
+            console.log("onCreate: ignoring click while performing creation");
+            return;
+        }
+        const creating = true;
+        this.setState({ creating });
+        this.createWordIfNeeded();
     }
 
     renderDirectionPart(direction) {
@@ -422,6 +610,49 @@ class GcCreateApp extends React.Component {
         );
     }
 
+    renderCreateButton(readyToCreate) {
+        if (!readyToCreate) {
+            return null;
+        }
+        if (this.state.creating) {
+            return (
+                <div
+                    className="my-4 w-full text-2xl text-center italic">
+                    {this.i18n("creatingTranslation")}
+                </div>
+            );
+        }
+        const translationId = this.state.translationId;
+        if (translationId != null) {
+            return (
+                <div
+                    className="my-4 w-full text-2xl text-center text-green-600 italic">
+                    {this.i18n("createdTranslation")}:&nbsp;{translationId}
+                </div>
+            );
+        }
+        const createError = this.state.createError;
+        if (createError != null) {
+            return (
+                <div
+                    className="my-4 w-full text-2xl text-center text-red-600 italic">
+                    {this.i18n("service_error")}:&nbsp;{createError}
+                </div>
+            );
+        }
+        return (
+            <form
+                onSubmit={this.onCreate}
+                className="my-4 flex justify-center w-full">
+                <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
+                        {this.i18n("titleGcCreate")}
+                    </button>
+            </form>
+        );
+    }
+
     renderForm() {
         if (this.state.error) {
             return (
@@ -444,6 +675,12 @@ class GcCreateApp extends React.Component {
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
         const selectedTranslationPos = this.state.selectedTranslationPos;
+        const readyToCreate = (
+            readyForTranslation
+            && foundTranslations != null
+            && selectedTranslationId != null
+            && (selectedTranslationId < foundTranslations.length || selectedTranslationPos != null)
+        );
         return (
             <div>
                 {this.renderDirectionPart(direction)}
@@ -453,6 +690,7 @@ class GcCreateApp extends React.Component {
                 {this.renderTranslationPart(readyForTranslation, direction, translation)}
                 {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId)}
                 {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, selectedTranslationPos)}
+                {this.renderCreateButton(readyToCreate)}
             </div>
         );
     }

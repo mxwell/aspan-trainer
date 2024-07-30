@@ -74,6 +74,7 @@ function loadTopList(successCallback, errorCallback) {
 
 export {
     makeGetApiRequest,
+    makeJsonApiRequest,
     encodeQueryData,
     makeSuggestRequest,
     makeDetectRequest,

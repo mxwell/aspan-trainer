@@ -894,8 +894,8 @@ function prepareGcOnlyTranslations(map) {
         "Введите русское слово",
     );
     setEnRu(map, "loadingWords",
-        "Loading words...",
-        "Загрузка слов...",
+        "Loading words…",
+        "Загрузка слов…",
     );
     setEnRu(map, "selectExistingOrCreateNew",
         "Select existing word or create a new one",
@@ -968,6 +968,14 @@ function prepareGcOnlyTranslations(map) {
     setEnRu(map, "hintX",
         "other",
         "другое",
+    );
+    setEnRu(map, "creatingTranslation",
+        "Creating translation…",
+        "Создание перевода…",
+    );
+    setEnRu(map, "createdTranslation",
+        "Created translation",
+        "Перевод создан",
     );
 }
 

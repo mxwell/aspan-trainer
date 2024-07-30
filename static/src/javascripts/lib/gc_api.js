@@ -1,4 +1,4 @@
-import { encodeQueryData, makeGetApiRequest } from "./requests";
+import { encodeQueryData, makeGetApiRequest, makeJsonApiRequest } from "./requests";
 
 function gcGetTranslations(word, src, dst, successCallback, errorCallback, context) {
     const params = {
@@ -21,7 +21,29 @@ function gcGetWords(word, lang, successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcAddWord(word, pos, excVerb, lang, successCallback, errorCallback, context) {
+    const params = {
+        w: word,
+        pos: pos,
+        ev: excVerb,
+        lang: lang,
+    };
+    const url = "/gcapi/v1/add_word";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
+function gcAddTranslation(srcId, dstId, successCallback, errorCallback, context) {
+    const params = {
+        src: srcId,
+        dst: dstId,
+    };
+    const url = "/gcapi/v1/add_translation";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     gcGetTranslations,
     gcGetWords,
+    gcAddWord,
+    gcAddTranslation,
 };
