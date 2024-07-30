@@ -869,9 +869,17 @@ function prepareGcOnlyTranslations(map) {
         "Select",
         "Выберите",
     );
-    setEnRu(map, "srcWord",
-        "Source word",
-        "Исходное слово",
+    setEnRu(map, "langWord_en",
+        "English word",
+        "Английское слово",
+    );
+    setEnRu(map, "langWord_kk",
+        "Kazakh word",
+        "Казахское слово",
+    );
+    setEnRu(map, "langWord_ru",
+        "Russian word",
+        "Русское слово",
     );
     setEnRu(map, "enterLangWord_en",
         "Enter an English word",

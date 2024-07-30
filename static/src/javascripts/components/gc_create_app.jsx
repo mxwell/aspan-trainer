@@ -4,6 +4,7 @@ import { PARTS_OF_SPEECH, TransDirection, buildDirectionByKeyMap } from "../lib/
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetWords } from "../lib/gc_api";
+import GcWordStart from "./gc_word_start";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -232,44 +233,16 @@ class GcCreateApp extends React.Component {
         if (direction == null) {
             return null;
         }
-        if (word == null) {
-            const placeHolderKey = `enterLangWord_${direction.src}`
-            return (
-                <form
-                    onSubmit={this.onWordSubmit}
-                    className="my-2 flex flex-row w-full bg-gray-200 rounded">
-                    <span className="px-4 py-4 text-2xl">
-                        {this.i18n("srcWord")}:
-                    </span>
-                    <input
-                        type="text"
-                        size="20"
-                        maxLength="64"
-                        value={this.state.lastEnteredWord}
-                        onChange={this.onWordChange}
-                        placeholder={this.i18n(placeHolderKey)}
-                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                        autoFocus />
-                    <button
-                        type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        →
-                    </button>
-                </form>
-            );
-        } else {
-            return (
-                <div className="my-2 flex flex-row justify-between w-full bg-gray-200 rounded">
-                    <span className="px-4 py-4 text-2xl">
-                        {this.i18n("srcWord")}:
-                    </span>
-                    <span className="py-4 text-2xl">
-                        {word}
-                    </span>
-                    {closeButton({ onClick: this.onWordReset })}
-                </div>
-            );
-        }
+        return (
+            <GcWordStart
+                lang={this.props.lang}
+                wordLang={direction.src}
+                lastEntered={this.state.lastEnteredWord}
+                word={word}
+                changeCallback={this.onWordChange}
+                submitCallback={this.onWordSubmit}
+                resetCallback={this.onWordReset} />
+        );
     }
 
     renderPos(pos, excVerb, textSize) {
