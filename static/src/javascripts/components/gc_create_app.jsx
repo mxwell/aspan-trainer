@@ -39,6 +39,9 @@ class GcCreateApp extends React.Component {
         this.onTranslationChange = this.onTranslationChange.bind(this);
         this.onTranslationSubmit = this.onTranslationSubmit.bind(this);
         this.onTranslationReset = this.onTranslationReset.bind(this);
+        this.onTranslationSelect = this.onTranslationSelect.bind(this);
+        this.onTranslationSelectionSubmit = this.onTranslationSelectionSubmit.bind(this);
+        this.onTranslationSelectionReset = this.onTranslationSelectionReset.bind(this);
 
         this.state = this.defaultState();
     }
@@ -58,6 +61,8 @@ class GcCreateApp extends React.Component {
             translation: null,
             lastEnteredTranslation: "",
             foundTranslations: null,
+            preselectedTranslationId: null,
+            selectedTranslationId: null,
             error: false,
         };
     }
@@ -146,6 +151,7 @@ class GcCreateApp extends React.Component {
             selectedPos: null,
             preExcVerb: null,
             excVerb: null,
+            selectedTranslationId: null,
             error: null,
         });
     }
@@ -169,6 +175,7 @@ class GcCreateApp extends React.Component {
             selectedPos: null,
             preExcVerb: null,
             excVerb: null,
+            selectedTranslationId: null,
         });
     }
 
@@ -196,6 +203,7 @@ class GcCreateApp extends React.Component {
             selectedPos: null,
             preExcVerb: null,
             excVerb: null,
+            selectedTranslationId: null,
         });
     }
 
@@ -222,6 +230,24 @@ class GcCreateApp extends React.Component {
             translation: null,
             foundTranslations: null,
             error: null,
+        });
+    }
+
+    onTranslationSelect(index) {
+        const preselectedTranslationId = index;
+        this.setState({ preselectedTranslationId });
+    }
+
+    onTranslationSelectionSubmit(event) {
+        event.preventDefault();
+        const selectedTranslationId = this.state.preselectedTranslationId;
+        this.setState({ selectedTranslationId });
+    }
+
+    onTranslationSelectionReset(event) {
+        event.preventDefault();
+        this.setState({
+            selectedTranslationId: null,
         });
     }
 
@@ -392,8 +418,8 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    renderTranslationPart(direction, foundWords, selectedWordId, selectedPos, translation) {
-        if (foundWords == null || selectedWordId == null || (selectedWordId >= foundWords.length && selectedPos == null)) {
+    renderTranslationPart(readyForTranslation, direction, translation) {
+        if (!readyForTranslation) {
             return null;
         }
         return (
@@ -405,6 +431,21 @@ class GcCreateApp extends React.Component {
                 changeCallback={this.onTranslationChange}
                 submitCallback={this.onTranslationSubmit}
                 resetCallback={this.onTranslationReset} />
+        );
+    }
+
+    renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId) {
+        if (!readyForTranslation || translation == null) {
+            return null;
+        }
+        return (
+            <GcWordSelection
+                lang={this.props.lang}
+                foundWords={foundTranslations}
+                selectedWordId={selectedTranslationId}
+                selectCallback={this.onTranslationSelect}
+                submitCallback={this.onTranslationSelectionSubmit}
+                resetCallback={this.onTranslationSelectionReset} />
         );
     }
 
@@ -421,14 +462,22 @@ class GcCreateApp extends React.Component {
         const selectedWordId = this.state.selectedWordId;
         const selectedPos = this.state.selectedPos;
         const excVerb = this.state.excVerb;
+        const readyForTranslation = (
+            foundWords != null
+            && selectedWordId != null
+            && (selectedWordId < foundWords.length || selectedPos != null)
+        );
         const translation = this.state.translation;
+        const foundTranslations = this.state.foundTranslations;
+        const selectedTranslationId = this.state.selectedTranslationId;
         return (
             <div>
                 {this.renderDirectionPart(direction)}
                 {this.renderWordPart(direction, word)}
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
                 {this.renderNewWordDetails(direction, word, foundWords, selectedWordId, selectedPos, excVerb)}
-                {this.renderTranslationPart(direction, foundWords, selectedWordId, selectedPos, translation)}
+                {this.renderTranslationPart(readyForTranslation, direction, translation)}
+                {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId)}
             </div>
         );
     }
