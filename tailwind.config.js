@@ -12,6 +12,7 @@ module.exports = {
         "./static/src/html/gc_description_ru.pug",
         "./static/src/html/gc_landing_ru.pug",
         "./static/src/html/gc_search_ru.pug",
+        "./static/src/html/login_ru.pug",
         "./static/src/html/viewer.pug",
         "./static/src/html/viewer_en.pug",
         "./static/src/html/viewer_kk.pug",

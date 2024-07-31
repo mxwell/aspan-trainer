@@ -1,7 +1,7 @@
 include partials/viewer_page_ru
 +a_viewer_page_ru("../javascripts/login_ru.jsx")
     div(class="m-4 flex flex-row justify-center")
-        div(class="md:py-6 lg:max-w-6xl")
+        div(class="md:py-6 lg:max-w-6xl border-2 p-6 rounded")
             h1(class="text-4xl py-6") Вход на сайт
             div(
                 id="g_id_onload",
@@ -18,4 +18,26 @@ include partials/viewer_page_ru
                 data-text="signin_with",
                 data-size="large",
                 data-logo_alignment="left")
+            div(
+                id="gc_error",
+                class="text-red-600 w-full text-center hidden"
+            )
+            form(
+                id="gc_name_form",
+                class="my-10 flex flex-col w-full invisible"
+            )
+                p(class="text-2xl text-gray-700") Ваше имя на сайте
+                div(class="flex flex-row justify-between w-full")
+                    input(
+                        id="gc_name_input",
+                        type="text",
+                        size=20,
+                        maxLength=100,
+                        class="shadow appearance-none border-2 rounded my-2 mr-2 p-2 text-3xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        autoFocus="autoFocus")
+                    button(
+                        id="gc_name_submit"
+                        type="submit",
+                        class="text-white text-3xl my-2 px-4 font-bold rounded bg-blue-500 hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+                    ) →
     script(src="https://accounts.google.com/gsi/client")

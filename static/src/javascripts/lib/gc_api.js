@@ -1,5 +1,40 @@
 import { encodeQueryData, makeGetApiRequest, makeJsonApiRequest } from "./requests";
 
+var globalGcToken = null;
+var globalGcTokenLoadAttempt = false;
+
+function getCurrentGcToken() {
+    if (!globalGcTokenLoadAttempt) {
+        globalGcToken = gcLoadToken();
+    }
+    return globalGcToken;
+}
+
+function gcCheckUser(googleToken, successCallback, errorCallback, context) {
+    const params = {
+        id_token: googleToken,
+    };
+    const url = "/gcapi/v1/check_user";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
+function gcCreateUser(googleToken, name, successCallback, errorCallback, context) {
+    const params = {
+        id_token: googleToken,
+        name: name,
+    };
+    const url = "/gcapi/v1/create_user";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
+function gcGetToken(googleToken, successCallback, errorCallback, context) {
+    const params = {
+        id_token: googleToken,
+    };
+    const url = "/gcapi/v1/get_token";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetTranslations(word, src, dst, bothDirs, successCallback, errorCallback, context) {
     const params = {
         w: word,
@@ -36,7 +71,8 @@ function gcAddWord(word, pos, excVerb, lang, comment, successCallback, errorCall
         com: comment,
     };
     const url = "/gcapi/v1/add_word";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcAddTranslation(srcId, dstId, reference, successCallback, errorCallback, context) {
@@ -46,7 +82,8 @@ function gcAddTranslation(srcId, dstId, reference, successCallback, errorCallbac
         ref: reference,
     };
     const url = "/gcapi/v1/add_translation";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcGetFeed(successCallback, errorCallback, context) {
@@ -62,7 +99,8 @@ function gcGetReviews(direction, successCallback, errorCallback, context) {
     );
     const query = encodeQueryData(params);
     const url = `/gcapi/v1/get_reviews?${query}`;
-    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeGetApiRequest(url, successCallback, errorCallback, context, token, true);
 }
 
 function gcAddReview(srcId, dstId, reference, successCallback, errorCallback, context) {
@@ -72,7 +110,8 @@ function gcAddReview(srcId, dstId, reference, successCallback, errorCallback, co
         ref: reference,
     };
     const url = "/gcapi/v1/add_review";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcAddReviewVote(reviewId, vote, successCallback, errorCallback, context) {
@@ -81,7 +120,8 @@ function gcAddReviewVote(reviewId, vote, successCallback, errorCallback, context
         v: vote,
     };
     const url = "/gcapi/v1/add_review_vote";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcRetractReviewVote(reviewId, vote, successCallback, errorCallback, context) {
@@ -90,7 +130,8 @@ function gcRetractReviewVote(reviewId, vote, successCallback, errorCallback, con
         v: vote,
     };
     const url = "/gcapi/v1/retract_review_vote";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcDiscardReview(reviewId, successCallback, errorCallback, context) {
@@ -98,7 +139,8 @@ function gcDiscardReview(reviewId, successCallback, errorCallback, context) {
         rid: reviewId,
     };
     const url = "/gcapi/v1/discard_review";
-    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+    const token = getCurrentGcToken();
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, token, true);
 }
 
 function gcGetStats(successCallback, errorCallback, context) {
@@ -125,11 +167,53 @@ function gcGetLlmTranslations(wordId, model, successCallback, errorCallback, con
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+const gcTokenKey = "gc-v1-token";
+
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
+function gcStoreToken(gcToken) {
+    const localStorage = window.localStorage;
+    console.log(`Storing GC token of length ${gcToken.length}`);
+    localStorage.setItem(gcTokenKey, gcToken);
+    globalGcTokenLoadAttempt = false;
+}
+
+function gcLoadToken() {
+    const localStorage = window.localStorage;
+    const gcToken = localStorage.getItem(gcTokenKey);
+    if (gcToken != null) {
+        console.log(`Loaded GC token of length ${gcToken.length}`);
+    } else {
+        console.log(`No GC token is found`);
+    }
+    globalGcTokenLoadAttempt = true;
+    return gcToken;
+}
+
 function gcGetUserId() {
-    return 1;
+    const token = getCurrentGcToken();
+    if (token == null) {
+        console.log("No user id: no token");
+        return 0;
+    }
+    const parsed = parseJwt(token);
+    const userId = parsed.user_id;
+    console.log(`Retrieved user id from stored token: ${userId}`);
+    return userId;
 }
 
 export {
+    gcCheckUser,
+    gcCreateUser,
+    gcGetToken,
     gcGetTranslations,
     gcGetWords,
     gcAddWord,
@@ -143,5 +227,8 @@ export {
     gcGetStats,
     gcGetUntranslated,
     gcGetLlmTranslations,
+    parseJwt,
+    gcStoreToken,
+    gcLoadToken,
     gcGetUserId,
 };
