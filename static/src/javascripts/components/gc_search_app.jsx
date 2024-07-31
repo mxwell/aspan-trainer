@@ -44,6 +44,7 @@ class GcSearchApp extends React.Component {
         }
         return {
             word: word,
+            preselectedDirection: direction,
             direction: direction,
             lastEntered: word,
             loading: true,
@@ -125,9 +126,9 @@ class GcSearchApp extends React.Component {
     onDirectionChange(event) {
         let key = event.target.value;
         console.log(`onDirectionChange: key ${key}`);
-        let direction = DIRECTION_BY_KEY[key];
-        if (direction) {
-            this.setState({ direction });
+        let preselectedDirection = DIRECTION_BY_KEY[key];
+        if (preselectedDirection) {
+            this.setState({ preselectedDirection });
         }
     }
 
@@ -139,7 +140,7 @@ class GcSearchApp extends React.Component {
     onSubmit(event) {
         event.preventDefault();
         const word = this.state.lastEntered;
-        const direction = this.state.direction;
+        const direction = this.state.preselectedDirection;
         this.reloadToState(word, direction);
     }
 
@@ -169,7 +170,7 @@ class GcSearchApp extends React.Component {
                 <select
                     required
                     onChange={this.onDirectionChange}
-                    value={this.state.direction.toKey()}
+                    value={this.state.preselectedDirection.toKey()}
                     className="text-gray-800 text-2xl mx-2 px-4 py-2">
                     {selectOptions}
                 </select>
@@ -217,13 +218,13 @@ class GcSearchApp extends React.Component {
                 <p className="m-10 text-center text-red-600">{this.i18n("service_error")}</p>
             );
         }
+        if (this.state.word.length == 0) {
+            return null;
+        }
         if (this.state.loading) {
             return (
                 <p className="m-10 text-center">{this.i18n("searchInProgress")}</p>
             );
-        }
-        if (this.state.word.length == 0) {
-            return null;
         }
         const translations = this.state.translations;
         if (translations.length == 0) {

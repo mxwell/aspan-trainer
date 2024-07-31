@@ -1,6 +1,7 @@
 module.exports = {
     purge: [
         "./static/src/html/partials/viewer_page.pug",
+        "./static/src/html/partials/gc_page.pug",
         "./static/src/html/about_en.pug",
         "./static/src/html/about_kk.pug",
         "./static/src/html/about_ru.pug",
