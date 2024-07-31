@@ -1,0 +1,39 @@
+mixin a_gc_page(l10n, js_path)
+    doctype html
+    html(lang= l10n.langCode)
+        head
+            meta(charset="utf8")
+            meta(property="og:title", content= l10n.title)
+            meta(property="og:description", content= l10n.description)
+            meta(property="og:site_name", content= l10n.title)
+            meta(name="referrer", content="no-referrer-when-downgrade")
+            meta(name="Cross-Origin-Opener-Policy", content="same-origin-allow-popups")
+            title= l10n.title
+            link(rel="stylesheet", href="../css/page.pcss")
+            link(rel="icon", href="../images/favicon.png", type="image/png")
+        body
+            div.page-grid
+                header(class="bg-blue-800 text-white p-1 flex justify-between")
+                    div(class="ml-2 md:mx-8 my-1 flex")
+                        div
+                            a(class="text-4xl lg:text-2xl text-bold", href="#")
+                                = l10n.title
+                                <sup class="text-red-400">β</sup>
+                            p(class="invisible lg:visible text-xs lg:text-sm text-yellow-300")
+                                = l10n.description
+                    div(class="my-1 py-2")
+                        a(href= l10n.linkGcSearch, class="mx-2 p-2 border-2")
+                            = l10n.titleGcSearch
+                        a(href= l10n.linkGcCreate, class="mx-2 p-2 border-2")
+                            = l10n.titleGcCreate
+                article
+                    block
+                footer(class="bg-blue-800 text-white flex justify-between")
+                    span © 2023-2024 Murat Khairulin
+                    div(class="flex")
+                        span(class="text-xl md:text-sm")
+                            = l10n.contactUs
+                        a(class="mx-2 text-red-200 text-xl md:text-sm underline", href="https://t.me/kazakhverb", target="_blank")
+                            = l10n.tgGroup
+            script(src= js_path)
+            noscript() The web page requires Javascript enabled in the browser to work
