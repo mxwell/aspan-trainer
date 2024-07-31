@@ -156,6 +156,10 @@ function buildGcSearchUrl(word, src, dst) {
     return buildUrl(path, params);
 }
 
+function buildGcCreateUrl() {
+    return "/gc_create_ru.html";
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -190,6 +194,7 @@ export {
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
     buildGcSearchUrl,
+    buildGcCreateUrl,
     extractSsrVerb,
     isSsrPage,
     parseParams,
