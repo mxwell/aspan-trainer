@@ -21,21 +21,23 @@ function gcGetWords(word, lang, successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcAddWord(word, pos, excVerb, lang, successCallback, errorCallback, context) {
+function gcAddWord(word, pos, excVerb, lang, comment, successCallback, errorCallback, context) {
     const params = {
         w: word,
         pos: pos,
         ev: excVerb,
         lang: lang,
+        com: comment,
     };
     const url = "/gcapi/v1/add_word";
     return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcAddTranslation(srcId, dstId, successCallback, errorCallback, context) {
+function gcAddTranslation(srcId, dstId, reference, successCallback, errorCallback, context) {
     const params = {
         src: srcId,
         dst: dstId,
+        ref: reference,
     };
     const url = "/gcapi/v1/add_translation";
     return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);

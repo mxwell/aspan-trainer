@@ -3,14 +3,22 @@ import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
 import { PARTS_OF_SPEECH } from "../lib/gc";
 
+function ellipsize(s) {
+    if (s.length <= 8) {
+        return s;
+    }
+    return `${s.substr(0, 7)}…`;
+}
 
 /**
  * props:
  * - lang
  * - wordLang
  * - selectedPos
+ * - comment
  * - excVerb
  * - selectCallback
+ * - commentCallback
  * - excVerbCallback
  * - submitCallback
  * - resetCallback
@@ -81,6 +89,19 @@ class GcWordCreate extends React.Component {
                     {radios}
                 </fieldset>
                 <div className="flex flex-row justify-between">
+                    <span className="px-2 py-4 text-2xl">
+                        {this.i18n("comment")}:
+                    </span>
+                    <input
+                        type="text"
+                        size="20"
+                        maxLength="128"
+                        value={this.props.comment}
+                        onChange={this.props.commentCallback}
+                        className="shadow appearance-none border rounded mx-2 my-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        />
+                </div>
+                <div className="flex flex-row justify-between">
                     {excVerbCheckbox}
                     <button
                         type="submit"
@@ -113,11 +134,19 @@ class GcWordCreate extends React.Component {
         if (selectedPos == null) {
             return this.renderForm();
         }
+        const comment = (
+            this.props.comment.length > 0
+            ? (<span className="py-4 py-4 text-xl text-gray-700 italic">
+                "{ellipsize(this.props.comment)}"
+            </span>)
+            : null
+        );
         return (
             <div className="my-2 flex flex-row justify-between w-full bg-gray-200 rounded">
                 <span className="px-4 py-4 text-2xl">
                     {this.renderPos(selectedPos, excVerb)}
                 </span>
+                {comment}
                 {closeButton({ onClick: this.props.resetCallback })}
             </div>
         );

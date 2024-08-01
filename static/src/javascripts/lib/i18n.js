@@ -969,6 +969,10 @@ function prepareGcOnlyTranslations(map) {
         "other",
         "другое",
     );
+    setEnRu(map, "comment",
+        "Comment",
+        "Комментарий",
+    );
     setEnRu(map, "creatingTranslation",
         "Creating translation…",
         "Создание перевода…",
