@@ -21,11 +21,13 @@ mixin a_gc_page(l10n, js_path)
                                 <sup class="text-red-400">β</sup>
                             p(class="invisible lg:visible text-xs lg:text-sm text-yellow-300")
                                 = l10n.description
-                    div(class="my-1 py-2")
-                        a(href= l10n.linkGcSearch, class="mx-2 p-2 border-2")
-                            = l10n.titleGcSearch
-                        a(href= l10n.linkGcCreate, class="mx-2 p-2 border-2")
-                            = l10n.titleGcCreate
+                    div(class="my-1 py-2 flex")
+                        a(href= l10n.linkGcSearch, class="mx-2 p-2")
+                            img(class="gc_menu_icon", src="../images/search.svg", alt= l10n.titleGcSearch)
+                        a(href= l10n.linkGcCreate, class="mx-2 p-2")
+                            img(class="gc_menu_icon", src="../images/create.svg", alt= l10n.titleGcCreate)
+                        a(href= l10n.linkGcFeed, class="mx-2 p-2")
+                            img(class="gc_menu_icon", src="../images/history.svg", alt= l10n.titleGcFeed)
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")

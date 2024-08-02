@@ -989,6 +989,22 @@ function prepareGcOnlyTranslations(map) {
         "translation already exists",
         "перевод уже существует",
     );
+    setEnRu(map, "titleRecentUpdates",
+        "Recent updates",
+        "Недавние обновления",
+    );
+    setEnRu(map, "loadingUpdates",
+        "Loading updates…",
+        "Загрузка обновлений…",
+    );
+    setEnRu(map, "noUpdatesYet",
+        "No updates yet",
+        "Пока обновлений нет",
+    );
+    setEnRu(map, "userAddedTranslation",
+        "added a translation",
+        "добавил(а) перевод",
+    );
 }
 
 function prepareTranslations() {

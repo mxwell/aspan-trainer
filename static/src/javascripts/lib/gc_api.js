@@ -43,9 +43,15 @@ function gcAddTranslation(srcId, dstId, reference, successCallback, errorCallbac
     return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetFeed(successCallback, errorCallback, context) {
+    const url = "/gcapi/v1/get_feed";
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     gcGetTranslations,
     gcGetWords,
     gcAddWord,
     gcAddTranslation,
+    gcGetFeed,
 };
