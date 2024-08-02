@@ -1,17 +1,20 @@
 import React from "react";
 import { closeButton } from "./close_button";
-import { TransDirection } from "../lib/gc";
+import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcAddTranslation, gcAddWord, gcGetWords } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
+import { parseParams } from "../lib/url";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
     new TransDirection("kk", "en"),
 ];
+
+const DIRECTION_BY_KEY = buildDirectionByKeyMap(DIRECTIONS);
 
 function checkIfDuplicate(existingWords, pos, excVerb, comment) {
     for (let word of existingWords) {
@@ -70,15 +73,15 @@ class GcCreateApp extends React.Component {
         this.handleAddTranslationError = this.handleAddTranslationError.bind(this);
         this.onCreate = this.onCreate.bind(this);
 
-        this.state = this.defaultState();
+        this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(direction) {
+    makeState(direction, lastEnteredWord) {
         return {
             preselectedDirectionId: null,
             direction: direction,
             word: null,
-            lastEnteredWord: "",
+            lastEnteredWord: lastEnteredWord,
             foundWords: null,
             preselectedWordId: null,
             selectedWordId: null,
@@ -105,6 +108,31 @@ class GcCreateApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* direction */ null,
+            /* lastEnteredWord */ "",
+        );
+    }
+
+    readUrlState() {
+        const params = parseParams();
+        const src = params.src;
+        const dst = params.dst;
+        if (src == null || dst == null) {
+            return null;
+        }
+        const dirKey = `${src}${dst}`;
+        const direction = DIRECTION_BY_KEY[dirKey];
+        if (direction == null) {
+            console.log(`readUrlState: invalid direction ${dirKey}`);
+            return null;
+        }
+        const word = params.w;
+        if (word != null && word.length > 64) {
+            console.log(`readUrlState: too long word in params`);
+            return null;
+        }
+        return this.makeState(
+            direction,
+            /* lastEnteredWord */ word,
         );
     }
 

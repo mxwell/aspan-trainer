@@ -1,5 +1,5 @@
 import React from "react";
-import { buildGcSearchUrl, parseParams } from "../lib/url";
+import { buildGcCreatePrefilledUrl, buildGcSearchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetTranslations } from "../lib/gc_api";
@@ -249,6 +249,25 @@ class GcSearchApp extends React.Component {
         );
     }
 
+    renderButton() {
+        const word = this.state.word;
+        if (word.length == 0) {
+            return null;
+        }
+        const direction = this.state.direction;
+        const url = buildGcCreatePrefilledUrl(word, direction.src, direction.dst);
+        return (
+            <div className="my-10 py-4 flex flex-row justify-center">
+                <a href={url}>
+                    <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        {this.i18n("titleGcCreate")}
+                    </button>
+                </a>
+            </div>
+        );
+    }
+
     render() {
         return (
             <div>
@@ -257,6 +276,7 @@ class GcSearchApp extends React.Component {
                 </h1>
                 {this.renderForm()}
                 {this.renderFindings()}
+                {this.renderButton()}
             </div>
         );
     }

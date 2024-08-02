@@ -160,6 +160,16 @@ function buildGcCreateUrl() {
     return "/gc_create_ru.html";
 }
 
+function buildGcCreatePrefilledUrl(word, src, dst) {
+    let params = [
+        `w=${encodeURI(trimAndLowercase(word))}`,
+        `src=${encodeURI(src)}`,
+        `dst=${encodeURI(dst)}`,
+    ];
+    const path = "/gc_create_ru.html";
+    return buildUrl(path, params);
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -195,6 +205,7 @@ export {
     buildVerbGymUrl,
     buildGcSearchUrl,
     buildGcCreateUrl,
+    buildGcCreatePrefilledUrl,
     extractSsrVerb,
     isSsrPage,
     parseParams,
