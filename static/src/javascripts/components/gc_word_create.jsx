@@ -1,14 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
-import { PARTS_OF_SPEECH } from "../lib/gc";
-
-function ellipsize(s) {
-    if (s.length <= 8) {
-        return s;
-    }
-    return `${s.substr(0, 7)}…`;
-}
+import { PARTS_OF_SPEECH, ellipsize } from "../lib/gc";
 
 /**
  * props:
@@ -16,6 +9,7 @@ function ellipsize(s) {
  * - wordLang
  * - selectedPos
  * - comment
+ * - commentRequired
  * - excVerb
  * - selectCallback
  * - commentCallback
@@ -88,18 +82,23 @@ class GcWordCreate extends React.Component {
                     <legend className="px-2 text-base">{this.i18n("selectPos")}</legend>
                     {radios}
                 </fieldset>
-                <div className="flex flex-row justify-between">
-                    <span className="px-2 py-4 text-2xl">
-                        {this.i18n("comment")}:
-                    </span>
-                    <input
-                        type="text"
-                        size="20"
-                        maxLength="128"
-                        value={this.props.comment}
-                        onChange={this.props.commentCallback}
-                        className="shadow appearance-none border rounded mx-2 my-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                        />
+                <div className="m-2 p-2 flex flex-col border-2 rounded">
+                    <div className="flex flex-row justify-between">
+                        <span className="py-2 text-xl">
+                            {this.i18n("comment")}:
+                        </span>
+                        <input
+                            type="text"
+                            size="20"
+                            maxLength="128"
+                            value={this.props.comment}
+                            onChange={this.props.commentCallback}
+                            className="shadow appearance-none border rounded p-2 text-xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            />
+                    </div>
+                    <p className="text-gray-700 text-xs text-right">
+                        {this.i18n("commentNote")}
+                    </p>
                 </div>
                 <div className="flex flex-row justify-between">
                     {excVerbCheckbox}

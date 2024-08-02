@@ -39,8 +39,16 @@ const PARTS_OF_SPEECH = [
     "X",
 ];
 
+function ellipsize(s) {
+    if (s.length <= 8) {
+        return s;
+    }
+    return `${s.substr(0, 7)}…`;
+}
+
 export {
     TransDirection,
     buildDirectionByKeyMap,
     PARTS_OF_SPEECH,
+    ellipsize,
 };

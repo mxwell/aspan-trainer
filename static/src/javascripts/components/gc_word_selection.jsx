@@ -1,6 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
+import { ellipsize, renderComment } from "../lib/gc";
 
 
 /**
@@ -45,6 +46,13 @@ class GcWordSelection extends React.Component {
                 ? "autoFocus"
                 : null
             );
+            const comment = (
+                entry.comment.length > 0
+                ? (<span className="ml-2 text-gray-700 italic">
+                    "{ellipsize(entry.comment)}"
+                </span>)
+                : null
+            );
             radios.push(
                 <div
                     className="my-2"
@@ -59,7 +67,7 @@ class GcWordSelection extends React.Component {
                     <label
                         className="mx-2"
                         htmlFor={index} >
-                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}
+                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{comment}
                     </label>
                 </div>
             );

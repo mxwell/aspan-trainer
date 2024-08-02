@@ -13,6 +13,21 @@ const DIRECTIONS = [
     new TransDirection("kk", "en"),
 ];
 
+function checkIfDuplicate(existingWords, pos, excVerb, comment) {
+    for (let word of existingWords) {
+        const duplicate = (
+            word.pos == pos
+            && word.exc_verb == excVerb
+            && word.comment == comment
+        );
+        if (duplicate) {
+            console.log(`checkIfDuplicate: duplicate: pos ${pos}, excVerb ${excVerb}, comment ${comment}`);
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * props:
  * - lang
@@ -246,6 +261,9 @@ class GcCreateApp extends React.Component {
         event.preventDefault();
         const selectedPos = this.state.preselectedPos;
         const excVerb = selectedPos == "VERB" && this.state.preExcVerb;
+        if (checkIfDuplicate(this.state.foundWords, selectedPos, excVerb, this.state.comment)) {
+            return;
+        }
         this.setState({ selectedPos, excVerb });
     }
 
@@ -335,6 +353,9 @@ class GcCreateApp extends React.Component {
     onNewTranslationSubmit(event) {
         event.preventDefault();
         const selectedTranslationPos = this.state.preselectedTranslationPos;
+        if (checkIfDuplicate(this.state.foundTranslations, selectedTranslationPos, false, this.state.translationComment)) {
+            return;
+        }
         this.setState({ selectedTranslationPos });
     }
 

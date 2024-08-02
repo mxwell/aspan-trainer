@@ -973,6 +973,10 @@ function prepareGcOnlyTranslations(map) {
         "Comment",
         "Комментарий",
     );
+    setEnRu(map, "commentNote",
+        "The comment is required if such a word already exists",
+        "Комментарий обязательно требуется, если такое слово уже существует",
+    );
     setEnRu(map, "creatingTranslation",
         "Creating translation…",
         "Создание перевода…",
