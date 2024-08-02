@@ -1,7 +1,8 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
-import { PARTS_OF_SPEECH, ellipsize } from "../lib/gc";
+import { PARTS_OF_SPEECH } from "../lib/gc";
+import { renderComment } from "./gc_common";
 
 /**
  * props:
@@ -133,19 +134,12 @@ class GcWordCreate extends React.Component {
         if (selectedPos == null) {
             return this.renderForm();
         }
-        const comment = (
-            this.props.comment.length > 0
-            ? (<span className="py-4 py-4 text-xl text-gray-700 italic">
-                "{ellipsize(this.props.comment)}"
-            </span>)
-            : null
-        );
         return (
             <div className="my-2 flex flex-row justify-between w-full bg-gray-200 rounded">
                 <span className="px-4 py-4 text-2xl">
                     {this.renderPos(selectedPos, excVerb)}
                 </span>
-                {comment}
+                {renderComment(this.props.comment, "py-4 text-xl text-gray-700 italic")}
                 {closeButton({ onClick: this.props.resetCallback })}
             </div>
         );

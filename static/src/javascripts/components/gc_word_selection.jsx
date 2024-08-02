@@ -1,8 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
-import { ellipsize, renderComment } from "../lib/gc";
-
+import { renderComment } from "./gc_common";
 
 /**
  * props:
@@ -39,6 +38,7 @@ class GcWordSelection extends React.Component {
 
     renderWordSelector(foundWords) {
         let radios = [];
+        const commentClass = "py-2 px-4 text-gray-700 italic";
         for (let index in foundWords) {
             const entry = foundWords[index];
             const autoFocus = (
@@ -46,16 +46,9 @@ class GcWordSelection extends React.Component {
                 ? "autoFocus"
                 : null
             );
-            const comment = (
-                entry.comment.length > 0
-                ? (<span className="ml-2 text-gray-700 italic">
-                    "{ellipsize(entry.comment)}"
-                </span>)
-                : null
-            );
             radios.push(
                 <div
-                    className="my-2"
+                    className=""
                     key={radios.length} >
                     <input
                         type="radio"
@@ -65,16 +58,16 @@ class GcWordSelection extends React.Component {
                         autoFocus={autoFocus}
                         name="wordSelector" />
                     <label
-                        className="mx-2"
+                        className="px-2 py-2"
                         htmlFor={index} >
-                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{comment}
+                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}
                     </label>
                 </div>
             );
         }
         radios.push(
             <div
-                className="my-2"
+                className=""
                 key={radios.length} >
                 <input
                     type="radio"
@@ -82,7 +75,7 @@ class GcWordSelection extends React.Component {
                     onChange={(e) => { this.props.selectCallback(foundWords.length) }}
                     name="wordSelector" />
                 <label
-                    className="mx-2 italic text-green-900"
+                    className="px-2 py-2 italic text-green-900"
                     htmlFor={foundWords.length} >
                     {this.i18n("createNewWord")}
                 </label>
@@ -118,9 +111,10 @@ class GcWordSelection extends React.Component {
             );
         }
         const entry = foundWords[index];
+        const commentClass = "py-2 px-4 text-gray-700 italic";
         return (
             <span>
-                {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}
+                {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}
             </span>
         );
     }

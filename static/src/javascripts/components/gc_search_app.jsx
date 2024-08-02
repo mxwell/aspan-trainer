@@ -4,6 +4,7 @@ import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetTranslations } from "../lib/gc_api";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
+import { renderComment } from "./gc_common";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -199,13 +200,14 @@ class GcSearchApp extends React.Component {
 
     renderTranslationRows(translations) {
         let rows = [];
+        const commentClass = "py-2 px-4 text-gray-700 italic";
         for (let entry of translations) {
             rows.push(
                 <tr
                     className="border-t-2 text-base"
                     key={rows.length}>
-                    <td className="bg-gray-200 pl-4 py-2">{entry.word}{this.renderPos(entry.pos, entry.exc_verb)}</td>
-                    <td className="border-l-2 bg-gray-100 pl-4 py-2">{entry.translation_word}{this.renderPos(entry.translation_pos, 0)}</td>
+                    <td className="bg-gray-200 pl-4 py-2">{entry.word}{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}</td>
+                    <td className="border-l-2 bg-gray-100 pl-4 py-2">{entry.translation_word}{this.renderPos(entry.translation_pos, 0)}{renderComment(entry.translation_comment, commentClass)}</td>
                 </tr>
             );
         }
