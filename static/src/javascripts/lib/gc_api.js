@@ -1,11 +1,14 @@
 import { encodeQueryData, makeGetApiRequest, makeJsonApiRequest } from "./requests";
 
-function gcGetTranslations(word, src, dst, successCallback, errorCallback, context) {
+function gcGetTranslations(word, src, dst, bothDirs, successCallback, errorCallback, context) {
     const params = {
         w: word,
         src: src,
         dst: dst,
     };
+    if (bothDirs) {
+        params["both"] = 1
+    }
     const query = encodeQueryData(params);
     const url = `/gcapi/v1/get_translation?${query}`;
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);

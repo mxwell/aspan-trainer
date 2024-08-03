@@ -109,6 +109,7 @@ class GcSearchApp extends React.Component {
             w,
             direction.src,
             direction.dst,
+            /* bothDirs */ true,
             this.handleSearchResponse,
             this.handleSearchError,
             {
