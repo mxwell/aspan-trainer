@@ -977,6 +977,18 @@ function prepareGcOnlyTranslations(map) {
         "The comment is required if such a word already exists",
         "Комментарий обязательно требуется, если такое слово уже существует",
     );
+    setEnRu(map, "reference",
+        "Reference",
+        "Источник",
+    );
+    setEnRu(map, "refPlaceHolder",
+        "personal experience, a dictionary, etc",
+        "личный опыт, словарь и т.д.",
+    )
+    setEnRu(map, "referenceNote",
+        "E.g. personal experience or a dictionary with its name specified in the field, etc",
+        "Например, личный опыт или словарь с указанием его названия и т.д.",
+    );
     setEnRu(map, "creatingTranslation",
         "Creating translation…",
         "Создание перевода…",

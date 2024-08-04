@@ -67,6 +67,8 @@ class GcCreateApp extends React.Component {
         this.onNewTranslationSubmit = this.onNewTranslationSubmit.bind(this);
         this.onNewTranslationReset = this.onNewTranslationReset.bind(this);
 
+        this.onReferenceChange = this.onReferenceChange.bind(this);
+
         this.handleAddWordResponse = this.handleAddWordResponse.bind(this);
         this.handleAddWordError = this.handleAddWordError.bind(this);
         this.handleAddTranslationResponse = this.handleAddTranslationResponse.bind(this);
@@ -98,6 +100,7 @@ class GcCreateApp extends React.Component {
             preselectedTranslationPos: null,
             selectedTranslationPos: null,
             translationComment: "",
+            reference: "",
             creating: false,
             translationId: null,
             error: false,
@@ -399,6 +402,11 @@ class GcCreateApp extends React.Component {
         });
     }
 
+    onReferenceChange(event) {
+        const reference = event.target.value;
+        this.setState({ reference });
+    }
+
     async handleAddTranslationResponse(context, responseJsonPromise) {
         const response = await responseJsonPromise;
         const message = response.message;
@@ -433,12 +441,12 @@ class GcCreateApp extends React.Component {
         this.setCreateError(context, null);
     }
 
-    startAddTranslation(wordId, translationWordId) {
-        console.log(`startAddTranslation: ${wordId} -> ${translationWordId}`);
+    startAddTranslation(wordId, translationWordId, reference) {
+        console.log(`startAddTranslation: ${wordId} -> ${translationWordId}, '${reference}'`);
         gcAddTranslation(
             wordId,
             translationWordId,
-            "",
+            reference,
             this.handleAddTranslationResponse,
             this.handleAddTranslationError,
             {},
@@ -478,12 +486,13 @@ class GcCreateApp extends React.Component {
         console.log(`handleAddWordResponse: wordId ${wordId}`);
         if (context.isTranslation == true) {
             const srcWordId = context.srcWordId;
+            const reference = context.reference;
             if (srcWordId == null) {
                 console.log("handleAddWordResponse: null srcWordId");
                 this.setCreateError(context, null);
                 return;
             }
-            this.startAddTranslation(srcWordId, wordId);
+            this.startAddTranslation(srcWordId, wordId, reference);
         } else {
             this.createTranslationWordIfNeeded(wordId);
         }
@@ -512,8 +521,9 @@ class GcCreateApp extends React.Component {
         console.log(`createTranslationWordIfNeeded: wordId ${wordId}`);
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
+        const reference = this.state.reference;
         if (selectedTranslationId < foundTranslations.length) {
-            this.startAddTranslation(wordId, foundTranslations[selectedTranslationId].word_id);
+            this.startAddTranslation(wordId, foundTranslations[selectedTranslationId].word_id, reference);
         } else {
             this.startAddWord(
                 this.state.translation,
@@ -524,6 +534,7 @@ class GcCreateApp extends React.Component {
                 {
                     isTranslation: true,
                     srcWordId: wordId,
+                    reference: reference,
                 }
             );
         }
@@ -755,13 +766,34 @@ class GcCreateApp extends React.Component {
         return (
             <form
                 onSubmit={this.onCreate}
-                className="my-4 flex justify-center w-full">
-                <button
-                    type="submit"
-                    autoFocus
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
-                    {this.i18n("titleGcCreate")}
-                </button>
+                className="my-4 flex flex-col w-full bg-gray-200 rounded">
+                <div className="m-2 p-2 flex flex-col border-2 rounded">
+                    <div className="flex flex-row justify-between">
+                        <span className="py-2 text-xl">
+                            {this.i18n("reference")}:
+                        </span>
+                        <input
+                            type="text"
+                            size="32"
+                            maxLength="128"
+                            value={this.state.reference}
+                            placeholder={this.i18n("refPlaceHolder")}
+                            onChange={this.onReferenceChange}
+                            className="shadow appearance-none border rounded mx-2 p-2 text-xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            />
+                    </div>
+                    <p className="text-gray-700 text-xs">
+                        {this.i18n("referenceNote")}
+                    </p>
+                </div>
+                <div className="my-2 flex flex-row justify-center">
+                    <button
+                        type="submit"
+                        autoFocus
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
+                        {this.i18n("titleGcCreate")}
+                    </button>
+                </div>
             </form>
         );
     }
