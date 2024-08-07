@@ -1035,7 +1035,7 @@ function prepareGcOnlyTranslations(map) {
     );
     setEnRu(map, "userAddedReview",
         "added a review",
-        "добавил ревью",
+        "добавил(а) ревью",
     );
 }
 
