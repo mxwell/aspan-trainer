@@ -56,6 +56,16 @@ function gcGetReviews(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcAddReview(srcId, dstId, reference, successCallback, errorCallback, context) {
+    const params = {
+        src: srcId,
+        dst: dstId,
+        ref: reference,
+    };
+    const url = "/gcapi/v1/add_review";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     gcGetTranslations,
     gcGetWords,
@@ -63,4 +73,5 @@ export {
     gcAddTranslation,
     gcGetFeed,
     gcGetReviews,
+    gcAddReview,
 };

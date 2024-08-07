@@ -989,13 +989,17 @@ function prepareGcOnlyTranslations(map) {
         "E.g. personal experience or a dictionary with its name specified in the field, etc",
         "Например, личный опыт или словарь с указанием его названия и т.д.",
     );
-    setEnRu(map, "creatingTranslation",
-        "Creating translation…",
-        "Создание перевода…",
+    setEnRu(map, "createReview",
+        "Create review",
+        "Создать ревью",
     );
-    setEnRu(map, "createdTranslation",
-        "Created translation",
-        "Перевод создан",
+    setEnRu(map, "creatingReview",
+        "Creating review…",
+        "Создание ревью…",
+    );
+    setEnRu(map, "createdReviewTempl",
+        (reviewId) => `Created review #${reviewId}`,
+        (reviewId) => `Ревью #${reviewId} создано`,
     );
     setEnRu(map, "translationAlreadyExists",
         "translation already exists",

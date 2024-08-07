@@ -112,15 +112,20 @@ class GcReviewsApp extends React.Component {
             listItems.push(
                 <li key={listItems.length}
                     className="my-10 p-6 text-gray-700 border-2 bg-gray-100 rounded-2xl">
-                    <div className="flex flex-row">
-                        <span className="px-2 text-sm text-gray-600">
-                            {unixEpochToString(entry.created_at)}
-                        </span>
-                        <strong className="px-2">
-                            {entry.name}
-                        </strong>
-                        <span className="px-2">
-                            {this.i18n("userAddedReview")}
+                    <div className="flex flex-row justify-between">
+                        <div className="flex flex-row">
+                            <span className="text-sm text-gray-600">
+                                {unixEpochToString(entry.created_at)}
+                            </span>
+                            <strong className="px-2">
+                                {entry.name}
+                            </strong>
+                            <span className="">
+                                {this.i18n("userAddedReview")}
+                            </span>
+                        </div>
+                        <span className="">
+                            #{entry.review_id}
                         </span>
                     </div>
                     <table className="my-2 w-full">

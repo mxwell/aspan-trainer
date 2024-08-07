@@ -3,11 +3,11 @@ import { closeButton } from "./close_button";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
-import { gcAddTranslation, gcAddWord, gcGetWords } from "../lib/gc_api";
+import { gcAddReview, gcAddWord, gcGetWords } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
-import { parseParams } from "../lib/url";
+import { buildGcReviewsUrl, parseParams } from "../lib/url";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -71,8 +71,8 @@ class GcCreateApp extends React.Component {
 
         this.handleAddWordResponse = this.handleAddWordResponse.bind(this);
         this.handleAddWordError = this.handleAddWordError.bind(this);
-        this.handleAddTranslationResponse = this.handleAddTranslationResponse.bind(this);
-        this.handleAddTranslationError = this.handleAddTranslationError.bind(this);
+        this.handleAddReviewResponse = this.handleAddReviewResponse.bind(this);
+        this.handleAddReviewError = this.handleAddReviewError.bind(this);
         this.onCreate = this.onCreate.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
@@ -102,7 +102,7 @@ class GcCreateApp extends React.Component {
             translationComment: "",
             reference: "",
             creating: false,
-            translationId: null,
+            reviewId: null,
             error: false,
             createError: null,
         };
@@ -146,7 +146,7 @@ class GcCreateApp extends React.Component {
     isLocked() {
         return (
             this.state.creating
-            || this.state.translationId != null
+            || this.state.reviewId != null
             || this.state.createError != null
         );
     }
@@ -407,28 +407,28 @@ class GcCreateApp extends React.Component {
         this.setState({ reference });
     }
 
-    async handleAddTranslationResponse(context, responseJsonPromise) {
+    async handleAddReviewResponse(context, responseJsonPromise) {
         const response = await responseJsonPromise;
         const message = response.message;
         if (message != "ok") {
-            console.log(`handleAddTranslationResponse: error message: ${message}`);
+            console.log(`handleAddReviewResponse: error message: ${message}`);
             this.setCreateError(context, null);
             return;
         }
-        const translationId = response.translation_id;
-        if (translationId == null) {
-            console.log("handleAddTranslationResponse: null translationId");
+        const reviewId = response.review_id;
+        if (reviewId == null) {
+            console.log("handleAddReviewResponse: null reviewId");
             this.setCreateError(context, null);
             return;
         }
-        console.log(`Created with ID: ${translationId}`);
+        console.log(`Created with ID: ${reviewId}`);
         const creating = false;
-        this.setState({ creating, translationId });
+        this.setState({ creating, reviewId });
     }
 
-    async handleAddTranslationError(context, responseTextPromise) {
+    async handleAddReviewError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`Got error from add_translation: ${responseText}`);
+        console.log(`Got error from add_review: ${responseText}`);
         try {
             const response = JSON.parse(responseText);
             if (response.message == "duplicate") {
@@ -436,19 +436,19 @@ class GcCreateApp extends React.Component {
                 return;
             }
         } catch (e) {
-            console.log("handleAddWordError: failed to parse as JSON");
+            console.log("handleAddReviewError: failed to parse as JSON");
         }
         this.setCreateError(context, null);
     }
 
-    startAddTranslation(wordId, translationWordId, reference) {
-        console.log(`startAddTranslation: ${wordId} -> ${translationWordId}, '${reference}'`);
-        gcAddTranslation(
+    startAddReview(wordId, translationWordId, reference) {
+        console.log(`startAddReview: ${wordId} -> ${translationWordId}, '${reference}'`);
+        gcAddReview(
             wordId,
             translationWordId,
             reference,
-            this.handleAddTranslationResponse,
-            this.handleAddTranslationError,
+            this.handleAddReviewResponse,
+            this.handleAddReviewError,
             {},
         );
     }
@@ -492,7 +492,7 @@ class GcCreateApp extends React.Component {
                 this.setCreateError(context, null);
                 return;
             }
-            this.startAddTranslation(srcWordId, wordId, reference);
+            this.startAddReview(srcWordId, wordId, reference);
         } else {
             this.createTranslationWordIfNeeded(wordId);
         }
@@ -523,7 +523,7 @@ class GcCreateApp extends React.Component {
         const selectedTranslationId = this.state.selectedTranslationId;
         const reference = this.state.reference;
         if (selectedTranslationId < foundTranslations.length) {
-            this.startAddTranslation(wordId, foundTranslations[selectedTranslationId].word_id, reference);
+            this.startAddReview(wordId, foundTranslations[selectedTranslationId].word_id, reference);
         } else {
             this.startAddWord(
                 this.state.translation,
@@ -741,16 +741,21 @@ class GcCreateApp extends React.Component {
             return (
                 <div
                     className="my-4 w-full text-2xl text-center italic">
-                    {this.i18n("creatingTranslation")}
+                    {this.i18n("creatingReview")}
                 </div>
             );
         }
-        const translationId = this.state.translationId;
-        if (translationId != null) {
+        const reviewId = this.state.reviewId;
+        if (reviewId != null) {
             return (
-                <div
-                    className="my-4 w-full text-2xl text-center text-green-600 italic">
-                    {this.i18n("createdTranslation")}:&nbsp;{translationId}
+                <div className="w-full flex flex-col">
+                    <p
+                        className="my-4 text-2xl text-green-600 text-center italic">
+                        {this.i18n("createdReviewTempl")(reviewId)}
+                    </p>
+                    <a href={buildGcReviewsUrl()}
+                        className="my-4 text-xl text-green-400 text-center underline">{this.i18n("titleReviews")}
+                    </a>
                 </div>
             );
         }
@@ -791,7 +796,7 @@ class GcCreateApp extends React.Component {
                         type="submit"
                         autoFocus
                         className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
-                        {this.i18n("titleGcCreate")}
+                        {this.i18n("createReview")}
                     </button>
                 </div>
             </form>

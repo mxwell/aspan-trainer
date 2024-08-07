@@ -170,6 +170,10 @@ function buildGcCreatePrefilledUrl(word, src, dst) {
     return buildUrl(path, params);
 }
 
+function buildGcReviewsUrl() {
+    return "/gc_reviews_ru.html";
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -206,6 +210,7 @@ export {
     buildGcSearchUrl,
     buildGcCreateUrl,
     buildGcCreatePrefilledUrl,
+    buildGcReviewsUrl,
     extractSsrVerb,
     isSsrPage,
     parseParams,
