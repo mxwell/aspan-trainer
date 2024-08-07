@@ -51,10 +51,16 @@ function gcGetFeed(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetReviews(successCallback, errorCallback, context) {
+    const url = "/gcapi/v1/get_reviews";
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     gcGetTranslations,
     gcGetWords,
     gcAddWord,
     gcAddTranslation,
     gcGetFeed,
+    gcGetReviews,
 };

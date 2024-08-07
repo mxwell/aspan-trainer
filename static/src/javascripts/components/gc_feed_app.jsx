@@ -56,7 +56,7 @@ class GcFeedApp extends React.Component {
             this.putToErrorState();
             return;
         }
-        console.log(`Loading ${feed.length} feed item(s)`);
+        console.log(`Loaded ${feed.length} feed item(s)`);
         const loading = false;
         this.setState({ loading, feed });
     }

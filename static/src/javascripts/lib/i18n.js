@@ -1017,6 +1017,22 @@ function prepareGcOnlyTranslations(map) {
         "added a translation",
         "добавил(а) перевод",
     );
+    setEnRu(map, "titleReviews",
+        "Reviews",
+        "Список ревью",
+    );
+    setEnRu(map, "loadingReviews",
+        "Loading reviews…",
+        "Загрузка списка ревью…",
+    );
+    setEnRu(map, "listIsEmpty",
+        "The list is empty",
+        "Список пуст",
+    );
+    setEnRu(map, "userAddedReview",
+        "added a review",
+        "добавил ревью",
+    );
 }
 
 function prepareTranslations() {

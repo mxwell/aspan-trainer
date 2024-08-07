@@ -18,6 +18,7 @@ module.exports = {
         "./static/src/javascripts/components/detector_app.jsx",
         "./static/src/javascripts/components/explanation_app.jsx",
         "./static/src/javascripts/components/gc_create_app.jsx",
+        "./static/src/javascripts/components/gc_reviews_app.jsx",
         "./static/src/javascripts/components/gc_search_app.jsx",
         "./static/src/javascripts/components/gc_word_create.jsx",
         "./static/src/javascripts/components/gc_word_selection.jsx",
