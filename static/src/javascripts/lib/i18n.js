@@ -1037,6 +1037,26 @@ function prepareGcOnlyTranslations(map) {
         "added a review",
         "добавил(а) ревью",
     );
+    setEnRu(map, "titleStats",
+        "Stats",
+        "Статистика",
+    );
+    setEnRu(map, "loadingStats",
+        "Loading stats…",
+        "Загрузка статистики…",
+    );
+    setEnRu(map, "noStatsData",
+        "No stats data",
+        "Нет данных статистики",
+    );
+    setEnRu(map, "statsEnTranslations",
+        "English translations",
+        "Переводы на английский",
+    );
+    setEnRu(map, "statsRuTranslations",
+        "Russian translations",
+        "Переводы на русский",
+    );
 }
 
 function prepareTranslations() {
