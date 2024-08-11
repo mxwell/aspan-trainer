@@ -7,6 +7,23 @@ include partials/gc_page_ru
                 span(class="mx-2 p-4 bg-yellow-300 rounded-2xl") вместе
             h1(class="text-5xl text-gray-700 text-center") казахско-русско-английский словарь
             h2(class="my-4 text-3xl text-gray-600 text-center") Открытый проект для поддержки казахского языка
-            div(class="my-6 flex flex-row justify-center")
-                a(href="/login_ru.pug")
+            div(class="my-20 flex flex-row justify-center")
+                a(href="/login_ru.pug", class="mb-32")
                     button(class="btn-gradient bg-blue-500 hover:bg-blue-700 mx-2 px-6 py-2 text-white text-3xl rounded-2xl focus:outline-none focus:shadow-outline flex flex-row") Присоединиться
+
+            div(class="my-6 flex flex-row")
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") О проекте
+                    p(class="my-4") Наша цель — создать открытый словарь с переводами, постоянно обновляемый силами волонтёров.
+                    a(href="/gc_description_ru.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") Узнать больше →
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") Статистика
+                    p(class="my-4") Актуальное количество слов с переводами можно увидеть на отдельной странице.
+                    a(href="/gc_stats_ru.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") Смотреть статистику →
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") Обновления
+                    p(class="my-4") Новые переводы, которые недавно прошли проверку, отображаются на выделенной странице.
+                    a(href="/gc_feed_ru.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") Смотреть обновления →
