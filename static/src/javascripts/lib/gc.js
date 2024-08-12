@@ -46,9 +46,18 @@ function ellipsize(s) {
     return `${s.substr(0, 7)}…`;
 }
 
+const COMMON_TRANS_DIRECTIONS = [
+    new TransDirection("kk", "ru"),
+    new TransDirection("kk", "en"),
+];
+
+const COMMON_TRANS_DIRECTION_BY_KEY = buildDirectionByKeyMap(COMMON_TRANS_DIRECTIONS);
+
 export {
     TransDirection,
     buildDirectionByKeyMap,
     PARTS_OF_SPEECH,
     ellipsize,
+    COMMON_TRANS_DIRECTIONS,
+    COMMON_TRANS_DIRECTION_BY_KEY,
 };

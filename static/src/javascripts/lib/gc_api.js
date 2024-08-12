@@ -51,8 +51,14 @@ function gcGetFeed(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcGetReviews(successCallback, errorCallback, context) {
-    const url = "/gcapi/v1/get_reviews";
+function gcGetReviews(direction, successCallback, errorCallback, context) {
+    let params = (
+        (direction != null)
+        ? { src: direction.src, dst: direction.dst }
+        : {}
+    );
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_reviews?${query}`;
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 

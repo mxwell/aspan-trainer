@@ -170,8 +170,13 @@ function buildGcCreatePrefilledUrl(word, src, dst) {
     return buildUrl(path, params);
 }
 
-function buildGcReviewsUrl() {
-    return "/gc_reviews_ru.html";
+function buildGcReviewsUrl(dir) {
+    let params = [];
+    if (dir) {
+        params.push(`dir=${dir}`);
+    }
+    const path = "/gc_reviews_ru.html";
+    return buildUrl(path, params);
 }
 
 function buildGlosbeUrl(verb, lang) {

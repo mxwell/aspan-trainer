@@ -753,7 +753,7 @@ class GcCreateApp extends React.Component {
                         className="my-4 text-2xl text-green-600 text-center italic">
                         {this.i18n("createdReviewTempl")(reviewId)}
                     </p>
-                    <a href={buildGcReviewsUrl()}
+                    <a href={buildGcReviewsUrl(null)}
                         className="my-4 text-xl text-green-400 text-center underline">{this.i18n("titleReviews")}
                     </a>
                 </div>

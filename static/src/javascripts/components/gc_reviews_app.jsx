@@ -3,6 +3,8 @@ import { i18n } from "../lib/i18n";
 import { gcAddReviewVote, gcGetReviews } from "../lib/gc_api";
 import { unixEpochToString } from "../lib/datetime";
 import { renderComment } from "./gc_common";
+import { buildGcReviewsUrl, parseParams } from "../lib/url";
+import { COMMON_TRANS_DIRECTIONS, COMMON_TRANS_DIRECTION_BY_KEY } from "../lib/gc";
 
 /**
  * props:
@@ -17,12 +19,13 @@ class GcReviewsApp extends React.Component {
         this.handleAddReviewVoteResponse = this.handleAddReviewVoteResponse.bind(this);
         this.handleAddReviewVoteError = this.handleAddReviewVoteError.bind(this);
 
-        this.state = this.defaultState();
-        this.startGetReviews();
+        this.state = this.readUrlState() || this.defaultState();
+        this.startGetReviews(state.direction);
     }
 
-    makeState() {
+    makeState(direction) {
         return {
+            direction: direction,
             loading: true,
             voting: false,
             error: false,
@@ -31,7 +34,21 @@ class GcReviewsApp extends React.Component {
     }
 
     defaultState() {
-        return this.makeState();
+        return this.makeState(null);
+    }
+
+    readUrlState() {
+        const params = parseParams();
+        const dirKey = params.dir;
+        if (dirKey == null) {
+            return null;
+        }
+        const direction = COMMON_TRANS_DIRECTION_BY_KEY[dirKey];
+        if (direction == null) {
+            console.log(`readUrlState: invalid direction ${dirKey}`);
+            return null;
+        }
+        return this.makeState(direction);
     }
 
     i18n(key) {
@@ -71,8 +88,9 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    startGetReviews() {
+    startGetReviews(direction) {
         gcGetReviews(
+            direction,
             this.handleGetReviewsResponse,
             this.handleGetReviewsError,
             {},
@@ -146,6 +164,39 @@ class GcReviewsApp extends React.Component {
             this.handleAddReviewVoteResponse,
             this.handleAddReviewVoteError,
             { reviewId },
+        );
+    }
+
+    renderDirectionLink(titleKey, url) {
+        if (url == null) {
+            return (
+                <span className="w-1/3 my-4 text-xl text-gray-600 text-center" key={titleKey}>{this.i18n(titleKey)}</span>
+            );
+        } else {
+            return (
+                <a href={url} className="w-1/3 my-4 text-xl text-green-400 text-center underline" key={titleKey}>{this.i18n(titleKey)}</a>
+            );
+        }
+    }
+
+    renderDirNavigation() {
+        const direction = this.state.direction;
+        const links = [
+            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(null) : null)
+        ];
+        for (let transDirection of COMMON_TRANS_DIRECTIONS) {
+            const matches = (
+                direction != null
+                && transDirection.src == direction.src
+                && transDirection.dst == direction.dst
+            );
+            const url = matches ? null : buildGcReviewsUrl(transDirection.toKey());
+            links.push(this.renderDirectionLink(transDirection.toKey(), url));
+        }
+        return (
+            <div className="flex flex-row justify-between">
+                {links}
+            </div>
         );
     }
 
@@ -261,6 +312,7 @@ class GcReviewsApp extends React.Component {
                 <h1 className="my-4 text-center text-4xl italic text-gray-600">
                     {this.i18n("titleReviews")}
                 </h1>
+                {this.renderDirNavigation()}
                 {this.renderReviews()}
             </div>
         );
