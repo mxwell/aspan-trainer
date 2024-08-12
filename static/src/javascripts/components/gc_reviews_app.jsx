@@ -19,7 +19,8 @@ class GcReviewsApp extends React.Component {
         this.handleAddReviewVoteResponse = this.handleAddReviewVoteResponse.bind(this);
         this.handleAddReviewVoteError = this.handleAddReviewVoteError.bind(this);
 
-        this.state = this.readUrlState() || this.defaultState();
+        const state = this.readUrlState() || this.defaultState();
+        this.state = state;
         this.startGetReviews(state.direction);
     }
 
