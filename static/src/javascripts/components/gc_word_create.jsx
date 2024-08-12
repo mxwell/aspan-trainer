@@ -29,16 +29,22 @@ class GcWordCreate extends React.Component {
 
     renderForm() {
         let radios = [];
-        for (let item of PARTS_OF_SPEECH) {
+        for (let posInfo of PARTS_OF_SPEECH) {
+            const item = posInfo.codeName;
             const hint = this.i18n(`hint${item}`);
             const autoFocus = (
                 radios.length == 0
                 ? "autoFocus"
                 : null
             );
+            const labelClass = (
+                posInfo.major
+                ? "text-indigo-700 italic"
+                : "text-blue-500 italic"
+            );
             radios.push(
                 <div
-                    className="my-2"
+                    className="text-base"
                     key={radios.length} >
                     <input
                         type="radio"
@@ -50,7 +56,7 @@ class GcWordCreate extends React.Component {
                     <label
                         className="mx-2"
                         htmlFor={item} >
-                        <span className="text-blue-500 italic">
+                        <span className={labelClass}>
                             {item}
                         </span>
                         <span className="text-sm pl-2">

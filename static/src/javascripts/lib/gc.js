@@ -21,22 +21,30 @@ function buildDirectionByKeyMap(dirs) {
     return result;
 }
 
+class PosInfo {
+    constructor(codeName, major) {
+        this.codeName = codeName;
+        this.major = major;
+    }
+}
+
 const PARTS_OF_SPEECH = [
-    "ADJ",
-    "ADP",
-    "ADV",
-    "AUX",
-    "CCONJ",
-    "DET",
-    "INTJ",
-    "NOUN",
-    "NUM",
-    "PART",
-    "PRON",
-    "PROPN",
-    "SCONJ",
-    "VERB",
-    "X",
+    new PosInfo("NOUN", true),
+    new PosInfo("VERB", true),
+    new PosInfo("ADJ", true),
+    new PosInfo("ADV", true),
+
+    new PosInfo("ADP", false),
+    new PosInfo("AUX", false),
+    new PosInfo("CCONJ", false),
+    new PosInfo("DET", false),
+    new PosInfo("INTJ", false),
+    new PosInfo("NUM", false),
+    new PosInfo("PART", false),
+    new PosInfo("PRON", false),
+    new PosInfo("PROPN", false),
+    new PosInfo("SCONJ", false),
+    new PosInfo("X", false),
 ];
 
 function ellipsize(s) {
