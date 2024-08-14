@@ -1,5 +1,4 @@
 import React from "react";
-import { closeButton } from "./close_button";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
@@ -8,6 +7,7 @@ import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
 import { buildGcReviewsUrl, parseParams } from "../lib/url";
+import { editButton } from "./edit_button";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -643,7 +643,7 @@ class GcCreateApp extends React.Component {
                     <span className="py-4 text-2xl">
                         {this.i18n(key)}
                     </span>
-                    {closeButton({ onClick: this.onDirectionReset })}
+                    {editButton({ onClick: this.onDirectionReset })}
                 </div>
             );
         }

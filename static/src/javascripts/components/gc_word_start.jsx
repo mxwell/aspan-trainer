@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { closeButton } from "./close_button";
+import { editButton } from "./edit_button";
 
 
 /**
@@ -55,7 +55,7 @@ class GcWordStart extends React.Component {
                 <span className="px-4 py-4 text-2xl">
                 {this.i18n(titleKey)}:&nbsp;<strong>{word}</strong>
                 </span>
-                {closeButton({ onClick: this.props.resetCallback })}
+                {editButton({ onClick: this.props.resetCallback })}
             </div>
         );
     }

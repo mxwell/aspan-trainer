@@ -1,6 +1,5 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { closeButton } from "./close_button";
 import { PARTS_OF_SPEECH } from "../lib/gc";
 import { renderComment } from "./gc_common";
 import { editButton } from "./edit_button";
@@ -46,7 +45,7 @@ class GcWordCreate extends React.Component {
         if (preferredPos != null) {
             return (
                 <div className="m-2 flex flex-row">
-                    <span className="text-blue-500 text-xl italic">{preferredPos}</span>
+                    <span className="m-2 text-blue-500 text-xl italic">{preferredPos}</span>
                     {editButton({ onClick: this.onEditPosClick })}
                 </div>
             );
@@ -186,7 +185,7 @@ class GcWordCreate extends React.Component {
                     {this.renderPos(selectedPos, excVerb)}
                 </span>
                 {renderComment(this.props.comment, "py-4 text-xl text-gray-700 italic")}
-                {closeButton({ onClick: this.props.resetCallback })}
+                {editButton({ onClick: this.props.resetCallback })}
             </div>
         );
     }
