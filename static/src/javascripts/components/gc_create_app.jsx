@@ -382,9 +382,19 @@ class GcCreateApp extends React.Component {
         this.setState({ translationComment });
     }
 
+    getPreferredTranslationPos() {
+        const foundWords = this.state.foundWords;
+        const selectedWordId = this.state.selectedWordId;
+        const selectedPos = this.state.selectedPos;
+        if (foundWords != null && selectedWordId != null && selectedWordId < foundWords.length) {
+            return foundWords[selectedWordId].pos;
+        }
+        return selectedPos;
+    }
+
     onNewTranslationSubmit(event) {
         event.preventDefault();
-        const selectedTranslationPos = this.state.preselectedTranslationPos;
+        const selectedTranslationPos = this.state.preselectedTranslationPos || this.getPreferredTranslationPos();
         if (checkIfDuplicate(this.state.foundTranslations, selectedTranslationPos, false, this.state.translationComment)) {
             return;
         }
@@ -678,6 +688,7 @@ class GcCreateApp extends React.Component {
             <GcWordCreate
                 lang={this.props.lang}
                 wordLang={direction.src}
+                preferredPos={null}
                 selectedPos={selectedPos}
                 comment={comment}
                 excVerb={excVerb}
@@ -720,7 +731,7 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, selectedTranslationPos, translationComment) {
+    renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, preferredPos, selectedTranslationPos, translationComment) {
         if (!readyForTranslation || foundTranslations == null || selectedTranslationId != foundTranslations.length) {
             return null;
         }
@@ -728,6 +739,7 @@ class GcCreateApp extends React.Component {
             <GcWordCreate
                 lang={this.props.lang}
                 wordLang={direction.dst}
+                preferredPos={preferredPos}
                 selectedPos={selectedTranslationPos}
                 comment={translationComment}
                 excVerb={false}
@@ -841,6 +853,7 @@ class GcCreateApp extends React.Component {
         const translation = this.state.translation;
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
+        const preferredTranslationPos = this.getPreferredTranslationPos();
         const selectedTranslationPos = this.state.selectedTranslationPos;
         const translationComment = this.state.translationComment;
         const readyToCreate = (
@@ -857,7 +870,7 @@ class GcCreateApp extends React.Component {
                 {this.renderNewWordDetails(direction, foundWords, selectedWordId, selectedPos, comment, excVerb)}
                 {this.renderTranslationPart(readyForTranslation, direction, translation)}
                 {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId)}
-                {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, selectedTranslationPos, translationComment)}
+                {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, preferredTranslationPos, selectedTranslationPos, translationComment)}
                 {this.renderCreateButton(readyToCreate)}
             </div>
         );

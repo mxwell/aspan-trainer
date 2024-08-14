@@ -3,11 +3,13 @@ import { i18n } from "../lib/i18n";
 import { closeButton } from "./close_button";
 import { PARTS_OF_SPEECH } from "../lib/gc";
 import { renderComment } from "./gc_common";
+import { editButton } from "./edit_button";
 
 /**
  * props:
  * - lang
  * - wordLang
+ * - preferredPos
  * - selectedPos
  * - comment
  * - commentRequired
@@ -21,13 +23,34 @@ import { renderComment } from "./gc_common";
 class GcWordCreate extends React.Component {
     constructor(props) {
         super(props);
+
+        this.onEditPosClick = this.onEditPosClick.bind(this);
+
+        this.state = {
+            forcePosSelection: false,
+        };
     }
 
     i18n(key) {
         return i18n(key, this.props.lang);
     }
 
-    renderForm() {
+    onEditPosClick(event) {
+        event.preventDefault();
+        console.log("edit clicked");
+        const forcePosSelection = true;
+        this.setState({ forcePosSelection });
+    }
+
+    renderPosRadios(preferredPos) {
+        if (preferredPos != null) {
+            return (
+                <div className="m-2 flex flex-row">
+                    <span className="text-blue-500 text-xl italic">{preferredPos}</span>
+                    {editButton({ onClick: this.onEditPosClick })}
+                </div>
+            );
+        }
         let radios = [];
         for (let posInfo of PARTS_OF_SPEECH) {
             const item = posInfo.codeName;
@@ -66,6 +89,20 @@ class GcWordCreate extends React.Component {
                 </div>
             );
         }
+        return (
+            <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
+                <legend className="px-2 text-base">{this.i18n("selectPos")}</legend>
+                {radios}
+            </fieldset>
+        );
+    }
+
+    renderForm() {
+        const preferredPos = (
+            this.state.forcePosSelection
+            ? null
+            : this.props.preferredPos
+        );
         const excVerbCheckbox = (
             (this.props.wordLang == "kk")
             ? (<div className="text-xl mx-4">
@@ -81,14 +118,16 @@ class GcWordCreate extends React.Component {
             </div>)
             : (<span />)
         );
+        const buttonAutoFocus = (
+            preferredPos != null
+            ? "autoFocus"
+            : null
+        );
         return (
             <form
                 onSubmit={this.props.submitCallback}
                 className="my-2 p-2 w-full bg-gray-200 rounded">
-                <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
-                    <legend className="px-2 text-base">{this.i18n("selectPos")}</legend>
-                    {radios}
-                </fieldset>
+                {this.renderPosRadios(preferredPos)}
                 <div className="m-2 p-2 flex flex-col border-2 rounded">
                     <div className="flex flex-row justify-between">
                         <span className="py-2 text-xl">
@@ -111,7 +150,8 @@ class GcWordCreate extends React.Component {
                     {excVerbCheckbox}
                     <button
                         type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        autoFocus={buttonAutoFocus} >
                         →
                     </button>
                 </div>
