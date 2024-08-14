@@ -16,6 +16,7 @@ module.exports = {
         "./static/src/javascripts/components/close_button.jsx",
         "./static/src/javascripts/components/declension_app.jsx",
         "./static/src/javascripts/components/detector_app.jsx",
+        "./static/src/javascripts/components/edit_button.jsx",
         "./static/src/javascripts/components/explanation_app.jsx",
         "./static/src/javascripts/components/gc_create_app.jsx",
         "./static/src/javascripts/components/gc_reviews_app.jsx",
