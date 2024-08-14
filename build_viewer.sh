@@ -26,7 +26,7 @@ cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
 cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/
 cp static/src/images/sound.svg $OUTPUT_DIR/
-cp static/src/images/thumb_{down,up}.svg $OUTPUT_DIR/
+cp static/src/images/{restart,thumb_down,thumb_up}.svg $OUTPUT_DIR/
 
 mv "${OUTPUT_DIR}/viewer.html" "${OUTPUT_DIR}/index.html"
 mkdir -p ${EN_OUTPUT}

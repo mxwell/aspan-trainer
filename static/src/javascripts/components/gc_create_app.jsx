@@ -74,6 +74,7 @@ class GcCreateApp extends React.Component {
         this.handleAddReviewResponse = this.handleAddReviewResponse.bind(this);
         this.handleAddReviewError = this.handleAddReviewError.bind(this);
         this.onCreate = this.onCreate.bind(this);
+        this.onRestart = this.onRestart.bind(this);
 
         this.state = this.readUrlState() || this.defaultState();
     }
@@ -570,6 +571,11 @@ class GcCreateApp extends React.Component {
         this.createWordIfNeeded();
     }
 
+    onRestart(event) {
+        event.preventDefault();
+        this.setState(this.makeState(this.state.direction, /* lastEnteredWord */ ""));
+    }
+
     renderDirectionPart(direction) {
         if (direction == null) {
             let radios = [];
@@ -753,6 +759,16 @@ class GcCreateApp extends React.Component {
                         className="my-4 text-2xl text-green-600 text-center italic">
                         {this.i18n("createdReviewTempl")(reviewId)}
                     </p>
+                    <form
+                        onSubmit={this.onRestart}
+                        className="flex flex-row justify-center">
+                        <button
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-700 p-2 rounded focus:outline-none focus:shadow-outline"
+                            autoFocus>
+                            <img src="/restart.svg" alt="restart button" />
+                        </button>
+                    </form>
                     <a href={buildGcReviewsUrl(null)}
                         className="my-4 text-xl text-green-400 text-center underline">{this.i18n("titleReviews")}
                     </a>
