@@ -205,6 +205,7 @@ class GcCreateApp extends React.Component {
         gcGetWords(
             word,
             lang,
+            /* withTranslations */ !isTranslation,
             this.handleGetWordsResponse,
             this.handleGetWordsError,
             {
@@ -382,12 +383,28 @@ class GcCreateApp extends React.Component {
         this.setState({ translationComment });
     }
 
+    getWordInfo(foundWords, selectedWordId) {
+        if (foundWords != null && selectedWordId != null && selectedWordId < foundWords.length) {
+            return foundWords[selectedWordId];
+        }
+        return null;
+    }
+
+    getUsedWordIds(foundWords, selectedWordId) {
+        const wordInfo = this.getWordInfo(foundWords, selectedWordId);
+        if (wordInfo != null && wordInfo.translated_word_ids != null) {
+            return wordInfo.translated_word_ids;
+        }
+        return [];
+    }
+
     getPreferredTranslationPos() {
         const foundWords = this.state.foundWords;
         const selectedWordId = this.state.selectedWordId;
         const selectedPos = this.state.selectedPos;
-        if (foundWords != null && selectedWordId != null && selectedWordId < foundWords.length) {
-            return foundWords[selectedWordId].pos;
+        const wordInfo = this.getWordInfo(foundWords, selectedWordId);
+        if (wordInfo != null) {
+            return wordInfo.pos;
         }
         return selectedPos;
     }
@@ -674,6 +691,7 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 foundWords={foundWords}
                 selectedWordId={selectedWordId}
+                usedWordIds={[]}
                 selectCallback={this.onWordSelect}
                 submitCallback={this.onWordSelectionSubmit}
                 resetCallback={this.onWordSelectionReset} />
@@ -716,7 +734,7 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId) {
+    renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, usedWordIds) {
         if (!readyForTranslation || translation == null) {
             return null;
         }
@@ -725,6 +743,7 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 foundWords={foundTranslations}
                 selectedWordId={selectedTranslationId}
+                usedWordIds={usedWordIds}
                 selectCallback={this.onTranslationSelect}
                 submitCallback={this.onTranslationSelectionSubmit}
                 resetCallback={this.onTranslationSelectionReset} />
@@ -853,6 +872,7 @@ class GcCreateApp extends React.Component {
         const translation = this.state.translation;
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
+        const usedWordIds = this.getUsedWordIds(foundWords, selectedWordId);
         const preferredTranslationPos = this.getPreferredTranslationPos();
         const selectedTranslationPos = this.state.selectedTranslationPos;
         const translationComment = this.state.translationComment;
@@ -869,7 +889,7 @@ class GcCreateApp extends React.Component {
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
                 {this.renderNewWordDetails(direction, foundWords, selectedWordId, selectedPos, comment, excVerb)}
                 {this.renderTranslationPart(readyForTranslation, direction, translation)}
-                {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId)}
+                {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, usedWordIds)}
                 {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, preferredTranslationPos, selectedTranslationPos, translationComment)}
                 {this.renderCreateButton(readyToCreate)}
             </div>

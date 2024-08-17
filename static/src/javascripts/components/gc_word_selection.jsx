@@ -8,6 +8,7 @@ import { editButton } from "./edit_button";
  * - lang
  * - foundWords
  * - selectedWordId
+ * - usedWordIds
  * - selectCallback
  * - submitCallback
  * - resetCallback
@@ -36,16 +37,35 @@ class GcWordSelection extends React.Component {
         return null;
     }
 
+    checkIfUsed(wordId) {
+        for (let usedWordId of this.props.usedWordIds) {
+            if (usedWordId == wordId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     renderWordSelector(foundWords) {
         let radios = [];
         const commentClass = "py-2 px-4 text-gray-700 italic";
+        let focused = false;
         for (let index in foundWords) {
             const entry = foundWords[index];
+            const used = this.checkIfUsed(entry.word_id);
+            const labelClass = (
+                used
+                ? "px-2 py-2 text-gray-600"
+                : "px-2 py-2"
+            );
             const autoFocus = (
-                radios.length == 0
+                (!used && !focused)
                 ? "autoFocus"
                 : null
             );
+            if (autoFocus != null) {
+                focused = true;
+            }
             radios.push(
                 <div
                     className=""
@@ -55,10 +75,11 @@ class GcWordSelection extends React.Component {
                         id={index}
                         onChange={(e) => { this.props.selectCallback(index) }}
                         className="focus:shadow-outline"
+                        disabled={used ? "disabled" : null}
                         autoFocus={autoFocus}
                         name="wordSelector" />
                     <label
-                        className="px-2 py-2"
+                        className={labelClass}
                         htmlFor={index} >
                         {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}
                     </label>
