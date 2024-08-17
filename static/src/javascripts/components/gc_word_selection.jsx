@@ -81,7 +81,7 @@ class GcWordSelection extends React.Component {
                     <label
                         className={labelClass}
                         htmlFor={index} >
-                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}
+                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass, 128)}
                     </label>
                 </div>
             );
@@ -135,7 +135,7 @@ class GcWordSelection extends React.Component {
         const commentClass = "py-2 px-4 text-gray-700 italic";
         return (
             <span>
-                {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}
+                {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass, 12)}
             </span>
         );
     }

@@ -264,14 +264,14 @@ class GcReviewsApp extends React.Component {
                             </tr>
                             <tr className="border-t-2 text-base">
                                 <td className="bg-gray-300 pl-4 py-2">
-                                    {entry.src_word}
+                                    <span className="text-3xl text-indigo-800">{entry.src_word}</span>
                                     {this.renderPos(entry.src_pos, entry.src_exc_verb)}
-                                    {renderComment(entry.src_comment, commentClass)}
+                                    {renderComment(entry.src_comment, commentClass, 128)}
                                 </td>
                                 <td className="border-l-2 border-white bg-gray-300 pl-4 py-2">
-                                    {entry.dst_word}
+                                    <span className="text-3xl text-indigo-800">{entry.dst_word}</span>
                                     {this.renderPos(entry.dst_pos, entry.dst_exc_verb)}
-                                    {renderComment(entry.dst_comment, commentClass)}
+                                    {renderComment(entry.dst_comment, commentClass, 128)}
                                 </td>
                             </tr>
                         </tbody>

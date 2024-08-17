@@ -47,11 +47,11 @@ const PARTS_OF_SPEECH = [
     new PosInfo("X", false),
 ];
 
-function ellipsize(s) {
-    if (s.length <= 8) {
+function ellipsize(s, targetLength) {
+    if (s.length <= targetLength) {
         return s;
     }
-    return `${s.substr(0, 7)}…`;
+    return `${s.substr(0, targetLength - 1)}…`;
 }
 
 const COMMON_TRANS_DIRECTIONS = [

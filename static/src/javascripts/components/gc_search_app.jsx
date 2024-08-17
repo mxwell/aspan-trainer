@@ -207,8 +207,8 @@ class GcSearchApp extends React.Component {
                 <tr
                     className="border-t-2 text-base"
                     key={rows.length}>
-                    <td className="bg-gray-200 pl-4 py-2">{entry.word}{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass)}</td>
-                    <td className="border-l-2 bg-gray-100 pl-4 py-2">{entry.translation_word}{this.renderPos(entry.translation_pos, 0)}{renderComment(entry.translation_comment, commentClass)}</td>
+                    <td className="bg-gray-200 pl-4 py-2">{entry.word}{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass, 128)}</td>
+                    <td className="border-l-2 bg-gray-100 pl-4 py-2">{entry.translation_word}{this.renderPos(entry.translation_pos, 0)}{renderComment(entry.translation_comment, commentClass, 128)}</td>
                 </tr>
             );
         }

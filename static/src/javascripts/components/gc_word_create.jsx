@@ -184,7 +184,7 @@ class GcWordCreate extends React.Component {
                 <span className="px-4 py-4 text-2xl">
                     {this.renderPos(selectedPos, excVerb)}
                 </span>
-                {renderComment(this.props.comment, "py-4 text-xl text-gray-700 italic")}
+                {renderComment(this.props.comment, "py-4 text-xl text-gray-700 italic", 12)}
                 {editButton({ onClick: this.props.resetCallback })}
             </div>
         );
