@@ -31,6 +31,22 @@ function checkIfDuplicate(existingWords, pos, excVerb, comment) {
     return false;
 }
 
+function orderTranslations(foundTranslations, preferredTranslationPos) {
+    if (foundTranslations == null) {
+        return null;
+    }
+    let head = [];
+    let tail = [];
+    for (let translation of foundTranslations) {
+        if (translation.pos == preferredTranslationPos) {
+            head.push(translation);
+        } else {
+            tail.push(translation);
+        }
+    }
+    return head.concat(tail);
+}
+
 /**
  * props:
  * - lang
@@ -188,7 +204,8 @@ class GcCreateApp extends React.Component {
         console.log(`Got words: ${JSON.stringify(words)}`);
         const selected = words.length == 0 ? 0 : null;
         if (context.isTranslation == true) {
-            this.setState({ foundTranslations: words, selectedTranslationId: selected })
+            const foundTranslations = orderTranslations(words, this.getPreferredTranslationPos());
+            this.setState({ foundTranslations: foundTranslations, selectedTranslationId: selected })
         } else {
             this.setState({ foundWords: words, selectedWordId: selected });
         }
@@ -342,6 +359,7 @@ class GcCreateApp extends React.Component {
         this.setState({
             translation: null,
             foundTranslations: null,
+            preselectedTranslationId: null,
             selectedTranslationId: null,
             preselectedTranslationPos: null,
             selectedTranslationPos: null,

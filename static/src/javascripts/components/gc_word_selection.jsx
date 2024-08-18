@@ -86,18 +86,19 @@ class GcWordSelection extends React.Component {
                 </div>
             );
         }
+        const createNewIndex = foundWords.length;
         radios.push(
             <div
                 className=""
                 key={radios.length} >
                 <input
                     type="radio"
-                    id={foundWords.length}
-                    onChange={(e) => { this.props.selectCallback(foundWords.length) }}
+                    id={createNewIndex}
+                    onChange={(e) => { this.props.selectCallback(createNewIndex) }}
                     name="wordSelector" />
                 <label
                     className="px-2 py-2 italic text-green-900"
-                    htmlFor={foundWords.length} >
+                    htmlFor={createNewIndex} >
                     {this.i18n("createNewWord")}
                 </label>
             </div>
