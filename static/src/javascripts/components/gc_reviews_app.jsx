@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { gcAddReviewVote, gcGetReviews } from "../lib/gc_api";
+import { gcAddReviewVote, gcGetReviews, gcRetractReviewVote } from "../lib/gc_api";
 import { unixEpochToString } from "../lib/datetime";
 import { renderComment } from "./gc_common";
 import { buildGcReviewsUrl, parseParams } from "../lib/url";
@@ -16,8 +16,8 @@ class GcReviewsApp extends React.Component {
 
         this.handleGetReviewsResponse = this.handleGetReviewsResponse.bind(this);
         this.handleGetReviewsError = this.handleGetReviewsError.bind(this);
-        this.handleAddReviewVoteResponse = this.handleAddReviewVoteResponse.bind(this);
-        this.handleAddReviewVoteError = this.handleAddReviewVoteError.bind(this);
+        this.handleChangeReviewVoteResponse = this.handleChangeReviewVoteResponse.bind(this);
+        this.handleChangeReviewVoteError = this.handleChangeReviewVoteError.bind(this);
 
         const state = this.readUrlState() || this.defaultState();
         this.state = state;
@@ -98,12 +98,12 @@ class GcReviewsApp extends React.Component {
         );
     }
 
-    async handleAddReviewVoteResponse(context, responseJsonPromise) {
+    async handleChangeReviewVoteResponse(context, responseJsonPromise) {
         const response = await responseJsonPromise;
         const message = response.message;
         if (message != "ok") {
-            console.log(`handleAddReviewVoteResponse: error message: ${message}`);
-            if (message != "duplicate") {
+            console.log(`handleChangeReviewVoteResponse: error message: ${message}`);
+            if (message != "duplicate" && message != "not found") {
                 this.putToErrorState();
             }
             return;
@@ -111,24 +111,30 @@ class GcReviewsApp extends React.Component {
         const approves = response.approves;
         const disapproves = response.disapproves;
         if (approves == null || disapproves == null) {
-            console.log("handleAddReviewVoteResponse: null approves or disapproves");
+            console.log("handleChangeReviewVoteResponse: null approves or disapproves");
             this.putToErrorState();
             return;
         }
         const ownApproves = response.own_approves;
         const ownDisapproves = response.own_disapproves;
         if (ownApproves == null || ownDisapproves == null) {
-            console.log("handleAddReviewVoteResponse: null own approves or disapproves");
+            console.log("handleChangeReviewVoteResponse: null own approves or disapproves");
+            this.putToErrorState();
+            return;
+        }
+        const gone = response.gone;
+        if (gone == null) {
+            console.log("handleChangeReviewVoteResponse: null gone field");
             this.putToErrorState();
             return;
         }
         const reviewId = context.reviewId;
         if (reviewId == null) {
-            console.log("handleAddReviewVoteResponse: null reviewId in context");
+            console.log("handleChangeReviewVoteResponse: null reviewId in context");
             this.putToErrorState();
             return;
         }
-        console.log(`Updated for review ${reviewId}: ${approves} vs ${disapproves}, own ${ownApproves} vs ${ownDisapproves}`);
+        console.log(`Updated for review ${reviewId}: ${approves} vs ${disapproves}, own ${ownApproves} vs ${ownDisapproves}, gone ${gone}`);
         const voting = false;
         let reviews = this.state.reviews;
         for (let review of reviews) {
@@ -137,44 +143,59 @@ class GcReviewsApp extends React.Component {
                 review.disapproves = disapproves;
                 review.own_approves = ownApproves;
                 review.own_disapproves = ownDisapproves;
+                review.gone = gone;
                 break;
             }
         }
         this.setState({ voting, reviews });
     }
 
-    async handleAddReviewVoteError(context, responseTextPromise) {
+    async handleChangeReviewVoteError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`handleAddReviewVoteError: ${responseText}, reviewId ${context.reviewId}`);
+        console.log(`handleChangeReviewVoteError: ${responseText}, reviewId ${context.reviewId}`);
         try {
             const response = JSON.parse(responseText);
-            if (response.message == "duplicate") {
+            if (response.message == "duplicate" || response.message == "not found") {
                 const voting = false;
                 this.setState({ voting });
                 return;
             }
         } catch (e) {
-            console.log("handleAddReviewVoteError: failed to parse as JSON");
+            console.log("handleChangeReviewVoteError: failed to parse as JSON");
         }
         this.putToErrorState();
     }
 
-    handleVoteClick(event, reviewId, vote) {
+    handleVoteClick(event, reviewId, vote, delta) {
         event.preventDefault();
-        console.log(`Vote clicked: ${reviewId}, ${vote}`);
+        console.log(`Vote clicked: ${reviewId}, ${vote}, ${delta}`);
         if (this.state.voting) {
             console.log(`Ignoring vote click due to voting in progress`);
             return;
         }
+        if (delta == 0) {
+            console.log(`Ignoring click with zero delta`);
+            return;
+        }
         const voting = true;
         this.setState({ voting });
-        gcAddReviewVote(
-            reviewId,
-            vote,
-            this.handleAddReviewVoteResponse,
-            this.handleAddReviewVoteError,
-            { reviewId },
-        );
+        if (delta > 0) {
+            gcAddReviewVote(
+                reviewId,
+                vote,
+                this.handleChangeReviewVoteResponse,
+                this.handleChangeReviewVoteError,
+                { reviewId },
+            );
+        } else {
+            gcRetractReviewVote(
+                reviewId,
+                vote,
+                this.handleChangeReviewVoteResponse,
+                this.handleChangeReviewVoteError,
+                { reviewId },
+            );
+        }
     }
 
     renderDirectionLink(titleKey, url) {
@@ -244,16 +265,33 @@ class GcReviewsApp extends React.Component {
         let listItems = [];
         const commentClass = "py-2 px-4 text-gray-700 italic";
         for (let entry of reviews) {
+            const gone = entry.gone == true;
             const approves = (entry.approves > 0 ? String(entry.approves) : "");
-            const approveClass = (entry.own_approves > 0
-                ? "bg-blue-800"
-                : "btn-gradient bg-blue-500 hover:bg-blue-700"
-            );
+            let approveClass;
+            let approveDelta;
+            if (gone) {
+                approveClass = "bg-gray-400";
+                approveDelta = 0;
+            } else if (entry.own_approves > 0) {
+                approveClass = "bg-blue-800";
+                approveDelta = -1;
+            } else {
+                approveClass = "btn-gradient bg-blue-500 hover:bg-blue-700";
+                approveDelta = 1;
+            }
             const disapproves = (entry.disapproves > 0 ? String(entry.disapproves) : "");
-            const disapproveClass = (entry.own_disapproves > 0
-                ? "bg-gray-800"
-                : "bg-gray-500 hover:bg-gray-700"
-            );
+            let disapproveClass;
+            let disapproveDelta;
+            if (gone) {
+                disapproveClass = "bg-gray-400";
+                disapproveDelta = 0;
+            } else if (entry.own_disapproves > 0) {
+                disapproveClass = "bg-gray-800";
+                disapproveDelta = -1;
+            } else {
+                disapproveClass = "bg-gray-500 hover:bg-gray-700";
+                disapproveDelta = 1;
+            }
             listItems.push(
                 <li key={listItems.length}
                     className="my-10 p-6 text-gray-700 border-2 bg-gray-100 rounded-2xl">
@@ -300,14 +338,14 @@ class GcReviewsApp extends React.Component {
                         <div className="flex flex-row">
                             <button
                                 type="button"
-                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE")}
+                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE", approveDelta)}
                                 className={`${approveClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
                                 <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
                                 <span className="pl-2 text-2xl text-white">{approves}</span>
                             </button>
                             <button
                                 type="button"
-                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE")}
+                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE", disapproveDelta)}
                                 className={`${disapproveClass} px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
                                 <img src="/thumb_down.svg" alt="thumb up" className="h-8" />
                                 <span className="pl-2 text-2xl text-white">{disapproves}</span>
