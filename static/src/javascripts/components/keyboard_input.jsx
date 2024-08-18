@@ -17,6 +17,8 @@ const DIMS_WIDE = "h-10 w-24"
 const DIMS_BS = "h-10 w-32";
 const DIMS_SPACE = "h-10 w-64";
 const TITLE_BS = "backspace";
+const TITLE_CAPS = "caps";
+const TITLE_SHIFT = "shift";
 
 function makeEmptyButton(dims) {
     return new ButtonInfo(null, null, null, null, null, dims);
@@ -69,7 +71,7 @@ const BUTTON_ROWS = [
         makeEmptyButton(DIMS_MID),
     ],
     [
-        makeSpecialButton("caps", DIMS_WIDE),
+        makeSpecialButton(TITLE_CAPS, DIMS_WIDE),
         makeSymbolButton("ф"),
         makeSymbolButton("ы"),
         makeSymbolButton("в"),
@@ -84,7 +86,7 @@ const BUTTON_ROWS = [
         makeEmptyButton(DIMS_MID),
     ],
     [
-        makeSpecialButton("shift", DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
         makeSymbolButton("я"),
         makeSymbolButton("ч"),
         makeSymbolButton("с"),
@@ -94,7 +96,7 @@ const BUTTON_ROWS = [
         makeSymbolButton("ь"),
         makeSymbolButton("б"),
         makeSymbolButton("ю"),
-        makeSpecialButton("shift", DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
     ],
     [
         makeCustomSymbolButton(" ", " ", DIMS_SPACE),
@@ -115,7 +117,7 @@ class KeyboardInput extends React.Component {
 
         this.onWordChange = this.onWordChange.bind(this);
 
-        this.state = { pos: 0 };
+        this.state = { pos: 0, caps: false, shift: false };
     }
 
     onWordChange(event) {
@@ -126,8 +128,9 @@ class KeyboardInput extends React.Component {
 
     updateText(text, pos) {
         this.props.changeCallback(text);
+        const shift = false;
         this.setState(
-            { pos },
+            { pos, shift },
             () => {
                 const wi = this.refs.wordInput;
                 wi.selectionStart = this.state.pos;
@@ -170,36 +173,41 @@ class KeyboardInput extends React.Component {
     onBtnClick(e, buttonInfo) {
         e.preventDefault();
         console.log(`onBtnClick: ${buttonInfo.symbol}, ${buttonInfo.special}`);
-        const ch = buttonInfo.symbol;
+        const shift = this.state.caps || this.state.shift;
+        const ch = shift ? buttonInfo.shSymbol : buttonInfo.symbol;
         if (ch != null) {
             this.insertChar(this.refs.wordInput, ch);
         } else if (buttonInfo.special == TITLE_BS) {
             this.backspace(this.refs.wordInput);
+        } else if (buttonInfo.special == TITLE_CAPS) {
+            this.setState({ caps: !this.state.caps, shift: false });
+        } else if (buttonInfo.special == TITLE_SHIFT) {
+            this.setState({ caps: false, shift: !this.state.shift });
         } else {
             console.log(`unsupported button`);
+            this.setState({ shift: false });
         }
     }
 
     renderRows(buttonRows) {
         const resultRows = [];
+        const shift = this.state.caps || this.state.shift;
         for (const buttonRow of buttonRows) {
             const buttons = [];
             for (const buttonInfo of buttonRow) {
-                const symbol = buttonInfo.symbol;
-                const special = buttonInfo.special;
-                const bgColor = (buttonInfo.label != null ? "bg-white" : "bg-gray-100");
-                const txtAndCursor = (
-                    (symbol != null || special == TITLE_BS)
-                    ? "text-gray-700 cursor-pointer"
-                    : "text-gray-500 cursor-default"
+                const label = shift ? buttonInfo.shLabel : buttonInfo.label
+                const activeClass = (
+                    label != null
+                    ? "bg-white text-gray-700 cursor-pointer"
+                    : "bg-gray-100 text-gray-500 cursor-default"
                 );
-                const btnClass = `${buttonInfo.dims} ${bgColor} ${txtAndCursor} rounded text-center m-1 py-1 text-xl`
+                const btnClass = `${buttonInfo.dims} ${activeClass} rounded text-center m-1 py-1 text-xl`
                 buttons.push(
                     <div
                         className={btnClass}
                         onClick={(e) => { this.onBtnClick(e, buttonInfo) }}
                         key={buttons.length}>
-                        {buttonInfo.label}
+                        {label}
                     </div>
                 );
             }
