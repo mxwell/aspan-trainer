@@ -193,8 +193,7 @@ class GcCreateApp extends React.Component {
         this.setState(this.defaultState());
     }
 
-    onWordChange(event) {
-        let lastEnteredWord = event.target.value;
+    onWordChange(lastEnteredWord) {
         this.setState({ lastEnteredWord });
     }
 
@@ -333,8 +332,7 @@ class GcCreateApp extends React.Component {
         });
     }
 
-    onTranslationChange(event) {
-        let lastEnteredTranslation = event.target.value;
+    onTranslationChange(lastEnteredTranslation) {
         this.setState({ lastEnteredTranslation });
     }
 

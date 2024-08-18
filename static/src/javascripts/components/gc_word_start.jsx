@@ -1,6 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { editButton } from "./edit_button";
+import KeyboardInput from "./keyboard_input";
 
 
 /**
@@ -16,28 +17,46 @@ import { editButton } from "./edit_button";
 class GcWordStart extends React.Component {
     constructor(props) {
         super(props);
+
+        this.onWordChange = this.onWordChange.bind(this);
     }
 
     i18n(key) {
         return i18n(key, this.props.lang);
     }
 
-    renderForm(wordLang, titleKey) {
-        const placeHolderKey = `enterLangWord_${wordLang}`
+    onWordChange(event) {
+        event.preventDefault();
+        const lastEnteredWord = event.target.value;
+        this.props.changeCallback(lastEnteredWord);
+    }
+
+    renderKeyboardForm(title, placeholder) {
+        return (
+            <KeyboardInput
+                title={title}
+                placeholder={placeholder}
+                lastEntered={this.props.lastEntered}
+                changeCallback={this.props.changeCallback}
+                submitCallback={this.props.submitCallback} />
+        );
+    }
+
+    renderPlainForm(title, placeholder) {
         return (
             <form
                 onSubmit={this.props.submitCallback}
                 className="my-2 flex flex-row w-full bg-gray-200 rounded">
                 <span className="px-4 py-4 text-2xl">
-                    {this.i18n(titleKey)}:
+                    {title}:
                 </span>
                 <input
                     type="text"
                     size="20"
                     maxLength="64"
                     value={this.props.lastEntered}
-                    onChange={this.props.changeCallback}
-                    placeholder={this.i18n(placeHolderKey)}
+                    onChange={this.onWordChange}
+                    placeholder={placeholder}
                     className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     autoFocus />
                 <button
@@ -47,6 +66,17 @@ class GcWordStart extends React.Component {
                 </button>
             </form>
         );
+    }
+
+    renderForm(wordLang, titleKey) {
+        const placeHolderKey = `enterLangWord_${wordLang}`;
+        const placeholder = this.i18n(placeHolderKey);
+        const title = this.i18n(titleKey);
+        if (wordLang == "kk") {
+            return this.renderKeyboardForm(title, placeholder);
+        } else {
+            return this.renderPlainForm(title, placeholder);
+        }
     }
 
     renderResult(word, titleKey) {
