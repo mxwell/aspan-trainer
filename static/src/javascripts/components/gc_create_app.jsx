@@ -832,6 +832,7 @@ class GcCreateApp extends React.Component {
                             placeholder={this.i18n("refPlaceHolder")}
                             onChange={this.onReferenceChange}
                             className="shadow appearance-none border rounded mx-2 p-2 text-xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            autoFocus
                             />
                     </div>
                     <p className="text-gray-700 text-xs">
@@ -841,7 +842,6 @@ class GcCreateApp extends React.Component {
                 <div className="my-2 flex flex-row justify-center">
                     <button
                         type="submit"
-                        autoFocus
                         className="bg-blue-500 hover:bg-blue-700 text-white text-2xl font-bold px-6 py-2 rounded focus:outline-none focus:shadow-outline">
                         {this.i18n("createReview")}
                     </button>
