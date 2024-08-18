@@ -115,19 +115,28 @@ class GcReviewsApp extends React.Component {
             this.putToErrorState();
             return;
         }
+        const ownApproves = response.own_approves;
+        const ownDisapproves = response.own_disapproves;
+        if (ownApproves == null || ownDisapproves == null) {
+            console.log("handleAddReviewVoteResponse: null own approves or disapproves");
+            this.putToErrorState();
+            return;
+        }
         const reviewId = context.reviewId;
         if (reviewId == null) {
             console.log("handleAddReviewVoteResponse: null reviewId in context");
             this.putToErrorState();
             return;
         }
-        console.log(`Updated for review ${reviewId}: ${approves} approves, ${disapproves} disapproves`);
+        console.log(`Updated for review ${reviewId}: ${approves} vs ${disapproves}, own ${ownApproves} vs ${ownDisapproves}`);
         const voting = false;
         let reviews = this.state.reviews;
         for (let review of reviews) {
             if (review.review_id == reviewId) {
                 review.approves = approves;
                 review.disapproves = disapproves;
+                review.own_approves = ownApproves;
+                review.own_disapproves = ownDisapproves;
                 break;
             }
         }
@@ -236,7 +245,15 @@ class GcReviewsApp extends React.Component {
         const commentClass = "py-2 px-4 text-gray-700 italic";
         for (let entry of reviews) {
             const approves = (entry.approves > 0 ? String(entry.approves) : "");
+            const approveClass = (entry.own_approves > 0
+                ? "bg-blue-800"
+                : "btn-gradient bg-blue-500 hover:bg-blue-700"
+            );
             const disapproves = (entry.disapproves > 0 ? String(entry.disapproves) : "");
+            const disapproveClass = (entry.own_disapproves > 0
+                ? "bg-gray-800"
+                : "bg-gray-500 hover:bg-gray-700"
+            );
             listItems.push(
                 <li key={listItems.length}
                     className="my-10 p-6 text-gray-700 border-2 bg-gray-100 rounded-2xl">
@@ -284,14 +301,14 @@ class GcReviewsApp extends React.Component {
                             <button
                                 type="button"
                                 onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE")}
-                                className="btn-gradient bg-blue-500 hover:bg-blue-700 mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row">
+                                className={`${approveClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
                                 <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
                                 <span className="pl-2 text-2xl text-white">{approves}</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE")}
-                                className="bg-gray-500 hover:bg-gray-700 px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row">
+                                className={`${disapproveClass} px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
                                 <img src="/thumb_down.svg" alt="thumb up" className="h-8" />
                                 <span className="pl-2 text-2xl text-white">{disapproves}</span>
                             </button>
