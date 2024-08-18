@@ -16,6 +16,7 @@ const DIMS_MID = "h-10 w-12"
 const DIMS_WIDE = "h-10 w-24"
 const DIMS_BS = "h-10 w-32";
 const DIMS_SPACE = "h-10 w-64";
+const TITLE_BS = "backspace";
 
 function makeEmptyButton(dims) {
     return new ButtonInfo(null, null, null, null, null, dims);
@@ -49,7 +50,7 @@ const BUTTON_ROWS = [
         makeSymbolButton("қ"),
         makeSymbolButton("ө"),
         makeSymbolButton("һ"),
-        makeSpecialButton("backspace", DIMS_BS),
+        makeSpecialButton(TITLE_BS, DIMS_BS),
     ],
     [
         makeEmptyButton(DIMS_MID),
@@ -123,24 +124,10 @@ class KeyboardInput extends React.Component {
         this.props.changeCallback(lastEnteredWord);
     }
 
-    onBtnClick(e, buttonInfo) {
-        e.preventDefault();
-        console.log(`onBtnClick: ${buttonInfo.symbol}, ${buttonInfo.special}`);
-        const ch = buttonInfo.symbol;
-        if (ch == null || buttonInfo.special != null) {
-            return;
-        }
-        const wordInput = this.refs.wordInput;
-        const val = wordInput.value;
-        const start = wordInput.selectionStart;
-        const end = wordInput.selectionEnd;
-        const pre = val.substr(0, start);
-        const post = val.substr(end);
-        const update = pre + ch + post;
-        console.log(`update: ${start}:${end}, [${val}] -> [${update}]`);
-        this.props.changeCallback(update);
+    updateText(text, pos) {
+        this.props.changeCallback(text);
         this.setState(
-            { pos: start + ch.length },
+            { pos },
             () => {
                 const wi = this.refs.wordInput;
                 wi.selectionStart = this.state.pos;
@@ -149,13 +136,63 @@ class KeyboardInput extends React.Component {
         );
     }
 
+    insertChar(wordInput, ch) {
+        const val = wordInput.value;
+        const start = wordInput.selectionStart;
+        const end = wordInput.selectionEnd;
+        const pre = val.substr(0, start);
+        const post = val.substr(end);
+        const text = pre + ch + post;
+        console.log(`insert char '${ch}': ${start}:${end}, [${val}] -> [${text}]`);
+        this.updateText(text, start + ch.length);
+    }
+
+    backspace(wordInput) {
+        const val = wordInput.value;
+        const start = wordInput.selectionStart;
+        const end = wordInput.selectionEnd;
+        if (end == 0) {
+            console.log("backspace: nothing to remove");
+            return;
+        }
+        const pos = (
+            end > start
+            ? start
+            : Math.max(0, start - 1)
+        );
+        const pre = val.substr(0, pos);
+        const post = val.substr(end);
+        const text = pre + post;
+        console.log(`backspace: ${start}:${end}, [${val}] -> [${text}]`);
+        this.updateText(text, pos);
+    }
+
+    onBtnClick(e, buttonInfo) {
+        e.preventDefault();
+        console.log(`onBtnClick: ${buttonInfo.symbol}, ${buttonInfo.special}`);
+        const ch = buttonInfo.symbol;
+        if (ch != null) {
+            this.insertChar(this.refs.wordInput, ch);
+        } else if (buttonInfo.special == TITLE_BS) {
+            this.backspace(this.refs.wordInput);
+        } else {
+            console.log(`unsupported button`);
+        }
+    }
+
     renderRows(buttonRows) {
         const resultRows = [];
         for (const buttonRow of buttonRows) {
             const buttons = [];
             for (const buttonInfo of buttonRow) {
+                const symbol = buttonInfo.symbol;
+                const special = buttonInfo.special;
                 const bgColor = (buttonInfo.label != null ? "bg-white" : "bg-gray-100");
-                const txtAndCursor = (buttonInfo.symbol != null ? "text-gray-700 cursor-pointer" : "text-gray-500 cursor-default");
+                const txtAndCursor = (
+                    (symbol != null || special == TITLE_BS)
+                    ? "text-gray-700 cursor-pointer"
+                    : "text-gray-500 cursor-default"
+                );
                 const btnClass = `${buttonInfo.dims} ${bgColor} ${txtAndCursor} rounded text-center m-1 py-1 text-xl`
                 buttons.push(
                     <div
