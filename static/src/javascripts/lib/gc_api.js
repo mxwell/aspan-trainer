@@ -93,9 +93,21 @@ function gcRetractReviewVote(reviewId, vote, successCallback, errorCallback, con
     return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcDiscardReview(reviewId, successCallback, errorCallback, context) {
+    const params = {
+        rid: reviewId,
+    };
+    const url = "/gcapi/v1/discard_review";
+    return makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetStats(successCallback, errorCallback, context) {
     const url = "/gcapi/v1/get_stats";
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
+function gcGetUserId() {
+    return 1;
 }
 
 export {
@@ -108,5 +120,7 @@ export {
     gcAddReview,
     gcAddReviewVote,
     gcRetractReviewVote,
+    gcDiscardReview,
     gcGetStats,
+    gcGetUserId,
 };

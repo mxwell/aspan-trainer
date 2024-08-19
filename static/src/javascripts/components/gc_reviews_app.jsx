@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { gcAddReviewVote, gcGetReviews, gcRetractReviewVote } from "../lib/gc_api";
+import { gcAddReviewVote, gcDiscardReview, gcGetReviews, gcRetractReviewVote } from "../lib/gc_api";
 import { unixEpochToString } from "../lib/datetime";
 import { renderComment } from "./gc_common";
 import { buildGcReviewsUrl, parseParams } from "../lib/url";
@@ -9,6 +9,7 @@ import { COMMON_TRANS_DIRECTIONS, COMMON_TRANS_DIRECTION_BY_KEY } from "../lib/g
 /**
  * props:
  * - lang
+ * - userId
  */
 class GcReviewsApp extends React.Component {
     constructor(props) {
@@ -18,6 +19,8 @@ class GcReviewsApp extends React.Component {
         this.handleGetReviewsError = this.handleGetReviewsError.bind(this);
         this.handleChangeReviewVoteResponse = this.handleChangeReviewVoteResponse.bind(this);
         this.handleChangeReviewVoteError = this.handleChangeReviewVoteError.bind(this);
+        this.handleDiscardReviewResponse = this.handleDiscardReviewResponse.bind(this);
+        this.handleDiscardReviewError = this.handleDiscardReviewError.bind(this);
 
         const state = this.readUrlState() || this.defaultState();
         this.state = state;
@@ -198,6 +201,55 @@ class GcReviewsApp extends React.Component {
         }
     }
 
+    async handleDiscardReviewResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleDiscardReviewResponse: error message: ${message}`);
+            this.putToErrorState();
+            return;
+        }
+        const reviewId = response.review_id;
+        if (reviewId == null) {
+            console.log("handleDiscardReviewResponse: null review_id");
+            this.putToErrorState();
+            return;
+        }
+        console.log(`Discarded review ${reviewId}`);
+        const voting = false;
+        let reviews = this.state.reviews;
+        for (let review of reviews) {
+            if (review.review_id == reviewId) {
+                review.gone = true;
+                break;
+            }
+        }
+        this.setState({ voting, reviews });
+    }
+
+    async handleDiscardReviewError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`handleDiscardReviewError: ${responseText}, reviewId ${context.reviewId}`);
+        this.putToErrorState();
+    }
+
+    handleDiscardClick(event, reviewId) {
+        event.preventDefault();
+        console.log(`Delete clicked: ${reviewId}`);
+        if (this.state.voting) {
+            console.log(`Ignoring delete click due to voting in progress`);
+            return;
+        }
+        const voting = true;
+        this.setState({ voting });
+        gcDiscardReview(
+            reviewId,
+            this.handleDiscardReviewResponse,
+            this.handleDiscardReviewError,
+            { reviewId },
+        );
+    }
+
     renderDirectionLink(titleKey, url) {
         if (url == null) {
             return (
@@ -245,27 +297,9 @@ class GcReviewsApp extends React.Component {
         return null;
     }
 
-    renderReviews() {
-        if (this.state.error) {
-            return (
-                <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
-            );
-        }
-        if (this.state.loading) {
-            return (
-                <p className="text-center">{this.i18n("loadingReviews")}</p>
-            );
-        }
-        const reviews = this.state.reviews;
-        if (reviews.length == 0) {
-            return (
-                <p className="text-center">{this.i18n("listIsEmpty")}</p>
-            );
-        }
-        let listItems = [];
-        const commentClass = "py-2 px-4 text-gray-700 italic";
-        for (let entry of reviews) {
-            const gone = entry.gone == true;
+    renderReviewControls(entry) {
+        const gone = entry.gone == true;
+        if (entry.user_id != this.props.userId) {
             const approves = (entry.approves > 0 ? String(entry.approves) : "");
             let approveClass;
             let approveDelta;
@@ -292,6 +326,64 @@ class GcReviewsApp extends React.Component {
                 disapproveClass = "bg-gray-500 hover:bg-gray-700";
                 disapproveDelta = 1;
             }
+            return (
+                <div className="flex flex-row">
+                    <button
+                        type="button"
+                        onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE", approveDelta)}
+                        className={`${approveClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
+                        <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
+                        <span className="pl-2 text-2xl text-white">{approves}</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE", disapproveDelta)}
+                        className={`${disapproveClass} px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
+                        <img src="/thumb_down.svg" alt="thumb down" className="h-8" />
+                        <span className="pl-2 text-2xl text-white">{disapproves}</span>
+                    </button>
+                </div>
+            );
+        } else {
+            const handler = (gone
+                ? null
+                : ((event) => this.handleDiscardClick(event, entry.review_id))
+            );
+            const discardClass = (gone
+                ? "bg-gray-400"
+                : "bg-gray-500 hover:bg-gray-700"
+            );
+            return (
+                <button
+                    type="button"
+                    onClick={handler}
+                    className={`${discardClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline`}>
+                    <img src="/delete.svg" alt="thumb up" className="h-8" />
+                </button>
+            );
+        }
+    }
+
+    renderReviews() {
+        if (this.state.error) {
+            return (
+                <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
+            );
+        }
+        if (this.state.loading) {
+            return (
+                <p className="text-center">{this.i18n("loadingReviews")}</p>
+            );
+        }
+        const reviews = this.state.reviews;
+        if (reviews.length == 0) {
+            return (
+                <p className="text-center">{this.i18n("listIsEmpty")}</p>
+            );
+        }
+        let listItems = [];
+        const commentClass = "py-2 px-4 text-gray-700 italic";
+        for (let entry of reviews) {
             listItems.push(
                 <li key={listItems.length}
                     className="my-10 p-6 text-gray-700 border-2 bg-gray-100 rounded-2xl">
@@ -335,22 +427,7 @@ class GcReviewsApp extends React.Component {
                         <div className="p-2 border-2 rounded">
                             {this.i18n("reference")}: {entry.reference}
                         </div>
-                        <div className="flex flex-row">
-                            <button
-                                type="button"
-                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE", approveDelta)}
-                                className={`${approveClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
-                                <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
-                                <span className="pl-2 text-2xl text-white">{approves}</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE", disapproveDelta)}
-                                className={`${disapproveClass} px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
-                                <img src="/thumb_down.svg" alt="thumb up" className="h-8" />
-                                <span className="pl-2 text-2xl text-white">{disapproves}</span>
-                            </button>
-                        </div>
+                        {this.renderReviewControls(entry)}
                     </div>
                 </li>
             );
