@@ -299,8 +299,9 @@ class GcReviewsApp extends React.Component {
 
     renderReviewControls(entry) {
         const gone = entry.gone == true;
+        const approves = (entry.approves > 0 ? String(entry.approves) : "");
+        const disapproves = (entry.disapproves > 0 ? String(entry.disapproves) : "");
         if (entry.user_id != this.props.userId) {
-            const approves = (entry.approves > 0 ? String(entry.approves) : "");
             let approveClass;
             let approveDelta;
             if (gone) {
@@ -313,7 +314,6 @@ class GcReviewsApp extends React.Component {
                 approveClass = "btn-gradient bg-blue-500 hover:bg-blue-700";
                 approveDelta = 1;
             }
-            const disapproves = (entry.disapproves > 0 ? String(entry.disapproves) : "");
             let disapproveClass;
             let disapproveDelta;
             if (gone) {
@@ -351,15 +351,31 @@ class GcReviewsApp extends React.Component {
             );
             const discardClass = (gone
                 ? "bg-gray-400"
-                : "bg-gray-500 hover:bg-gray-700"
+                : "bg-red-500 hover:bg-red-700"
             );
             return (
-                <button
-                    type="button"
-                    onClick={handler}
-                    className={`${discardClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline`}>
-                    <img src="/delete.svg" alt="thumb up" className="h-8" />
-                </button>
+                <div className="flex flex-row">
+                    <button
+                        type="button"
+                        disabled
+                        className="bg-gray-400 mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row">
+                        <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
+                        <span className="pl-2 text-2xl text-white">{approves}</span>
+                    </button>
+                    <button
+                        type="button"
+                        disabled
+                        className="bg-gray-400 px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row">
+                        <img src="/thumb_down.svg" alt="thumb down" className="h-8" />
+                        <span className="pl-2 text-2xl text-white">{disapproves}</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handler}
+                        className={`${discardClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline`}>
+                        <img src="/delete.svg" alt="thumb up" className="h-8" />
+                    </button>
+                </div>
             );
         }
     }
