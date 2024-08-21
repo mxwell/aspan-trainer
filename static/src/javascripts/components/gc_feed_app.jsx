@@ -97,30 +97,55 @@ class GcFeedApp extends React.Component {
             const dirKey = `${entry.src_lang}${entry.dst_lang}`;
             const dir = this.i18n(dirKey);
             const url = buildGcSearchUrl(entry.src_word, entry.src_lang, entry.dst_lang);
+            let approveList = [];
+            let disapproveList = [];
+            for (let vote of entry.votes) {
+                if (vote.vote == 1) {
+                    approveList.push(vote.name);
+                } else if (vote.vote == -1) {
+                    disapproveList.push(vote.name);
+                }
+            }
+            const approve = (
+                approveList.length > 0
+                ? (<div className="px-2">👍&nbsp;<span className="italic text-green-900">{approveList.join(", ")}</span></div>)
+                : null
+            );
+            const disapprove = (
+                disapproveList.length > 0
+                ? (<div className="px-2">👎&nbsp;<span className="italic text-red-800">{disapproveList.join(", ")}</span></div>)
+                : null
+            );
             listItems.push(
                 <li key={listItems.length}
-                    className="py-1 text-gray-700">
-                    <span className="px-2 text-sm text-gray-600">
+                    className="py-1 text-gray-700 flex flex-row">
+                    <div className="px-2 text-sm text-gray-600">
                         {unixEpochToString(entry.created_at)}
-                    </span>
-                    <strong className="px-2">
-                        {entry.name}
-                    </strong>
-                    <span className="px-2">
-                        {this.i18n("userAddedTranslation")}
-                    </span>
-                    <strong className="px-2">
-                        {dir}
-                    </strong>
-                    <a href={url}>
-                        <span className="px-2 text-blue-600">
-                            {entry.src_word}
-                        </span>
-                        →
-                        <span className="px-2 text-green-600">
-                            {entry.dst_word}
-                        </span>
-                    </a>
+                    </div>
+                    <div className="flex flex-col">
+                        <div>
+                            <strong className="px-2">
+                                {entry.name}
+                            </strong>
+                            <span className="px-2">
+                                {this.i18n("userAddedTranslation")}
+                            </span>
+                            <strong className="px-2">
+                                {dir}
+                            </strong>
+                            <a href={url}>
+                                <span className="px-2 text-blue-600">
+                                    {entry.src_word}
+                                </span>
+                                →
+                                <span className="px-2 text-green-600">
+                                    {entry.dst_word}
+                                </span>
+                            </a>
+                        </div>
+                        {approve}
+                        {disapprove}
+                    </div>
                 </li>
             );
         }
