@@ -8,6 +8,10 @@ class TransDirection {
         return `${this.src}${this.dst}`;
     }
 
+    toFullKey() {
+        return `full_${this.src}${this.dst}`;
+    }
+
     toString() {
         return `${this.src} → ${this.dst}`;
     }

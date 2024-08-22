@@ -824,12 +824,20 @@ function prepareGcOnlyTranslations(map) {
         "Введите слово для поиска",
     );
     setEnRu(map, "kkru",
-        "Kaz -> Rus",
-        "Каз -> Рус",
+        "Kaz → Rus",
+        "Каз → Рус",
     );
     setEnRu(map, "kken",
-        "Kaz -> Eng",
-        "Каз -> Англ",
+        "Kaz → Eng",
+        "Каз → Англ",
+    );
+    setEnRu(map, "full_kkru",
+        "Kazakh → Russian",
+        "Казахский → Русский",
+    );
+    setEnRu(map, "full_kken",
+        "Kazakh → English",
+        "Казахский → Английский",
     );
     setEnRu(map, "searchInProgress",
         "Searching…",
