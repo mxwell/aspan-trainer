@@ -2,11 +2,11 @@ import React from "react";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
-import { gcAddReview, gcAddWord, gcGetWords } from "../lib/gc_api";
+import { gcAddReview, gcAddWord, gcGetUntranslated, gcGetWords } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
-import { buildGcReviewsUrl, parseParams } from "../lib/url";
+import { buildGcCreatePrefilledUrl, buildGcCreateUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
 import { editButton } from "./edit_button";
 
 const DIRECTIONS = [
@@ -59,6 +59,8 @@ class GcCreateApp extends React.Component {
         this.onDirectionSubmit = this.onDirectionSubmit.bind(this);
         this.onDirectionReset = this.onDirectionReset.bind(this);
         this.onWordChange = this.onWordChange.bind(this);
+        this.handleGetUntranslatedResponse = this.handleGetUntranslatedResponse.bind(this);
+        this.handleGetUntranslatedError = this.handleGetUntranslatedError.bind(this);
         this.handleGetWordsResponse = this.handleGetWordsResponse.bind(this);
         this.handleGetWordsError = this.handleGetWordsError.bind(this);
         this.onWordSubmit = this.onWordSubmit.bind(this);
@@ -97,6 +99,7 @@ class GcCreateApp extends React.Component {
 
     makeState(direction, lastEnteredWord) {
         return {
+            untranslated: null,
             preselectedDirectionId: null,
             direction: direction,
             word: null,
@@ -137,6 +140,7 @@ class GcCreateApp extends React.Component {
         const src = params.src;
         const dst = params.dst;
         if (src == null || dst == null) {
+            this.startGetUntranslated();
             return null;
         }
         const dirKey = `${src}${dst}`;
@@ -195,6 +199,31 @@ class GcCreateApp extends React.Component {
 
     onWordChange(lastEnteredWord) {
         this.setState({ lastEnteredWord });
+    }
+
+    async handleGetUntranslatedResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleGetUntranslatedResponse: error message: ${message}`);
+            return;
+        }
+        const untranslated = response.words;
+        this.setState({ untranslated });
+    }
+
+    async handleGetUntranslatedError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from get_untranslated: ${responseText}`);
+    }
+
+    startGetUntranslated() {
+        gcGetUntranslated(
+            "ru",
+            this.handleGetUntranslatedResponse,
+            this.handleGetUntranslatedError,
+            {}
+        );
     }
 
     async handleGetWordsResponse(context, responseJsonPromise) {
@@ -619,6 +648,34 @@ class GcCreateApp extends React.Component {
         this.setState(this.makeState(this.state.direction, /* lastEnteredWord */ ""));
     }
 
+    renderUntranslated() {
+        const untranslated = this.state.untranslated;
+        if (untranslated == null || untranslated.length == 0) {
+            return null;
+        }
+        let buttons = [];
+        for (let word of untranslated) {
+            const url = buildGcCreatePrefilledUrl(word, "kk", "ru");
+            buttons.push(
+                <a href={url}
+                    className=""
+                    key={buttons.length}>
+                    <button className="border-4 hover:bg-gray-100 text-gray-600 text-3xl w-full my-2 p-4 rounded-2xl">
+                        {word}
+                    </button>
+                </a>
+            );
+        }
+        return (
+            <div className="flex flex-col mt-10">
+                <h3 className="my-4 text-center text-3xl italic text-gray-600">
+                    {this.i18n("orAddTranslationToRu")}
+                </h3>
+                {buttons}
+            </div>
+        );
+    }
+
     renderDirectionPart(direction) {
         if (direction == null) {
             let radios = [];
@@ -650,21 +707,24 @@ class GcCreateApp extends React.Component {
                 );
             }
             return (
-                <form
-                    onSubmit={this.onDirectionSubmit}
-                    className="my-2 p-2 w-full bg-gray-200 rounded">
-                    <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
-                        <legend className="px-2 text-base">{this.i18n("transDirection")}</legend>
-                        {radios}
-                    </fieldset>
-                    <div className="flex flex-row justify-end">
-                        <button
-                            type="submit"
-                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            →
-                        </button>
-                    </div>
-                </form>
+                <div>
+                    <form
+                        onSubmit={this.onDirectionSubmit}
+                        className="my-2 p-2 w-full bg-gray-200 rounded">
+                        <fieldset className="m-2 flex flex-col border-2 border-gray-600 p-2 rounded text-xl">
+                            <legend className="px-2 text-base">{this.i18n("transDirection")}</legend>
+                            {radios}
+                        </fieldset>
+                        <div className="flex flex-row justify-end">
+                            <button
+                                type="submit"
+                                className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                →
+                            </button>
+                        </div>
+                    </form>
+                    {this.renderUntranslated()}
+                </div>
             );
         } else {
             const key = direction.toKey();

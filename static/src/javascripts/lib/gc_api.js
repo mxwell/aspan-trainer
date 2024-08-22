@@ -106,6 +106,15 @@ function gcGetStats(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetUntranslated(dstLang, successCallback, errorCallback, context) {
+    const params = {
+        dst: dstLang,
+    };
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_untranslated?${query}`;
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetUserId() {
     return 1;
 }
@@ -122,5 +131,6 @@ export {
     gcRetractReviewVote,
     gcDiscardReview,
     gcGetStats,
+    gcGetUntranslated,
     gcGetUserId,
 };

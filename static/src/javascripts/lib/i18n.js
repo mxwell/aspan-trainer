@@ -865,6 +865,10 @@ function prepareGcOnlyTranslations(map) {
         "Translation direction",
         "Направление перевода",
     );
+    setEnRu(map, "orAddTranslationToRu",
+        "Or add a Russian translation for one of the words",
+        "Или добавить русский перевод для одного из этих слов",
+    );
     setEnRu(map, "select",
         "Select",
         "Выберите",
