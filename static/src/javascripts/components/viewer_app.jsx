@@ -38,6 +38,7 @@ import { unpackDetectResponse } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 import { generatePromoDeclensionForms } from '../lib/declension';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
+import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -206,6 +207,9 @@ class ViewerApp extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
@@ -241,6 +245,7 @@ class ViewerApp extends React.Component {
             auxVerb: auxVerb,
             auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
             lastEntered: lastEntered,
+            keyboard: false,
             detected: null,
             warning: warning,
             meanings: meanings,
@@ -379,6 +384,36 @@ class ViewerApp extends React.Component {
 
     i18n(key) {
         return i18n(key, this.props.lang);
+    }
+
+    onKeyboardClick(e) {
+        e.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
+    updateText(change) {
+        this.setState(
+            { lastEntered: change.newText },
+            () => {
+                const vi = this.refs.verbInput;
+                vi.selectionStart = change.newSelectionStart;
+                vi.selectionEnd = change.newSelectionStart;
+                vi.focus();
+            }
+        );
+    }
+
+    onInsert(fragment) {
+        const textInput = this.refs.verbInput;
+        const change = insertIntoTextInput(textInput, fragment);
+        this.updateText(change);
+    }
+
+    onBackspace() {
+        const textInput = this.refs.verbInput;
+        const change = backspaceTextInput(textInput);
+        this.updateText(change);
     }
 
     async handleSuggestResponse(context, responseJsonPromise) {
@@ -962,6 +997,19 @@ class ViewerApp extends React.Component {
         }
     }
 
+    renderKeyboard(keyboard) {
+        if (!keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace} />
+            </div>
+        );
+    }
+
     renderWarning() {
         let warning = this.state.warning;
         if (warning == null) {
@@ -1065,6 +1113,9 @@ class ViewerApp extends React.Component {
     }
 
     renderLandingPage() {
+        if (this.state.keyboard) {
+            return null;
+        }
         const lang = this.props.lang;
         const verb = "келу";
         const verbForms = generatePromoVerbForms(verb, false);
@@ -1169,7 +1220,7 @@ class ViewerApp extends React.Component {
 
     renderSuggestions() {
         let suggestions = this.state.suggestions;
-        if (suggestions.length == 0) {
+        if (suggestions.length == 0 || this.state.keyboard) {
             return null;
         }
 
@@ -1290,6 +1341,12 @@ class ViewerApp extends React.Component {
                 <div>{this.i18n("isLoading")}</div>
             );
         }
+        const keyboard = this.state.keyboard;
+        const keyboardClass = (
+            keyboard
+            ? "px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            : "px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none"
+        );
         return (
             <div className="flex">
                 <div className="md:py-6 lg:max-w-6xl" onClick={this.onBgClick}>
@@ -1299,16 +1356,25 @@ class ViewerApp extends React.Component {
                     <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col lg:flex-row">
                         <div className="lg:px-2">
                             <div className="relative">
-                                <input
-                                    type="text"
-                                    size="20"
-                                    maxLength="100"
-                                    value={this.state.lastEntered}
-                                    onChange={this.onChange}
-                                    onKeyDown={this.onKeyDown}
-                                    placeholder={this.i18n("hintEnterVerb")}
-                                    className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                                    autoFocus />
+                                <div className="flex flex-row">
+                                    <input
+                                        ref="verbInput"
+                                        type="text"
+                                        size="20"
+                                        maxLength="100"
+                                        value={this.state.lastEntered}
+                                        onChange={this.onChange}
+                                        onKeyDown={this.onKeyDown}
+                                        placeholder={this.i18n("hintEnterVerb")}
+                                        className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                                        autoFocus />
+                                    <button
+                                        type="button"
+                                        onClick={this.onKeyboardClick}
+                                        className={keyboardClass}>
+                                        <img src="/keyboard.svg" alt="keyboard show or hide" className="h-12" />
+                                    </button>
+                                </div>
                                 {this.renderSuggestions()}
                             </div>
                             {this.renderExampleVerbs()}
@@ -1322,6 +1388,7 @@ class ViewerApp extends React.Component {
                             </button>
                         </div>
                     </form>
+                    {this.renderKeyboard(keyboard)}
                     {this.renderWarning()}
                     {this.renderTranslation()}
                     {this.renderTenses()}
