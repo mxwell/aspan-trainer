@@ -29,6 +29,7 @@ module.exports = {
         "./static/src/javascripts/components/gym_exercise.jsx",
         "./static/src/javascripts/components/gym_start.jsx",
         "./static/src/javascripts/components/keyboard_input.jsx",
+        "./static/src/javascripts/components/keyboard.jsx",
         "./static/src/javascripts/components/viewer_app.jsx",
         "./static/src/javascripts/components/side_quiz.jsx",
         "./static/src/javascripts/lib/highlight.js",
