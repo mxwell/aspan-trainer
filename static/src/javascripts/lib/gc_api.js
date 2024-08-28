@@ -115,6 +115,16 @@ function gcGetUntranslated(dstLang, successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetLlmTranslations(wordId, model, successCallback, errorCallback, context) {
+    const params = {
+        wid: wordId,
+        model: model,
+    };
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_llm_translations?${query}`;
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetUserId() {
     return 1;
 }
@@ -132,5 +142,6 @@ export {
     gcDiscardReview,
     gcGetStats,
     gcGetUntranslated,
+    gcGetLlmTranslations,
     gcGetUserId,
 };

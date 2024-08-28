@@ -422,8 +422,7 @@ class GcCreateApp extends React.Component {
         return null;
     }
 
-    getUsedWordIds(foundWords, selectedWordId) {
-        const wordInfo = this.getWordInfo(foundWords, selectedWordId);
+    getUserWordIdsFromWordInfo(wordInfo) {
         if (wordInfo != null && wordInfo.translated_word_ids != null) {
             return wordInfo.translated_word_ids;
         }
@@ -723,6 +722,7 @@ class GcCreateApp extends React.Component {
                 wordLang={direction.src}
                 lastEntered={this.state.lastEnteredWord}
                 word={word}
+                srcWordId={null}
                 changeCallback={this.onWordChange}
                 submitCallback={this.onWordSubmit}
                 resetCallback={this.onWordReset} />
@@ -765,7 +765,7 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    renderTranslationPart(readyForTranslation, direction, translation) {
+    renderTranslationPart(readyForTranslation, srcWordId, direction, translation) {
         if (!readyForTranslation) {
             return null;
         }
@@ -775,6 +775,7 @@ class GcCreateApp extends React.Component {
                 wordLang={direction.dst}
                 lastEntered={this.state.lastEnteredTranslation}
                 word={translation}
+                srcWordId={srcWordId}
                 changeCallback={this.onTranslationChange}
                 submitCallback={this.onTranslationSubmit}
                 resetCallback={this.onTranslationReset} />
@@ -916,10 +917,16 @@ class GcCreateApp extends React.Component {
             && selectedWordId != null
             && (selectedWordId < foundWords.length || selectedPos != null)
         );
+        const srcWordInfo = this.getWordInfo(foundWords, selectedWordId);
+        const srcWordId = (
+            srcWordInfo != null
+            ? srcWordInfo.word_id
+            : null
+        );
         const translation = this.state.translation;
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
-        const usedWordIds = this.getUsedWordIds(foundWords, selectedWordId);
+        const usedWordIds = this.getUserWordIdsFromWordInfo(srcWordInfo);
         const preferredTranslationPos = this.getPreferredTranslationPos();
         const selectedTranslationPos = this.state.selectedTranslationPos;
         const translationComment = this.state.translationComment;
@@ -935,7 +942,7 @@ class GcCreateApp extends React.Component {
                 {this.renderWordPart(direction, word)}
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
                 {this.renderNewWordDetails(direction, foundWords, selectedWordId, selectedPos, comment, excVerb)}
-                {this.renderTranslationPart(readyForTranslation, direction, translation)}
+                {this.renderTranslationPart(readyForTranslation, srcWordId, direction, translation)}
                 {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, usedWordIds)}
                 {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, preferredTranslationPos, selectedTranslationPos, translationComment)}
                 {this.renderCreateButton(readyToCreate)}

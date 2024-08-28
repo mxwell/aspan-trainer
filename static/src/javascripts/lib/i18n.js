@@ -913,6 +913,14 @@ function prepareGcOnlyTranslations(map) {
         "Select existing word or create a new one",
         "Выберите существующее слово или создайте новое",
     );
+    setEnRu(map, "llmSuggestions",
+        "Translations suggested by LLM",
+        "Варианты перевода, предложенные LLM",
+    );
+    setEnRu(map, "noteOnHallucinations",
+        "Note that hallucinations are possible.",
+        "Внимание, возможны галлюцинации.",
+    );
     setEnRu(map, "createNewWord",
         "create a new word",
         "создать новое слово",
