@@ -5,6 +5,7 @@ import { trimAndLowercase } from "../lib/input_validation";
 import { gcGetTranslations } from "../lib/gc_api";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { renderComment } from "./gc_common";
+import { Keyboard, backspaceTextInput, insertIntoTextInput } from "./keyboard";
 
 const DIRECTIONS = [
     new TransDirection("kk", "ru"),
@@ -33,6 +34,9 @@ class GcSearchApp extends React.Component {
         this.handleSearchResponse = this.handleSearchResponse.bind(this);
         this.handleSearchError = this.handleSearchError.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
         this.onDirectionChange = this.onDirectionChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
@@ -48,6 +52,7 @@ class GcSearchApp extends React.Component {
             preselectedDirection: direction,
             direction: direction,
             lastEntered: word,
+            keyboard: false,
             loading: true,
             translations: [],
             error: false,
@@ -146,6 +151,36 @@ class GcSearchApp extends React.Component {
         this.reloadToState(word, direction);
     }
 
+    onKeyboardClick(e) {
+        e.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
+    updateText(change) {
+        this.setState(
+            { lastEntered: change.newText },
+            () => {
+                const mi = this.refs.managedInput;
+                mi.selectionStart = change.newSelectionStart;
+                mi.selectionEnd = change.newSelectionStart;
+                mi.focus();
+            }
+        );
+    }
+
+    onInsert(fragment) {
+        const textInput = this.refs.managedInput;
+        const change = insertIntoTextInput(textInput, fragment);
+        this.updateText(change);
+    }
+
+    onBackspace() {
+        const textInput = this.refs.managedInput;
+        const change = backspaceTextInput(textInput);
+        this.updateText(change);
+    }
+
     renderForm() {
         var selectOptions = [];
         for (let d of DIRECTIONS) {
@@ -156,19 +191,32 @@ class GcSearchApp extends React.Component {
                 </option>
             );
         }
+        const keyboard = this.state.keyboard;
+        const keyboardClass = (
+            keyboard
+            ? "px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            : "px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none"
+        );
         return (
             <form
                 onSubmit={this.onSubmit}
                 className="px-3 py-2 flex flex-row">
                 <input
+                    ref="managedInput"
                     type="search"
                     size="20"
                     maxLength="64"
                     value={this.state.lastEntered}
                     onChange={this.onChange}
                     placeholder={this.i18n("hintEnterWord")}
-                    className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                    className="shadow appearance-none border rounded p-2 w-full text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     autoFocus />
+                <button
+                    type="button"
+                    onClick={this.onKeyboardClick}
+                    className={keyboardClass}>
+                    <img src="/keyboard.svg" alt="keyboard show or hide" className="h-12" />
+                </button>
                 <select
                     required
                     onChange={this.onDirectionChange}
@@ -182,6 +230,19 @@ class GcSearchApp extends React.Component {
                     →
                 </button>
             </form>
+        );
+    }
+
+    renderKeyboard() {
+        if (!this.state.keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace} />
+            </div>
         );
     }
 
@@ -271,11 +332,12 @@ class GcSearchApp extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className="w-1/2">
                 <h1 className="text-center text-4xl italic text-gray-600">
                     {this.i18n("titleGcSearch")}
                 </h1>
                 {this.renderForm()}
+                {this.renderKeyboard()}
                 {this.renderFindings()}
                 {this.renderButton()}
             </div>
