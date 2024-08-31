@@ -869,6 +869,10 @@ function prepareGcOnlyTranslations(map) {
         "Create translation",
         "Создать перевод",
     );
+    setEnRu(map, "videoTutorial",
+        "Tutorial video (in Russian)",
+        "Видео-туториал",
+    );
     setEnRu(map, "transDirection",
         "Translation direction",
         "Направление перевода",

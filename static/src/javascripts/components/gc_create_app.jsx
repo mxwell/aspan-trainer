@@ -956,6 +956,13 @@ class GcCreateApp extends React.Component {
                 <h1 className="my-4 text-center text-4xl italic text-gray-600">
                     {this.i18n("titleGcCreate")}
                 </h1>
+                <div className="my-4 text-center">
+                    <a
+                        className="text-xl text-green-600 underline"
+                        href="https://youtu.be/BP8qF5gh47o">
+                        {this.i18n("videoTutorial")}
+                    </a>
+                </div>
                 {this.renderForm()}
             </div>
         );
