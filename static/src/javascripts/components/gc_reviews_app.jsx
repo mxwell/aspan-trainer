@@ -265,7 +265,7 @@ class GcReviewsApp extends React.Component {
     renderDirNavigation() {
         const direction = this.state.direction;
         const links = [
-            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(null) : null)
+            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(null, this.props.lang) : null)
         ];
         for (let transDirection of COMMON_TRANS_DIRECTIONS) {
             const matches = (
@@ -273,7 +273,7 @@ class GcReviewsApp extends React.Component {
                 && transDirection.src == direction.src
                 && transDirection.dst == direction.dst
             );
-            const url = matches ? null : buildGcReviewsUrl(transDirection.toKey());
+            const url = matches ? null : buildGcReviewsUrl(transDirection.toKey(), this.props.lang);
             links.push(this.renderDirectionLink(transDirection.toKey(), url));
         }
         return (

@@ -140,7 +140,7 @@ class GcSearchApp extends React.Component {
     }
 
     reloadToState(word, direction) {
-        const url = buildGcSearchUrl(word, direction.src, direction.dst);
+        const url = buildGcSearchUrl(word, direction.src, direction.dst, this.props.lang);
         window.location.href = url;
     }
 
@@ -317,7 +317,7 @@ class GcSearchApp extends React.Component {
             return null;
         }
         const direction = this.state.direction;
-        const url = buildGcCreatePrefilledUrl(word, direction.src, direction.dst);
+        const url = buildGcCreatePrefilledUrl(word, direction.src, direction.dst, this.props.lang);
         return (
             <div className="my-10 py-4 flex flex-row justify-center">
                 <a href={url}>

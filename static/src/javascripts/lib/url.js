@@ -146,36 +146,36 @@ function buildVerbGymUrl(lang) {
     return "/verb_gym_en.html";
 }
 
-function buildGcSearchUrl(word, src, dst) {
+function buildGcSearchUrl(word, src, dst, lang) {
     let params = [
         `w=${encodeURI(trimAndLowercase(word))}`,
         `src=${encodeURI(src)}`,
         `dst=${encodeURI(dst)}`,
     ];
-    const path = "/gc_search_ru.html";
+    const path = `/gc_search_${lang}.html`;
     return buildUrl(path, params);
 }
 
-function buildGcCreateUrl() {
-    return "/gc_create_ru.html";
+function buildGcCreateUrl(lang) {
+    return `/gc_create_${lang}.html`;
 }
 
-function buildGcCreatePrefilledUrl(word, src, dst) {
+function buildGcCreatePrefilledUrl(word, src, dst, lang) {
     let params = [
         `w=${encodeURI(trimAndLowercase(word))}`,
         `src=${encodeURI(src)}`,
         `dst=${encodeURI(dst)}`,
     ];
-    const path = "/gc_create_ru.html";
+    const path = `/gc_create_${lang}.html`;
     return buildUrl(path, params);
 }
 
-function buildGcReviewsUrl(dir) {
+function buildGcReviewsUrl(dir, lang) {
     let params = [];
     if (dir) {
         params.push(`dir=${dir}`);
     }
-    const path = "/gc_reviews_ru.html";
+    const path = `/gc_reviews_${lang}.html`;
     return buildUrl(path, params);
 }
 

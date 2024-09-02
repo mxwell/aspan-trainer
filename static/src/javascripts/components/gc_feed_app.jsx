@@ -96,7 +96,7 @@ class GcFeedApp extends React.Component {
         for (let entry of feed) {
             const dirKey = `${entry.src_lang}${entry.dst_lang}`;
             const dir = this.i18n(dirKey);
-            const url = buildGcSearchUrl(entry.src_word, entry.src_lang, entry.dst_lang);
+            const url = buildGcSearchUrl(entry.src_word, entry.src_lang, entry.dst_lang, this.props.lang);
             let approveList = [];
             let disapproveList = [];
             for (let vote of entry.votes) {

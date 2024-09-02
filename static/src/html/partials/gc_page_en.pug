@@ -1,0 +1,20 @@
+include gc_page
+mixin a_gc_page_en(react_app_path)
+    -
+      var l10n = {
+        langCode: "en",
+        title: "Kazakh Verb Dictionary",
+        description: "Crowdsourcing platform for Kazakh-Russian-English dictionary creation",
+        contactUs: "Contact us:",
+        tgGroup: "Telegram group",
+        titleGcSearch: "Translation lookup",
+        linkGcSearch: "/gc_search_en.pug",
+        titleGcCreate: "Create translation",
+        linkGcCreate: "/gc_create_en.pug",
+        titleGcReviews: "Review list",
+        linkGcReviews: "/gc_reviews_en.pug",
+        titleGcFeed: "Recent updates",
+        linkGcFeed: "/gc_feed_en.pug",
+      }
+    +a_gc_page(l10n, react_app_path)
+        block

@@ -641,7 +641,7 @@ class GcCreateApp extends React.Component {
         }
         let buttons = [];
         for (let word of untranslated) {
-            const url = buildGcCreatePrefilledUrl(word, "kk", "ru");
+            const url = buildGcCreatePrefilledUrl(word, "kk", "ru", this.props.lang);
             buttons.push(
                 <a href={url}
                     className=""
@@ -848,7 +848,7 @@ class GcCreateApp extends React.Component {
                             <img src="/restart.svg" alt="restart button" />
                         </button>
                     </form>
-                    <a href={buildGcReviewsUrl(null)}
+                    <a href={buildGcReviewsUrl(null, this.props.lang)}
                         className="my-4 text-xl text-green-400 text-center underline">{this.i18n("titleReviews")}
                     </a>
                 </div>

@@ -16,11 +16,11 @@ parcel build static/src/html/verb_gym_{en,ru}.pug
 parcel build static/src/html/declension_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
-parcel build static/src/html/gc_create_ru.pug
-parcel build static/src/html/gc_feed_ru.pug
-parcel build static/src/html/gc_reviews_ru.pug
-parcel build static/src/html/gc_search_ru.pug
-parcel build static/src/html/gc_stats_ru.pug
+parcel build static/src/html/gc_create_{en,ru}.pug
+parcel build static/src/html/gc_feed_{en,ru}.pug
+parcel build static/src/html/gc_reviews_{en,ru}.pug
+parcel build static/src/html/gc_search_{en,ru}.pug
+parcel build static/src/html/gc_stats_{en,ru}.pug
 
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
