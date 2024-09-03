@@ -1,5 +1,5 @@
 include gc_page
-mixin a_gc_page_en(react_app_path)
+mixin a_gc_page_en(react_app_path, en_link, ru_link)
     -
       var l10n = {
         langCode: "en",
@@ -15,6 +15,10 @@ mixin a_gc_page_en(react_app_path)
         linkGcReviews: "/gc_reviews_en.pug",
         titleGcFeed: "Recent updates",
         linkGcFeed: "/gc_feed_en.pug",
+        firstLangLink: en_link,
+        firstLang: "ENG",
+        secondLangLink: ru_link,
+        secondLang: "РУС",
       }
     +a_gc_page(l10n, react_app_path)
         block

@@ -1178,6 +1178,19 @@ function initUiLangSwitcher() {
     }
 }
 
+function toggleLangSelector(e) {
+    e.stopPropagation();
+    const langSelectorContent = document.getElementById("lang_selector_content");
+    if (langSelectorContent) {
+        langSelectorContent.classList.toggle("hidden");
+    }
+}
+
+function initUiLangSelector() {
+    const langSelectorButton = document.getElementById("lang_selector");
+    langSelectorButton.addEventListener("click", toggleLangSelector);
+}
+
 export {
     I18N_LANG_EN,
     I18N_LANG_RU,
@@ -1187,4 +1200,5 @@ export {
     retrieveUiLang,
     clearUiLang,
     initUiLangSwitcher,
+    initUiLangSelector,
 };

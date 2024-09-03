@@ -30,6 +30,16 @@ mixin a_gc_page(l10n, js_path)
                             img(class="gc_menu_icon", src="../images/thumb_up.svg", alt= l10n.titleGcReviews)
                         a(href= l10n.linkGcFeed, class="mx-2 p-2")
                             img(class="gc_menu_icon", src="../images/history.svg", alt= l10n.titleGcFeed)
+                        div(class="relative mx-2 p-2 text-yellow-300")
+                            button(id="lang_selector", class="focus:outline-none")
+                                img(class="gc_menu_icon", src="../images/globe.svg", alt="UI language selector")
+                            div(id="lang_selector_content", class="absolute hidden z-50")
+                                a(href= l10n.firstLangLink)
+                                    button(class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
+                                        = l10n.firstLang
+                                a(href= l10n.secondLangLink)
+                                    button(class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
+                                        = l10n.secondLang
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")
