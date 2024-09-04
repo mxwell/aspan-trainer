@@ -17,7 +17,7 @@ parcel build static/src/html/declension_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug
 parcel build static/src/html/viewer{,_en,_kk}.pug
 parcel build static/src/html/gc_create_{en,ru}.pug
-parcel build static/src/html/gc_description_ru.pug
+parcel build static/src/html/gc_description_{en,ru}.pug
 parcel build static/src/html/gc_feed_{en,ru}.pug
 parcel build static/src/html/gc_reviews_{en,ru}.pug
 parcel build static/src/html/gc_search_{en,ru}.pug

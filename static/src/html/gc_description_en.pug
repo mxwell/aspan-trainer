@@ -1,0 +1,47 @@
+include partials/gc_page_en
++a_gc_page_en("../javascripts/gc_description.jsx", "/gc_description_en.pug", "/gc_description_ru.pug")
+    div(class="m-4 px-10")
+        h1(class="my-2 text-4xl text-gray-600") Description of Kazakh Verb Dictionary
+        p The document describes a service under development located on
+            a(class="px-1 text-green-600 underline", href="https://kazakhverb.khairulin.com/gc_landing_ru.html") https://kazakhverb.khairulin.com/gc_landing_en.html.
+
+        h2(class="my-2 text-3xl text-gray-600") Motivation
+        p During the development of the Kazakh Verb website, challenges arose due to the inaccessibility of open lexical data. This project aims to address this issue in order to facilitate the development of Kazakh language services and applications in the future.
+
+        h2(class="my-2 text-3xl text-gray-600") Goal
+        p For this, a dataset is needed that includes many Kazakh words with annotations and translations into other languages. The dataset should be publicly accessible, free to use, and have a mechanism for adding and correcting data. It should be easy to use for both regular users and researchers and developers.
+
+        h2(class="my-2 text-3xl text-gray-600") Implementation
+        p The Kazakh Verb Dictionary service allows users to register and participate in adding and correcting data. The data includes Kazakh words and their translations into Russian and English.
+
+        h3(class="my-2 text-2xl text-gray-700") Data model
+        h4(class="my-2 italic text-xl") Word
+        p Each word in the service's database is annotated with its language and part of speech, and for Kazakh verbs, there may additionally be a mark indicating special conjugation. Authors are recorded for each word. Comments can be added to a word, for example, in the case of homonyms. Isolated words are not exported and are not visible to users, but they can be suggested when adding translations.
+
+        h4(class="my-2 italic text-xl") Translation
+        p
+            span Translation is a connection between two words from different languages. It implies that the connection is bidirectional, i.e., the connection
+            span(class="mx-2 p-1 border-2 bg-gray-100 rounded") {kk:алма, en:apple}
+            span means that "алма" is translated as "apple," and "apple" is translated as "алма." The translator who added the translation is also recorded. A source can be specified for the translation. The translation is exported and shown to users as a pair of words that it connects.
+
+        h4(class="my-2 italic text-xl") User
+        p An entity that stores data for user registration and login. The words and translations retain the reference to the user record as the author.
+
+        h3(class="my-2 text-2xl text-gray-700") Review
+        p To maintain the quality of the annotations, each added translation must undergo review, meaning verification by other users. A translation is considered verified if at least a specified number of other users have confirmed its correctness. Additionally, a translation may be rejected. The process for handling rejected translations still needs to be worked out in more detail.
+
+        h4(class="my-2 italic text-xl") Review queue
+        p The added translations go into a general review queue that is displayed on the service's website. Users can select translations and either approve or reject them. To limit the growth of the queue, once it reaches its maximum size, adding new translations is prohibited until the review queue decreases.
+
+        h3(class="my-2 text-2xl text-gray-700") Gamification
+        p For participating in the addition and review of translations, users earn points. The total amount of points is displayed in the user's profile. Additionally, the website features a leaderboard showing the total points for all time and for a recent period of several days.
+
+        h3(class="my-2 text-2xl text-gray-700") Export
+        p Approximately once a month, a snapshot of the database with verified translations is published in JSON Lines format. The export data license is CC-BY-4.0. When using the data, a reference to the Kazakh Verb Dictionary project is recommended but not required.
+        p In the event of project closure, the final export will be published in
+            a(class="px-1 text-green-600 underline", href="https://github.com/mxwell/aspan") the project's repository
+            span on GitHub.
+
+        h3(class="my-2 text-2xl text-gray-700") Funding
+        p
+            span The author independently covers the infrastructure expenses of the project within the established monthly limit.
