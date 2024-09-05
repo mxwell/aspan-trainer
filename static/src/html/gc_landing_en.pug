@@ -1,0 +1,29 @@
+include partials/gc_page_en
++a_gc_page_en("../javascripts/gc_description.jsx", "/gc_landing_en.pug", "/gc_landing_ru.pug")
+    div(class="lg:w-full flex flex-row justify-center")
+        div(class="my-10 lg:w-1/2")
+            h1(class="text-5xl text-gray-700 text-center")
+                span Creating
+                span(class="mx-2 p-4 bg-yellow-300 rounded-2xl") together
+            h1(class="text-5xl text-gray-700 text-center") Kazakh-Russian-English dictionary
+            h2(class="my-4 text-3xl text-gray-600 text-center") Open project to support Kazakh language
+            div(class="my-20 flex flex-row justify-center")
+                a(href="/login_ru.pug", class="mb-32")
+                    button(class="btn-gradient bg-blue-500 hover:bg-blue-700 mx-2 px-6 py-2 text-white text-3xl rounded-2xl focus:outline-none focus:shadow-outline flex flex-row") Join
+
+            div(class="my-6 flex flex-row")
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") About
+                    p(class="my-4") Our goal is to create an open dictionary with translations that is constantly updated by volunteers
+                    a(href="/gc_description_en.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") Learn more →
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") Stats
+                    p(class="my-4") Actual number of words with translations
+                    a(href="/gc_stats_en.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") See stats →
+                div(class="lg:w-1/3 p-4")
+                    h3(class="text-2xl") Updates
+                    p(class="my-4") New translations that have recently passed verification
+                    a(href="/gc_feed_en.pug")
+                        button(class="bg-gray-100 hover:bg-gray-200 px-4 py-2 text-gray-800 rounded-xl focus:outline-none focus:shadow-outline") Check out updates →
