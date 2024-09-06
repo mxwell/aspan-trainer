@@ -186,6 +186,13 @@ function gcStoreToken(gcToken) {
     globalGcTokenLoadAttempt = false;
 }
 
+function gcClearToken() {
+    const localStorage = window.localStorage;
+    console.log(`Clearing GC token if exists`);
+    localStorage.removeItem(gcTokenKey);
+    globalGcTokenLoadAttempt = false;
+}
+
 function gcLoadToken() {
     const localStorage = window.localStorage;
     const gcToken = localStorage.getItem(gcTokenKey);
@@ -229,6 +236,7 @@ export {
     gcGetLlmTranslations,
     parseJwt,
     gcStoreToken,
+    gcClearToken,
     gcLoadToken,
     gcGetUserId,
 };

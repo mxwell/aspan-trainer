@@ -40,6 +40,8 @@ mixin a_gc_page(l10n, js_path)
                                 a(href= l10n.secondLangLink)
                                     button(class="bg-blue-800 border-2 border-yellow-300 text-2xl lg:text-xl py-1 px-2")
                                         = l10n.secondLang
+                        a(href= l10n.linkGcLogout, class="mx-2 p-2 border-2 text-yellow-300 border-yellow-300")
+                            = l10n.titleGcLogout
                 article
                     block
                 footer(class="bg-blue-800 text-white flex justify-between")
