@@ -1,6 +1,6 @@
-import { gcCheckUser, gcClearToken, gcCreateUser, gcGetToken, gcLoadToken, parseJwt } from "./gc_api";
+import { gcCheckUser, gcClearToken, gcCreateUser, gcGetToken, gcLoadToken, gcStoreToken, parseJwt } from "./gc_api";
 import { i18n } from "./i18n";
-import { buildGcCreateUrl } from "./url";
+import { buildGcCreateUrl, parseParams } from "./url";
 
 function decodeJwtResponse(data){
     const parsed = parseJwt(data);
@@ -32,6 +32,7 @@ function storeTokenAndProceed(gcToken, lang) {
 async function handleNewTokenResponse(context, responseJsonPromise) {
     const response = await responseJsonPromise;
     const message = response.message;
+    const lang = context.lang;
     if (message == "ok") {
         const gcToken = response.token;
         if (gcToken == null || gcToken.length == 0) {
@@ -39,10 +40,9 @@ async function handleNewTokenResponse(context, responseJsonPromise) {
             return;
         }
         clearError();
-        storeTokenAndProceed(gcToken);
+        storeTokenAndProceed(gcToken, lang);
     } else {
         console.log(`handleNewTokenResponse: message: ${message}`);
-        const lang = context.lang;
         if (context.createUser == true) {
             displayError("failCreateUser", lang);
         } else {
