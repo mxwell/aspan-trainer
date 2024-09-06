@@ -23,7 +23,7 @@ parcel build static/src/html/gc_landing_{en,ru}.pug
 parcel build static/src/html/gc_reviews_{en,ru}.pug
 parcel build static/src/html/gc_search_{en,ru}.pug
 parcel build static/src/html/gc_stats_{en,ru}.pug
-parcel build static/src/html/login_ru.pug
+parcel build static/src/html/login_{en,ru}.pug
 
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/

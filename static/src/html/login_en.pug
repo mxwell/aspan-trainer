@@ -1,8 +1,8 @@
-include partials/gc_page_ru
-+a_gc_page_ru("../javascripts/login_ru.jsx", "/login_en.pug", "/login_ru.pug")
+include partials/gc_page_en
++a_gc_page_en("../javascripts/login_en.jsx", "/login_en.pug", "/login_ru.pug")
     div(class="m-4 flex flex-row justify-center")
         div(class="md:py-6 lg:max-w-6xl border-2 p-6 rounded")
-            h1(class="text-4xl py-6") Вход на сайт
+            h1(class="text-4xl py-6") Sign-in
             div(
                 id="g_id_onload",
                 data-client_id="523831376166-4cphvm3ftfo9e83co9m3itfms3fsf13h.apps.googleusercontent.com",
@@ -26,7 +26,7 @@ include partials/gc_page_ru
                 id="gc_name_form",
                 class="my-10 flex flex-col w-full invisible"
             )
-                p(class="text-2xl text-gray-700") Ваше имя на сайте
+                p(class="text-2xl text-gray-700") Your name to display on the website
                 div(class="flex flex-row justify-between w-full")
                     input(
                         id="gc_name_input",

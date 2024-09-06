@@ -20,6 +20,8 @@ mixin a_gc_page_en(react_app_path, en_link, ru_link)
         firstLang: "ENG",
         secondLangLink: ru_link,
         secondLang: "РУС",
+        titleGcLogout: "Sign out",
+        linkGcLogout: "/login_en.pug?logout=1",
       }
     +a_gc_page(l10n, react_app_path)
         block

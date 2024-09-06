@@ -1085,6 +1085,26 @@ function prepareGcOnlyTranslations(map) {
         "Russian translations",
         "Переводы на русский",
     );
+    setEnRu(map, "failCreateUser",
+        "Failed to create a user",
+        "Не удалось создать пользователя",
+    );
+    setEnRu(map, "failGetToken",
+        "Failed to get token",
+        "Не удалось получить токен",
+    );
+    setEnRu(map, "gotEmptyToken",
+        "Got an empty token",
+        "Получен пустой токен",
+    );
+    setEnRu(map, "tokenFailedVerification",
+        "Token didn't pass verification",
+        "Токен не прошёл проверку",
+    );
+    setEnRu(map, "failedToVerifyToken",
+        "Failed to verify token",
+        "Не удалось проверить токен",
+    );
 }
 
 function prepareTranslations() {
