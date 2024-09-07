@@ -4,9 +4,19 @@ function extendHeadersWithToken(headers, idToken) {
     }
 }
 
+class InvalidAuthTokenException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = this.constructor.name;
+    }
+}
+
 function makeGenericApiRequest(method, url, params, successCallback, errorCallback, context, idToken, expectJson) {
     if (method !== "GET" && method !== "POST") {
         throw "unsupported http method " + method;
+    }
+    if (idToken == null) {
+        throw new InvalidAuthTokenException("no auth token is provided");
     }
     let headers = {};
     if (method == "POST") {
@@ -73,6 +83,7 @@ function loadTopList(successCallback, errorCallback) {
 }
 
 export {
+    InvalidAuthTokenException,
     makeGetApiRequest,
     makeJsonApiRequest,
     encodeQueryData,

@@ -1,4 +1,4 @@
-import { gcCheckUser, gcClearToken, gcCreateUser, gcGetToken, gcLoadToken, gcStoreToken, parseJwt } from "./gc_api";
+import { gcCheckUser, gcClearToken, gcCreateUser, gcGetToken, gcLoadToken, gcStoreToken, gcTokenIsValid, parseJwt } from "./gc_api";
 import { i18n } from "./i18n";
 import { buildGcCreateUrl, parseParams } from "./url";
 
@@ -144,24 +144,6 @@ function handleCredentialResponse(response, lang) {
     console.log(`Google ID token (JWT): ${response.credential}`);
     const name = decodeJwtResponse(response.credential);
     startGcCheckUser(response.credential, name, lang);
-}
-
-function gcTokenIsValid(gcToken) {
-    if (gcToken == null || gcToken.length == 0) {
-        return false;
-    }
-    const parsed = parseJwt(gcToken);
-    console.log(`Parsed GC token: ${JSON.stringify(parsed)}`);
-    const exp = parsed.exp;
-    if (exp == null) {
-        return false;
-    }
-    const now = Math.floor(Date.now() / 1000)
-    if (now >= exp) {
-        console.log(`GC token expired: now ${now} >= ${exp}`);
-        return false;
-    }
-    return true;
 }
 
 function loginSetup(lang) {

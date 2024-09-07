@@ -3,8 +3,9 @@ import { i18n } from "../lib/i18n";
 import { gcAddReviewVote, gcDiscardReview, gcGetReviews, gcRetractReviewVote } from "../lib/gc_api";
 import { unixEpochToString } from "../lib/datetime";
 import { renderComment } from "./gc_common";
-import { buildGcReviewsUrl, parseParams } from "../lib/url";
+import { buildGcLoginUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
 import { COMMON_TRANS_DIRECTIONS, COMMON_TRANS_DIRECTION_BY_KEY } from "../lib/gc";
+import { InvalidAuthTokenException } from "../lib/requests";
 
 /**
  * props:
@@ -65,6 +66,11 @@ class GcReviewsApp extends React.Component {
             voting: false,
             error: true,
         });
+    }
+
+    redirToLogin() {
+        const url = buildGcLoginUrl(this.props.lang);
+        window.location.href = url;
     }
 
     async handleGetReviewsResponse(context, responseJsonPromise) {
@@ -183,21 +189,41 @@ class GcReviewsApp extends React.Component {
         const voting = true;
         this.setState({ voting });
         if (delta > 0) {
-            gcAddReviewVote(
-                reviewId,
-                vote,
-                this.handleChangeReviewVoteResponse,
-                this.handleChangeReviewVoteError,
-                { reviewId },
-            );
+            try {
+                gcAddReviewVote(
+                    reviewId,
+                    vote,
+                    this.handleChangeReviewVoteResponse,
+                    this.handleChangeReviewVoteError,
+                    { reviewId },
+                );
+            } catch (exc) {
+                if (exc instanceof InvalidAuthTokenException) {
+                    console.log("Caught InvalidAuthTokenException");
+                    this.redirToLogin();
+                } else {
+                    console.log(`Caught unknown exception: {exc}`);
+                    throw exc;
+                }
+            }
         } else {
-            gcRetractReviewVote(
-                reviewId,
-                vote,
-                this.handleChangeReviewVoteResponse,
-                this.handleChangeReviewVoteError,
-                { reviewId },
-            );
+            try {
+                gcRetractReviewVote(
+                    reviewId,
+                    vote,
+                    this.handleChangeReviewVoteResponse,
+                    this.handleChangeReviewVoteError,
+                    { reviewId },
+                );
+            } catch (exc) {
+                if (exc instanceof InvalidAuthTokenException) {
+                    console.log("Caught InvalidAuthTokenException");
+                    this.redirToLogin();
+                } else {
+                    console.log(`Caught unknown exception: {exc}`);
+                    throw exc;
+                }
+            }
         }
     }
 
@@ -242,12 +268,22 @@ class GcReviewsApp extends React.Component {
         }
         const voting = true;
         this.setState({ voting });
-        gcDiscardReview(
-            reviewId,
-            this.handleDiscardReviewResponse,
-            this.handleDiscardReviewError,
-            { reviewId },
-        );
+        try {
+            gcDiscardReview(
+                reviewId,
+                this.handleDiscardReviewResponse,
+                this.handleDiscardReviewError,
+                { reviewId },
+            );
+        } catch (exc) {
+            if (exc instanceof InvalidAuthTokenException) {
+                console.log("Caught InvalidAuthTokenException");
+                this.redirToLogin();
+            } else {
+                console.log(`Caught unknown exception: {exc}`);
+                throw exc;
+            }
+        }
     }
 
     renderDirectionLink(titleKey, url) {

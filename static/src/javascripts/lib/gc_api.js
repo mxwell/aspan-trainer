@@ -99,7 +99,7 @@ function gcGetReviews(direction, successCallback, errorCallback, context) {
     );
     const query = encodeQueryData(params);
     const url = `/gcapi/v1/get_reviews?${query}`;
-    const token = getCurrentGcToken();
+    const token = getCurrentGcToken() || "lala";
     return makeGetApiRequest(url, successCallback, errorCallback, context, token, true);
 }
 
@@ -179,6 +179,24 @@ function parseJwt (token) {
     return JSON.parse(jsonPayload);
 }
 
+function gcTokenIsValid(gcToken) {
+    if (gcToken == null || gcToken.length == 0) {
+        return false;
+    }
+    const parsed = parseJwt(gcToken);
+    console.log(`Parsed GC token: ${JSON.stringify(parsed)}`);
+    const exp = parsed.exp;
+    if (exp == null) {
+        return false;
+    }
+    const now = Math.floor(Date.now() / 1000)
+    if (now >= exp) {
+        console.log(`GC token expired: now ${now} >= ${exp}`);
+        return false;
+    }
+    return true;
+}
+
 function gcStoreToken(gcToken) {
     const localStorage = window.localStorage;
     console.log(`Storing GC token of length ${gcToken.length}`);
@@ -195,11 +213,14 @@ function gcClearToken() {
 
 function gcLoadToken() {
     const localStorage = window.localStorage;
-    const gcToken = localStorage.getItem(gcTokenKey);
-    if (gcToken != null) {
-        console.log(`Loaded GC token of length ${gcToken.length}`);
-    } else {
+    let gcToken = localStorage.getItem(gcTokenKey);
+    if (gcToken == null) {
         console.log(`No GC token is found`);
+    } else if (!gcTokenIsValid(gcToken)) {
+        console.log(`Loaded GC token is not valid`);
+        gcToken = null;
+    } else {
+        console.log(`Loaded GC token of length ${gcToken.length}`);
     }
     globalGcTokenLoadAttempt = true;
     return gcToken;
@@ -235,6 +256,7 @@ export {
     gcGetUntranslated,
     gcGetLlmTranslations,
     parseJwt,
+    gcTokenIsValid,
     gcStoreToken,
     gcClearToken,
     gcLoadToken,

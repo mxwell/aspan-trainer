@@ -146,6 +146,10 @@ function buildVerbGymUrl(lang) {
     return "/verb_gym_en.html";
 }
 
+function buildGcLoginUrl(lang) {
+    return `/login_${lang}.html`;
+}
+
 function buildGcSearchUrl(word, src, dst, lang) {
     let params = [
         `w=${encodeURI(trimAndLowercase(word))}`,
@@ -212,6 +216,7 @@ export {
     buildViewerUrl2,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
+    buildGcLoginUrl,
     buildGcSearchUrl,
     buildGcCreateUrl,
     buildGcCreatePrefilledUrl,
