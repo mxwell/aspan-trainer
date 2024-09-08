@@ -239,6 +239,7 @@ function gcGetUserId() {
 }
 
 export {
+    getCurrentGcToken,
     gcCheckUser,
     gcCreateUser,
     gcGetToken,

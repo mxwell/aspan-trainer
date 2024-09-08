@@ -2,11 +2,11 @@ import React from "react";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
 import { trimAndLowercase } from "../lib/input_validation";
-import { gcAddReview, gcAddWord, gcGetUntranslated, gcGetWords } from "../lib/gc_api";
+import { gcAddReview, gcAddWord, gcGetUntranslated, gcGetWords, getCurrentGcToken } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
 import GcWordCreate from "./gc_word_create";
-import { buildGcCreatePrefilledUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
+import { buildGcCreatePrefilledUrl, buildGcLoginUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
 import { editButton } from "./edit_button";
 
 const DIRECTIONS = [
@@ -134,6 +134,12 @@ class GcCreateApp extends React.Component {
     }
 
     readUrlState() {
+        const token = getCurrentGcToken();
+        if (token == null) {
+            this.redirToLogin();
+            return;
+        }
+
         const params = parseParams();
         const src = params.src;
         const dst = params.dst;
@@ -160,6 +166,11 @@ class GcCreateApp extends React.Component {
 
     i18n(key) {
         return i18n(key, this.props.lang);
+    }
+
+    redirToLogin() {
+        const url = buildGcLoginUrl(this.props.lang);
+        window.location.href = url;
     }
 
     isLocked() {
