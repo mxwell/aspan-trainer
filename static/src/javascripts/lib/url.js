@@ -174,10 +174,13 @@ function buildGcCreatePrefilledUrl(word, src, dst, lang) {
     return buildUrl(path, params);
 }
 
-function buildGcReviewsUrl(dir, lang) {
+function buildGcReviewsUrl(page, dir, lang) {
     let params = [];
     if (dir) {
         params.push(`dir=${dir}`);
+    }
+    if (page > 0) {
+        params.push(`p=${page}`);
     }
     const path = `/gc_reviews_${lang}.html`;
     return buildUrl(path, params);

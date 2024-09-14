@@ -91,11 +91,11 @@ function gcGetFeed(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcGetReviews(direction, successCallback, errorCallback, context) {
+function gcGetReviews(page, direction, successCallback, errorCallback, context) {
     let params = (
         (direction != null)
-        ? { src: direction.src, dst: direction.dst }
-        : {}
+        ? { src: direction.src, dst: direction.dst, p: page }
+        : { p: page }
     );
     const query = encodeQueryData(params);
     const url = `/gcapi/v1/get_reviews?${query}`;

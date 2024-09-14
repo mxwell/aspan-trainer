@@ -25,11 +25,12 @@ class GcReviewsApp extends React.Component {
 
         const state = this.readUrlState() || this.defaultState();
         this.state = state;
-        this.startGetReviews(state.direction);
+        this.startGetReviews(state.page, state.direction);
     }
 
-    makeState(direction) {
+    makeState(page, direction) {
         return {
+            page: page,
             direction: direction,
             loading: true,
             voting: false,
@@ -39,21 +40,22 @@ class GcReviewsApp extends React.Component {
     }
 
     defaultState() {
-        return this.makeState(null);
+        return this.makeState(0, null);
     }
 
     readUrlState() {
         const params = parseParams();
         const dirKey = params.dir;
-        if (dirKey == null) {
-            return null;
+        let direction = null;
+        if (dirKey != null) {
+            direction = COMMON_TRANS_DIRECTION_BY_KEY[dirKey];
+            if (direction == null) {
+                console.log(`readUrlState: invalid direction ${dirKey}`);
+                return null;
+            }
         }
-        const direction = COMMON_TRANS_DIRECTION_BY_KEY[dirKey];
-        if (direction == null) {
-            console.log(`readUrlState: invalid direction ${dirKey}`);
-            return null;
-        }
-        return this.makeState(direction);
+        const page = Math.max(0, Number(params.p)) || 0;
+        return this.makeState(page, direction);
     }
 
     i18n(key) {
@@ -98,8 +100,9 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    startGetReviews(direction) {
+    startGetReviews(page, direction) {
         gcGetReviews(
+            page,
             direction,
             this.handleGetReviewsResponse,
             this.handleGetReviewsError,
@@ -301,7 +304,7 @@ class GcReviewsApp extends React.Component {
     renderDirNavigation() {
         const direction = this.state.direction;
         const links = [
-            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(null, this.props.lang) : null)
+            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(0, null, this.props.lang) : null)
         ];
         for (let transDirection of COMMON_TRANS_DIRECTIONS) {
             const matches = (
@@ -309,7 +312,7 @@ class GcReviewsApp extends React.Component {
                 && transDirection.src == direction.src
                 && transDirection.dst == direction.dst
             );
-            const url = matches ? null : buildGcReviewsUrl(transDirection.toKey(), this.props.lang);
+            const url = matches ? null : buildGcReviewsUrl(0, transDirection.toKey(), this.props.lang);
             links.push(this.renderDirectionLink(transDirection.toKey(), url));
         }
         return (
@@ -491,6 +494,40 @@ class GcReviewsApp extends React.Component {
         );
     }
 
+    renderPagination() {
+        const reviews = this.state.reviews;
+        if (reviews == null) {
+            return null;
+        }
+        const page = this.state.page;
+        const direction = this.state.direction;
+        const dir = (direction != null) ? direction.toKey() : null;
+        const links = [];
+        if (page > 1) {
+            links.push({href: buildGcReviewsUrl(0, dir, this.props.lang), label: "⇤"});
+        }
+        if (page > 0) {
+            links.push({href: buildGcReviewsUrl(page - 1, dir, this.props.lang), label: "←"});
+        }
+        if (reviews.length >= 20) {
+            links.push({href: buildGcReviewsUrl(page + 1, dir, this.props.lang), label: "→"});
+        }
+        const htmlLinks = [];
+        for (let link of links) {
+            htmlLinks.push(
+                <a
+                    className="mx-2 bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-6 py-1 rounded focus:outline-none focus:shadow-outline"
+                    href={link.href}
+                    key={htmlLinks.length}>{link.label}</a>
+            );
+        }
+        return (
+            <div className="flex flex-row justify-center">
+                {htmlLinks}
+            </div>
+        );
+    }
+
     render() {
         return (
             <div className="w-full lg:w-1/2">
@@ -499,6 +536,7 @@ class GcReviewsApp extends React.Component {
                 </h1>
                 {this.renderDirNavigation()}
                 {this.renderReviews()}
+                {this.renderPagination()}
             </div>
         );
     }

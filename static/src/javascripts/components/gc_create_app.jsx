@@ -859,7 +859,7 @@ class GcCreateApp extends React.Component {
                             <img src="/restart.svg" alt="restart button" />
                         </button>
                     </form>
-                    <a href={buildGcReviewsUrl(null, this.props.lang)}
+                    <a href={buildGcReviewsUrl(0, null, this.props.lang)}
                         className="my-4 text-xl text-green-400 text-center underline">{this.i18n("titleReviews")}
                     </a>
                 </div>
