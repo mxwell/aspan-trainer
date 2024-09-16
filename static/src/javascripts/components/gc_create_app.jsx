@@ -1,7 +1,7 @@
 import React from "react";
 import { TransDirection, buildDirectionByKeyMap } from "../lib/gc";
 import { i18n } from "../lib/i18n";
-import { trimAndLowercase } from "../lib/input_validation";
+import { trimAndLowercase, validateDictWord } from "../lib/input_validation";
 import { gcAddReview, gcAddWord, gcGetUntranslated, gcGetWords, getCurrentGcToken } from "../lib/gc_api";
 import GcWordStart from "./gc_word_start";
 import GcWordSelection from "./gc_word_selection";
@@ -96,12 +96,13 @@ class GcCreateApp extends React.Component {
         this.state = this.readUrlState() || this.defaultState();
     }
 
-    makeState(direction, lastEnteredWord) {
+    makeState(direction, lastEnteredWord, invalidWord) {
         return {
             untranslated: null,
             direction: direction,
             word: null,
             lastEnteredWord: lastEnteredWord,
+            invalidWord: invalidWord,
             foundWords: null,
             preselectedWordId: null,
             selectedWordId: null,
@@ -112,6 +113,7 @@ class GcCreateApp extends React.Component {
             excVerb: null,
             translation: null,
             lastEnteredTranslation: "",
+            invalidTranslation: false,
             foundTranslations: null,
             preselectedTranslationId: null,
             selectedTranslationId: null,
@@ -130,6 +132,7 @@ class GcCreateApp extends React.Component {
         return this.makeState(
             /* direction */ null,
             /* lastEnteredWord */ "",
+            /* invalidWord */ false,
         );
     }
 
@@ -158,9 +161,11 @@ class GcCreateApp extends React.Component {
             console.log(`readUrlState: too long word in params`);
             return null;
         }
+        const invalidWord = !validateDictWord(word, src);
         return this.makeState(
             direction,
             /* lastEnteredWord */ word,
+            invalidWord,
         );
     }
 
@@ -196,7 +201,10 @@ class GcCreateApp extends React.Component {
     }
 
     onWordChange(lastEnteredWord) {
-        this.setState({ lastEnteredWord });
+        const direction = this.state.direction;
+        const s = trimAndLowercase(lastEnteredWord);
+        const invalidWord = !validateDictWord(s, direction.src);
+        this.setState({ lastEnteredWord, invalidWord });
     }
 
     async handleGetUntranslatedResponse(context, responseJsonPromise) {
@@ -360,7 +368,10 @@ class GcCreateApp extends React.Component {
     }
 
     onTranslationChange(lastEnteredTranslation) {
-        this.setState({ lastEnteredTranslation });
+        const direction = this.state.direction;
+        const s = trimAndLowercase(lastEnteredTranslation);
+        const invalidTranslation = !validateDictWord(s, direction.dst);
+        this.setState({ lastEnteredTranslation, invalidTranslation });
     }
 
     onTranslationSubmit(event) {
@@ -642,7 +653,7 @@ class GcCreateApp extends React.Component {
 
     onRestart(event) {
         event.preventDefault();
-        this.setState(this.makeState(this.state.direction, /* lastEnteredWord */ ""));
+        this.setState(this.makeState(this.state.direction, /* lastEnteredWord */ "", /* invalidWord */ false));
     }
 
     renderUntranslated() {
@@ -732,6 +743,7 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 wordLang={direction.src}
                 lastEntered={this.state.lastEnteredWord}
+                invalidWord={this.state.invalidWord}
                 word={word}
                 srcWordId={null}
                 changeCallback={this.onWordChange}
@@ -785,6 +797,7 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 wordLang={direction.dst}
                 lastEntered={this.state.lastEnteredTranslation}
+                invalidWord={this.state.invalidTranslation}
                 word={translation}
                 srcWordId={srcWordId}
                 changeCallback={this.onTranslationChange}

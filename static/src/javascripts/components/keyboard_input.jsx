@@ -6,6 +6,7 @@ import { Keyboard, backspaceTextInput, insertIntoTextInput } from "./keyboard";
  * - title
  * - placeholder
  * - lastEntered
+ * - invalidWord
  * - changeCallback
  * - submitCallback
  */
@@ -50,6 +51,18 @@ class KeyboardInput extends React.Component {
     }
 
     render() {
+        const invalid = this.props.invalidWord;
+        const disabled = invalid ? "disabled" : null;
+        const inputBorder = (
+            invalid
+            ? "border-red-600 border-2"
+            : "border"
+        );
+        const buttonBg = (
+            invalid
+            ? "bg-gray-500"
+            : "bg-blue-500 hover:bg-blue-700"
+        );
         return (
             <form
                 onSubmit={this.props.submitCallback}
@@ -69,11 +82,12 @@ class KeyboardInput extends React.Component {
                         value={this.props.lastEntered}
                         onChange={this.onWordChange}
                         placeholder={this.props.placeholder}
-                        className="w-full shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        className={`w-full shadow appearance-none rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline ${inputBorder}`}
                         autoFocus />
                     <button
                         type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        disabled={disabled}
+                        className={`text-white text-4xl font-bold mx-2 px-4 rounded focus:outline-none focus:shadow-outline ${buttonBg}`}>
                         →
                     </button>
                 </div>
