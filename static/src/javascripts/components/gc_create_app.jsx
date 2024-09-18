@@ -444,9 +444,16 @@ class GcCreateApp extends React.Component {
         return null;
     }
 
-    getUserWordIdsFromWordInfo(wordInfo) {
+    getTranslatedWordIdsFromWordInfo(wordInfo) {
         if (wordInfo != null && wordInfo.translated_word_ids != null) {
             return wordInfo.translated_word_ids;
+        }
+        return [];
+    }
+
+    getReviewWordIdsFromWordInfo(wordInfo) {
+        if (wordInfo != null && wordInfo.review_word_ids != null) {
+            return wordInfo.review_word_ids;
         }
         return [];
     }
@@ -761,7 +768,8 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 foundWords={foundWords}
                 selectedWordId={selectedWordId}
-                usedWordIds={[]}
+                translatedWordIds={[]}
+                reviewWordIds={[]}
                 selectCallback={this.onWordSelect}
                 submitCallback={this.onWordSelectionSubmit}
                 resetCallback={this.onWordSelectionReset} />
@@ -806,7 +814,7 @@ class GcCreateApp extends React.Component {
         );
     }
 
-    renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, usedWordIds) {
+    renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, translatedWordIds, reviewWordIds) {
         if (!readyForTranslation || translation == null) {
             return null;
         }
@@ -815,7 +823,8 @@ class GcCreateApp extends React.Component {
                 lang={this.props.lang}
                 foundWords={foundTranslations}
                 selectedWordId={selectedTranslationId}
-                usedWordIds={usedWordIds}
+                translatedWordIds={translatedWordIds}
+                reviewWordIds={reviewWordIds}
                 selectCallback={this.onTranslationSelect}
                 submitCallback={this.onTranslationSelectionSubmit}
                 resetCallback={this.onTranslationSelectionReset} />
@@ -950,7 +959,8 @@ class GcCreateApp extends React.Component {
         const translation = this.state.translation;
         const foundTranslations = this.state.foundTranslations;
         const selectedTranslationId = this.state.selectedTranslationId;
-        const usedWordIds = this.getUserWordIdsFromWordInfo(srcWordInfo);
+        const translatedWordIds = this.getTranslatedWordIdsFromWordInfo(srcWordInfo);
+        const reviewWordIds = this.getReviewWordIdsFromWordInfo(srcWordInfo);
         const preferredTranslationPos = this.getPreferredTranslationPos();
         const selectedTranslationPos = this.state.selectedTranslationPos;
         const translationComment = this.state.translationComment;
@@ -967,7 +977,7 @@ class GcCreateApp extends React.Component {
                 {this.renderWordSelection(word, foundWords, selectedWordId)}
                 {this.renderNewWordDetails(direction, foundWords, selectedWordId, selectedPos, comment, excVerb)}
                 {this.renderTranslationPart(readyForTranslation, srcWordId, direction, translation)}
-                {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, usedWordIds)}
+                {this.renderTranslationSelection(readyForTranslation, translation, foundTranslations, selectedTranslationId, translatedWordIds, reviewWordIds)}
                 {this.renderTranslationCreate(readyForTranslation, direction, foundTranslations, selectedTranslationId, preferredTranslationPos, selectedTranslationPos, translationComment)}
                 {this.renderCreateButton(readyToCreate)}
             </div>

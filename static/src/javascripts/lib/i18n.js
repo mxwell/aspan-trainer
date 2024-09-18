@@ -913,6 +913,14 @@ function prepareGcOnlyTranslations(map) {
         "Loading words…",
         "Загрузка слов…",
     );
+    setEnRu(map, "translationExists",
+        "translation exists",
+        "перевод существует",
+    );
+    setEnRu(map, "inReview",
+        "in review",
+        "на ревью",
+    );
     setEnRu(map, "selectExistingOrCreateNew",
         "Select existing word or create a new one",
         "Выберите существующее слово или создайте новое",

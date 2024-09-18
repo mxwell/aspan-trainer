@@ -8,7 +8,8 @@ import { editButton } from "./edit_button";
  * - lang
  * - foundWords
  * - selectedWordId
- * - usedWordIds
+ * - translatedWordIds
+ * - reviewWordIds
  * - selectCallback
  * - submitCallback
  * - resetCallback
@@ -37,9 +38,18 @@ class GcWordSelection extends React.Component {
         return null;
     }
 
-    checkIfUsed(wordId) {
-        for (let usedWordId of this.props.usedWordIds) {
+    checkIfTranslated(wordId) {
+        for (let usedWordId of this.props.translatedWordIds) {
             if (usedWordId == wordId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    checkIfReview(wordId) {
+        for (let reviewWordId of this.props.reviewWordIds) {
+            if (reviewWordId == wordId) {
                 return true;
             }
         }
@@ -52,7 +62,17 @@ class GcWordSelection extends React.Component {
         let focused = false;
         for (let index in foundWords) {
             const entry = foundWords[index];
-            const used = this.checkIfUsed(entry.word_id);
+            const translated = this.checkIfTranslated(entry.word_id);
+            const review = this.checkIfReview(entry.word_id);
+            const used = translated || review;
+            let useLabel = null;
+            if (used) {
+                if (translated) {
+                    useLabel = <span className="italic mr-2 text-red-500">({this.i18n("translationExists")})</span>;
+                } else if (review) {
+                    useLabel = <span className="italic mr-2 text-red-500">({this.i18n("inReview")})</span>
+                }
+            }
             const labelClass = (
                 used
                 ? "px-2 py-2 text-gray-600"
@@ -81,7 +101,7 @@ class GcWordSelection extends React.Component {
                     <label
                         className={labelClass}
                         htmlFor={index} >
-                        {entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass, 128)}
+                        {useLabel}{entry.word}&nbsp;{this.renderPos(entry.pos, entry.exc_verb)}{renderComment(entry.comment, commentClass, 128)}
                     </label>
                 </div>
             );
