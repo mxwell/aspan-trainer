@@ -33,7 +33,7 @@ import {
 } from '../lib/verb_forms';
 import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
-import { hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
+import { cleanWhitespace, hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
 import { unpackDetectResponse } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 import { generatePromoDeclensionForms } from '../lib/declension';
@@ -640,10 +640,15 @@ class ViewerApp extends React.Component {
     onSubmit(e) {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
+        const lastEntered = cleanWhitespace(this.state.lastEntered);
+        if (lastEntered.length == 0) {
+            console.log("empty input after clean");
+            return;
+        }
         if (RELOAD_ON_SUBMIT) {
-            this.reloadToState(this.state.lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb, this.state.auxNeg);
+            this.reloadToState(lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb, this.state.auxNeg);
         } else {
-            let tenses = generateVerbForms(this.state.lastEntered, this.state.auxVerb, this.state.auxNeg, forceExceptional, this.state.sentenceType);
+            let tenses = generateVerbForms(lastEntered, this.state.auxVerb, this.state.auxNeg, forceExceptional, this.state.sentenceType);
             let tensesSentenceType = this.state.sentenceType;
             this.setState({ tenses, tensesSentenceType });
         }

@@ -12,6 +12,27 @@ export function trimAndLowercase(s) {
     return s.trim().toLowerCase();
 }
 
+export function cleanWhitespace(s) {
+    let result = "";
+    let space = false;
+    let other = false;
+    for (const ch of s) {
+        if (/\s/g.test(ch)) {
+            space = true;
+        } else {
+            if (space) {
+                if (other) {
+                    result += " ";
+                }
+                space = false;
+            }
+            result += ch;
+            other = true;
+        }
+    }
+    return result;
+}
+
 const EN_WORD_PATTERN = /^[A-Za-z-'/ ]+$/;
 const KK_WORD_PATTERN = /^[А-Яа-я-'ЁӘІҢҒҮҰҚӨҺёәіңғүұқөһ/ ]+$/;
 const RU_WORD_PATTERN = /^[А-Яа-я-'ё/ ]+$/;
