@@ -324,15 +324,16 @@ class ViewerApp extends React.Component {
             warning = this.i18n("mixedAlphabets");
         }
         let meanings = null;
-        const normalized = detectValidVerb(trimAndLowercase(verb));
+        const verbL = trimAndLowercase(verb);
+        const normalized = detectValidVerb(verbL);
         let recognized = false;
         if (normalized != null) {
             try {
                 tenses = generateVerbForms(normalized, auxVerb, auxNeg, forceExceptional, sentenceType);
-                setPageTitle(verb);
+                setPageTitle(verbL);
                 meanings = getOptionalExceptionalVerbMeanings(normalized);
                 if (meanings != null) {
-                    const verbPart = getVerbMainPart(normalized);
+                    const verbPart = getVerbMainPart(verbL);
                     warning = this.i18n("verbHasTwoMeaningsTempl")(verbPart);
                 }
                 recognized = true;
