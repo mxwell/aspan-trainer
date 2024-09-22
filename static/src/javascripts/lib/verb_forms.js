@@ -4,6 +4,8 @@ import {
     VerbBuilder,
     getOptExceptVerbMeanings,
     NounBuilder,
+    validateVerb,
+    convertLatin20210128ToCyrillic,
 } from './aspan';
 import { AUX_VERBS } from './aux_verbs';
 import {
@@ -78,6 +80,19 @@ export function generatePromoVerbForms(verb, forceExceptional) {
         forms.push(new VerbForm(pronoun, null, phrasal, false));
     }
     return new TenseForms("presentTransitive", "present", forms);
+}
+
+export function detectValidVerb(verb) {
+    if (validateVerb(verb)) {
+        return verb;
+    }
+    if (verb.endsWith("u")) {
+        const converted = convertLatin20210128ToCyrillic(verb);
+        if (validateVerb(converted)) {
+            return converted;
+        }
+    }
+    return null;
 }
 
 export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sentenceType) {

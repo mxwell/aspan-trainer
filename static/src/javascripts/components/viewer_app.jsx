@@ -27,6 +27,7 @@ import {
     generateParticipleForms,
     generateVerbForms,
     generatePromoVerbForms,
+    detectValidVerb,
 } from '../lib/verb_forms';
 import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
@@ -231,12 +232,13 @@ class ViewerApp extends React.Component {
         this.state = this.requestInfo() || this.defaultState();
     }
 
-    makeState(loading, verb, forceExceptional, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
+    makeState(loading, verb, normalized, forceExceptional, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
             loading: loading,
             verb: verb,
+            normalized: normalized,
             forceExceptional: forceExceptional,
             known: known,
             auxVerb: auxVerb,
@@ -263,6 +265,7 @@ class ViewerApp extends React.Component {
         return this.makeState(
             /* loading */ loading,
             /* verb */ "",
+            /* normalized */ null,
             /* forceExceptional */ false,
             /* known */ false,
             /* auxVerb */ AUX_VERBS[0],
@@ -298,8 +301,11 @@ class ViewerApp extends React.Component {
         if (verb == null || verb.length <= 0) {
             return null;
         }
-        const verbL = trimAndLowercase(verb);
-        this.requestTranslation(params, verbL);
+        const normalized = detectValidVerb(trimAndLowercase(verb));
+        if (normalized == null) {
+            return this.readUrlState(params, false, null);
+        }
+        this.requestTranslation(params, normalized);
         return this.loadingState();
     }
 
@@ -318,23 +324,30 @@ class ViewerApp extends React.Component {
             warning = this.i18n("mixedAlphabets");
         }
         let meanings = null;
-        try {
-            const verbL = trimAndLowercase(verb);
-            tenses = generateVerbForms(verbL, auxVerb, auxNeg, forceExceptional, sentenceType);
-            setPageTitle(verb);
-            meanings = getOptionalExceptionalVerbMeanings(verbL);
-            if (meanings != null) {
-                const verbPart = getVerbMainPart(verbL);
-                warning = this.i18n("verbHasTwoMeaningsTempl")(verbPart);
+        const normalized = detectValidVerb(trimAndLowercase(verb));
+        let recognized = false;
+        if (normalized != null) {
+            try {
+                tenses = generateVerbForms(normalized, auxVerb, auxNeg, forceExceptional, sentenceType);
+                setPageTitle(verb);
+                meanings = getOptionalExceptionalVerbMeanings(normalized);
+                if (meanings != null) {
+                    const verbPart = getVerbMainPart(normalized);
+                    warning = this.i18n("verbHasTwoMeaningsTempl")(verbPart);
+                }
+                recognized = true;
+            } catch (err) {
+                console.log(`Error during form generation: ${err}`);
             }
-        } catch (err) {
-            console.log(`Error during form generation: ${err}`);
+        }
+        if (!recognized) {
             warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
             this.startDetection(verb);
         }
         return this.makeState(
             /* loading */ false,
             verb,
+            normalized,
             forceExceptional,
             known,
             auxVerb,
@@ -653,11 +666,14 @@ class ViewerApp extends React.Component {
         if (tense != "presentTransitive") {
             return null;
         }
-        let verb = this.state.verb;
+        const normalized = this.state.normalized;
+        if (normalized == null) {
+            return null;
+        }
         let sentenceType = this.state.tensesSentenceType;
         let personNumber = PERSON_NUMBER_LIST[persoNumberIndex];
         let url = buildExplanationUrl(
-            verb,
+            normalized,
             tense,
             sentenceType,
             this.state.forceExceptional,
@@ -676,8 +692,11 @@ class ViewerApp extends React.Component {
         if (!verbForm.declinable) {
             return null;
         }
-        const subject = verbForm.verbPhrase.raw;
-        const url = buildParticipleDeclensionUrl(this.state.verb, verbForm.formKey, this.state.sentenceType, this.props.lang);
+        const normalized = this.state.normalized;
+        if (normalized == null) {
+            return null;
+        }
+        const url = buildParticipleDeclensionUrl(normalized, verbForm.formKey, this.state.sentenceType, this.props.lang);
         return (
             <td className="pl-1">
                 [<a
@@ -697,7 +716,7 @@ class ViewerApp extends React.Component {
         audio.play();
     }
 
-    renderAudio(verb, fe, known, form) {
+    renderAudio(normalized, fe, known, form) {
         if (!known) {
             return null;
         }
@@ -707,7 +726,7 @@ class ViewerApp extends React.Component {
             : ""
         );
         const audioText = `${audioTextPrefix}${form.verbPhrase.raw}`;
-        const audioUrl = buildVerbFormAudioUrl(verb, fe, audioText);
+        const audioUrl = buildVerbFormAudioUrl(normalized, fe, audioText);
         return (
             <td>
                 <img
@@ -719,7 +738,7 @@ class ViewerApp extends React.Component {
     }
 
     renderFormRows(tenseForms, tense) {
-        const verb = this.state.verb;
+        const normalized = this.state.normalized;
         const fe = this.state.forceExceptional;
         const known = this.state.known;
 
@@ -728,14 +747,13 @@ class ViewerApp extends React.Component {
             let form = tenseForms.forms[i];
             const labelText = form.pronoun || this.i18n(form.formKey);
 
-
             rows.push(
                 <tr
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
                     <td>{labelText}</td>
                     <td>{highlightPhrasal(form.verbPhrase)}</td>
-                    {this.renderAudio(verb, fe, known, form)}
+                    {this.renderAudio(normalized, fe, known, form)}
                     {this.buildExplanationLinkCell(tense, i)}
                     {this.buildDeclensionLinkCell(form)}
                 </tr>
