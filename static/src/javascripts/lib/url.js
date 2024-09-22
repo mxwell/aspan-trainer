@@ -18,10 +18,6 @@ function parseParams() {
     return result;
 }
 
-function isSsrPage() {
-    return window.location.pathname.startsWith("/ssr/");
-}
-
 function extractSsrVerb() {
     const path = window.location.pathname;
     const slash = path.lastIndexOf("/");
@@ -80,22 +76,6 @@ function buildVerbDetectorUrl(form, lang) {
     ];
     const path = `/verb_detector_${lang}.html`;
     return buildUrl(path, params);
-}
-
-function buildViewerUrl(verb, sentenceType, forceExceptional) {
-    const path = isSsrPage() ? "/" : window.location.pathname;
-    if (verb != null) {
-        let params = [];
-        params.push(`verb=${encodeURI(verb)}`);
-        if (sentenceType != null) {
-            params.push(`sentence_type=${sentenceType.toLowerCase()}`);
-        }
-        if (forceExceptional == true) {
-            params.push(`exception=true`);
-        }
-        return `${path}?${params.join("&")}`;
-    }
-    return path;
 }
 
 function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, auxNeg) {
@@ -215,7 +195,6 @@ export {
     buildParticipleDeclensionUrl,
     buildExplanationUrl,
     buildVerbDetectorUrl,
-    buildViewerUrl,
     buildViewerUrl2,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
@@ -225,7 +204,6 @@ export {
     buildGcCreatePrefilledUrl,
     buildGcReviewsUrl,
     extractSsrVerb,
-    isSsrPage,
     parseParams,
     buildGlosbeUrl,
     buildLugatUrl,

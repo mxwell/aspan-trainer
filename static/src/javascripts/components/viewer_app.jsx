@@ -18,10 +18,7 @@ import {
     buildVerbDetectorUrl,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
-    buildViewerUrl,
     buildViewerUrl2,
-    extractSsrVerb,
-    isSsrPage,
     parseParams
 } from "../lib/url";
 import {
@@ -307,12 +304,6 @@ class ViewerApp extends React.Component {
     }
 
     readUrlState(params, known, translation) {
-        if (isSsrPage()) {
-            const verb = extractSsrVerb();
-            const url = buildViewerUrl(verb, SENTENCE_TYPES[0], false);
-            window.location.href = url;
-            return;
-        }
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
             return null;
