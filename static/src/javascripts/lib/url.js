@@ -18,16 +18,6 @@ function parseParams() {
     return result;
 }
 
-function extractSsrVerb() {
-    const path = window.location.pathname;
-    const slash = path.lastIndexOf("/");
-    const ext = path.lastIndexOf(".html");
-    if (slash < 0 || ext < 0 || slash + 1 >= ext) {
-        return null;
-    }
-    return decodeURI(path.substring(slash + 1, ext)).replace(/_/g, " ");
-}
-
 function buildUrl(path, params) {
     return `${path}?${params.join("&")}`;
 }
@@ -203,7 +193,6 @@ export {
     buildGcCreateUrl,
     buildGcCreatePrefilledUrl,
     buildGcReviewsUrl,
-    extractSsrVerb,
     parseParams,
     buildGlosbeUrl,
     buildLugatUrl,
