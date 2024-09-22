@@ -17,7 +17,15 @@ function parseAuxVerb(s) {
     return AUX_VERBS[0];
 }
 
+function auxVerbAsParam(auxVerb) {
+    if (auxVerb == null || auxVerb == AUX_VERBS[0]) {
+        return null;
+    }
+    return `aux=${auxVerb}`;
+}
+
 export {
     AUX_VERBS,
     parseAuxVerb,
+    auxVerbAsParam,
 };

@@ -1,5 +1,8 @@
+import { abKeyAsParam } from "./ab";
+import { auxVerbAsParam } from "./aux_verbs";
 import { I18N_LANG_EN, I18N_LANG_RU } from "./i18n";
 import { trimAndLowercase } from "./input_validation";
+import { sentenceTypeAsParam } from "./sentence";
 
 function parseParams() {
     const search = location.search;
@@ -68,7 +71,7 @@ function buildVerbDetectorUrl(form, lang) {
     return buildUrl(path, params);
 }
 
-function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, auxNeg) {
+function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
     }
@@ -78,14 +81,20 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, lang, auxVerb, au
     let params = [
         `verb=${encodeURI(verb)}`,
     ];
-    if (sentenceType != null) {
-        params.push(`sentence_type=${sentenceType}`);
+    const sentenceTypeParam = sentenceTypeAsParam(sentenceType);
+    if (sentenceTypeParam != null) {
+        params.push(sentenceTypeParam);
     }
     if (forceExceptional) {
         params.push("exception=true");
     }
-    if (auxVerb != null) {
-        params.push(`aux=${auxVerb}`);
+    const abKeyParam = abKeyAsParam(abKey);
+    if (abKeyParam != null) {
+        params.push(abKeyParam);
+    }
+    const auxVerbParam = auxVerbAsParam(auxVerb);
+    if (auxVerbParam != null) {
+        params.push(auxVerbParam);
     }
     if (auxNeg == true) {
         params.push("aux_neg=true");

@@ -224,6 +224,21 @@ function prepareViewerOnlyTranslations(map) {
         "попробовать",
         "байқау",
     );
+    setEnRuKz(map, "alphabet",
+        "Alphabet",
+        "Алфавит",
+        "Әліпби",
+    );
+    setEnRuKz(map, "cyrillic",
+        "cyrillic",
+        "кириллица",
+        "кириллица",
+    );
+    setEnRuKz(map, "latin2021",
+        "latin from 2021.01.28",
+        "латиница от 2021.01.28",
+        "2021 жылғы 28 қаңтардан бастап латын әліпбиі",
+    );
     /* side quiz */
     setEnRuKz(map, "side_quiz", "Fast quiz", "Экспресс-тест");
     setEnRuKz(map, "what_verb_form",

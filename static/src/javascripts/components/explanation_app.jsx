@@ -284,7 +284,7 @@ class ExplanationApp extends React.Component {
     }
 
     onClose(event) {
-        const viewerUrl = buildViewerUrl2(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.props.lang, null, false);
+        const viewerUrl = buildViewerUrl2(this.state.verb, this.state.sentenceType, this.state.forceExceptional, null, this.props.lang, null, false);
         window.location.href = viewerUrl;
     }
 

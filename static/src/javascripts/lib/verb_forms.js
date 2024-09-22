@@ -11,6 +11,7 @@ import { AUX_VERBS } from './aux_verbs';
 import {
     NOMINATIVE_PRONOUN,
     POSSESSIVE_PRONOUN,
+    getLatPronounByParams,
     getPronounByParams,
 } from './grammar_utils';
 import { getRandomInt, pickRandom } from './random';
@@ -20,10 +21,12 @@ export const PARTICIPLE_PRESENT = "presentParticiple";
 export const PARTICIPLE_FUTURE = "futureParticiple";
 
 class VerbForm {
-    constructor(pronoun, formKey, verbPhrase, declinable) {
+    constructor(pronoun, latPronoun, formKey, verbPhrase, latVerbPhrase, declinable) {
         this.pronoun = pronoun;
+        this.latPronoun = latPronoun;
         this.formKey = formKey;
         this.verbPhrase = verbPhrase;
+        this.latVerbPhrase = latVerbPhrase;
         this.declinable = declinable;
     }
 }
@@ -46,26 +49,34 @@ class TenseForms {
     }
 }
 
-function createForms(tenseNameKey, groupNameKey, pronounType, caseFn) {
+function createForms(tenseNameKey, groupNameKey, pronounType, lat, caseFn) {
     let forms = [];
     for (const person of GRAMMAR_PERSONS) {
         for (const number of GRAMMAR_NUMBERS) {
             const verbPhrase = caseFn(person, number);
             const pronoun = getPronounByParams(pronounType, person, number);
-            forms.push(new VerbForm(pronoun, null, verbPhrase, false));
+            const latPronoun = lat ? getLatPronounByParams(pronounType, person, number) : null;
+            const latVerbPhrase = lat ? verbPhrase.toLatin20210128() : null;
+            forms.push(new VerbForm(pronoun, latPronoun, null, verbPhrase, latVerbPhrase, false));
         }
     }
     return new TenseForms(tenseNameKey, groupNameKey, forms);
 }
 
-export function generateParticipleForms(verb, forceExceptional, sentenceType) {
+export function generateParticipleForms(verb, forceExceptional, sentenceType, lat) {
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
 
     let forms = [];
     const declinable = (sentenceType == "Statement" || sentenceType == "Negative");
-    forms.push(new VerbForm(null, PARTICIPLE_PAST, verbBuilder.pastParticiple(sentenceType), declinable))
-    forms.push(new VerbForm(null, PARTICIPLE_PRESENT, verbBuilder.presentParticiple(sentenceType), declinable));
-    forms.push(new VerbForm(null, PARTICIPLE_FUTURE, verbBuilder.futureParticiple(sentenceType), declinable));
+    const past = verbBuilder.pastParticiple(sentenceType);
+    const latPast = lat ? past.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, PARTICIPLE_PAST, past, latPast, declinable))
+    const present = verbBuilder.presentParticiple(sentenceType);
+    const latPresent = lat ? present.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, PARTICIPLE_PRESENT, present, latPresent, declinable));
+    const future = verbBuilder.futureParticiple(sentenceType);
+    const latFuture = lat ? future.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, PARTICIPLE_FUTURE, future, latFuture, declinable));
     return new TenseForms("participle", "participle", forms);
 }
 
@@ -77,7 +88,7 @@ export function generatePromoVerbForms(verb, forceExceptional) {
         const verbBuilder = new VerbBuilder(verb, forceExceptional);
         const phrasal = verbBuilder.presentTransitiveForm(person, number, sentenceType);
         const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
-        forms.push(new VerbForm(pronoun, null, phrasal, false));
+        forms.push(new VerbForm(pronoun, null, null, phrasal, null, false));
     }
     return new TenseForms("presentTransitive", "present", forms);
 }
@@ -95,13 +106,14 @@ export function detectValidVerb(verb) {
     return null;
 }
 
-export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sentenceType) {
+export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sentenceType, lat) {
     let tenses = [];
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
     tenses.push(createForms(
         "presentTransitive",
         "present",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
     ));
     if (auxVerb == null || auxVerb == "") {
@@ -112,60 +124,70 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         "presentContinuous",
         "present",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.presentContinuousForm(person, number, sentenceType, auxBuilder, auxNeg),
     ));
     tenses.push(createForms(
         "presentColloquial",
         "present",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.presentColloquialForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "past",
         "past",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.pastForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "remotePast",
         "past",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.remotePastTense(person, number, sentenceType, auxNeg),
     ));
     tenses.push(createForms(
         "pastUncertain",
         "past",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "pastTransitive",
         "past",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.pastTransitiveTense(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "possibleFuture",
         "future",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.possibleFutureForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "intentionFuture",
         "future",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.intentionFutureForm(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "conditionalMood",
         "moods",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.conditionalMood(person, number, sentenceType),
     ));
     tenses.push(createForms(
         "imperativeMood",
         "moods",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
     ));
     const shak = "PresentTransitive";
@@ -173,15 +195,17 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         "optativeMood",
         "moods",
         POSSESSIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.wantClause(person, number, sentenceType, shak),
     ));
     tenses.push(createForms(
         "canClause",
         "special",
         NOMINATIVE_PRONOUN,
+        lat,
         (person, number) => verbBuilder.canClause(person, number, sentenceType, shak),
     ));
-    tenses.push(generateParticipleForms(verb, forceExceptional, sentenceType));
+    tenses.push(generateParticipleForms(verb, forceExceptional, sentenceType, lat));
     return tenses;
 }
 

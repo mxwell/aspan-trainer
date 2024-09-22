@@ -1,10 +1,10 @@
-export const SENTENCE_TYPES = [
+const SENTENCE_TYPES = [
     "Statement",
     "Negative",
     "Question",
 ];
 
-export function parseSentenceType(s) {
+function parseSentenceType(s) {
     if (s != null) {
         const sLower = s.toLowerCase();
         for (let i in SENTENCE_TYPES) {
@@ -15,3 +15,16 @@ export function parseSentenceType(s) {
     }
     return SENTENCE_TYPES[0];
 }
+
+function sentenceTypeAsParam(sentenceType) {
+    if (sentenceType == null || sentenceType == SENTENCE_TYPES[0]) {
+        return null;
+    }
+    return `sentence_type=${sentenceType}`;
+}
+
+export {
+    SENTENCE_TYPES,
+    parseSentenceType,
+    sentenceTypeAsParam,
+};

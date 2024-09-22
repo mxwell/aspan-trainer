@@ -37,6 +37,7 @@ import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 import { generatePromoDeclensionForms } from '../lib/declension';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
 import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
+import { abIsLatin, ALPHABET_KEYS, parseAlphabetKey } from '../lib/ab';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -226,13 +227,14 @@ class ViewerApp extends React.Component {
         this.switchBetweenRegularAndException = this.switchBetweenRegularAndException.bind(this);
         this.onAuxNegToggle = this.onAuxNegToggle.bind(this);
         this.onAuxVerbSelect = this.onAuxVerbSelect.bind(this);
+        this.onAbSelect = this.onAbSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.buildSideQuizState = this.buildSideQuizState.bind(this);
 
         this.state = this.requestInfo() || this.defaultState();
     }
 
-    makeState(loading, verb, normalized, forceExceptional, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
+    makeState(loading, verb, normalized, forceExceptional, abKey, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
@@ -240,6 +242,7 @@ class ViewerApp extends React.Component {
             verb: verb,
             normalized: normalized,
             forceExceptional: forceExceptional,
+            abKey: abKey,
             known: known,
             auxVerb: auxVerb,
             auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
@@ -267,6 +270,7 @@ class ViewerApp extends React.Component {
             /* verb */ "",
             /* normalized */ null,
             /* forceExceptional */ false,
+            /* abKey */ ALPHABET_KEYS[0],
             /* known */ false,
             /* auxVerb */ AUX_VERBS[0],
             /* auxNeg */ false,
@@ -315,6 +319,7 @@ class ViewerApp extends React.Component {
             return null;
         }
         const forceExceptional = params.exception == "true"
+        const abKey = parseAlphabetKey(params.ab);
         const auxVerb = parseAuxVerb(params.aux);
         const auxNeg = params.aux_neg == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
@@ -329,7 +334,8 @@ class ViewerApp extends React.Component {
         let recognized = false;
         if (normalized != null) {
             try {
-                tenses = generateVerbForms(normalized, auxVerb, auxNeg, forceExceptional, sentenceType);
+                const lat = abIsLatin(abKey);
+                tenses = generateVerbForms(normalized, auxVerb, auxNeg, forceExceptional, sentenceType, lat);
                 setPageTitle(verbL);
                 meanings = getOptionalExceptionalVerbMeanings(normalized);
                 if (meanings != null) {
@@ -350,6 +356,7 @@ class ViewerApp extends React.Component {
             verb,
             normalized,
             forceExceptional,
+            abKey,
             known,
             auxVerb,
             auxNeg,
@@ -635,10 +642,8 @@ class ViewerApp extends React.Component {
         }
     }
 
-    reloadToState(verb, sentenceType, forceExceptional, auxVerb, auxNeg) {
-        const sentenceTypeParam = (sentenceType != SENTENCE_TYPES[0]) ? sentenceType : null;
-        const auxVerbParam = (auxVerb != AUX_VERBS[0]) ? auxVerb : null;
-        const url = buildViewerUrl2(verb, sentenceTypeParam, forceExceptional, this.props.lang, auxVerbParam, auxNeg);
+    reloadToState(verb, sentenceType, forceExceptional, abKey, auxVerb, auxNeg) {
+        const url = buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, this.props.lang, auxVerb, auxNeg);
         window.location.href = url;
     }
 
@@ -651,7 +656,7 @@ class ViewerApp extends React.Component {
             return;
         }
         if (RELOAD_ON_SUBMIT) {
-            this.reloadToState(lastEntered, this.state.sentenceType, forceExceptional, this.state.auxVerb, this.state.auxNeg);
+            this.reloadToState(lastEntered, this.state.sentenceType, forceExceptional, this.state.abKey, this.state.auxVerb, this.state.auxNeg);
         } else {
             let tenses = generateVerbForms(lastEntered, this.state.auxVerb, this.state.auxNeg, forceExceptional, this.state.sentenceType);
             let tensesSentenceType = this.state.sentenceType;
@@ -738,7 +743,7 @@ class ViewerApp extends React.Component {
         );
     }
 
-    renderFormRows(tenseForms, tense) {
+    renderFormRows(tenseForms, tense, lat) {
         const normalized = this.state.normalized;
         const fe = this.state.forceExceptional;
         const known = this.state.known;
@@ -746,14 +751,16 @@ class ViewerApp extends React.Component {
         let rows = [];
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
-            const labelText = form.pronoun || this.i18n(form.formKey);
+            const pronoun = (lat ? form.latPronoun : form.pronoun);
+            const labelText = pronoun || this.i18n(form.formKey);
+            const verbPhrase = (lat ? form.latVerbPhrase : form.verbPhrase);
 
             rows.push(
                 <tr
                     className="border-t-2 text-4xl lg:text-base"
                     key={`row_${rows.length}`} >
                     <td>{labelText}</td>
-                    <td>{highlightPhrasal(form.verbPhrase)}</td>
+                    <td>{highlightPhrasal(verbPhrase)}</td>
                     {this.renderAudio(normalized, fe, known, form)}
                     {this.buildExplanationLinkCell(tense, i)}
                     {this.buildDeclensionLinkCell(form)}
@@ -780,7 +787,7 @@ class ViewerApp extends React.Component {
         return rows;
     }
 
-    renderOneTense(tenseForms) {
+    renderOneTense(tenseForms, lat) {
         let tenseNameKey = tenseForms.tenseNameKey;
 
         let collapse = this.state.collapse;
@@ -823,7 +830,7 @@ class ViewerApp extends React.Component {
                     </div>
                     <table className="lg:w-full">
                         <tbody>
-                            {this.renderFormRows(tenseForms, tenseForms.tenseNameKey)}
+                            {this.renderFormRows(tenseForms, tenseForms.tenseNameKey, lat)}
                         </tbody>
                     </table>
                 </div>
@@ -871,7 +878,7 @@ class ViewerApp extends React.Component {
     onAuxNegToggle(e) {
         const auxNeg = !this.state.auxNeg;
         console.log(`Aux negation changed to ${auxNeg}.`)
-        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.auxVerb, auxNeg);
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.abKey, this.state.auxVerb, auxNeg);
     }
 
     renderAuxVerbSelector(tenseNameKey) {
@@ -892,7 +899,7 @@ class ViewerApp extends React.Component {
     onAuxVerbSelect(e) {
         const auxVerb = e.target.value;
         console.log(`Aux verb changed to ${auxVerb}.`)
-        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, auxVerb, this.state.auxNeg);
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.abKey, auxVerb, this.state.auxNeg);
     }
 
     renderSwitcher() {
@@ -938,7 +945,7 @@ class ViewerApp extends React.Component {
 
     switchBetweenRegularAndException(e) {
         e.preventDefault();
-        this.reloadToState(this.state.verb, this.state.sentenceType, !this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+        this.reloadToState(this.state.verb, this.state.sentenceType, !this.state.forceExceptional, this.state.abKey, this.state.auxVerb, this.state.auxNeg);
     }
 
     renderDetectedVerbInvite() {
@@ -948,7 +955,7 @@ class ViewerApp extends React.Component {
         }
         const sentenceType = detected.sentenceType || SENTENCE_TYPES[0];
         const forceExceptional = detected.isExceptional == true;
-        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.props.lang, null, false);
+        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.state.abKey, this.props.lang, null, false);
         return (
             <p className="my-4">
                 {this.i18n("entered_is_form")(detected.verb)}.&nbsp;
@@ -1008,7 +1015,7 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0) {
             this.setState({ sentenceType });
         } else {
-            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.auxVerb, this.state.auxNeg);
+            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.abKey, this.state.auxVerb, this.state.auxNeg);
         }
     }
 
@@ -1084,16 +1091,38 @@ class ViewerApp extends React.Component {
         );
     }
 
+    onAbSelect(e) {
+        const abKey = e.target.value;
+        console.log(`AB key changed to ${abKey}.`)
+        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, abKey, this.state.auxVerb, this.state.auxNeg);
+    }
+
+    renderAbSelector() {
+        return (
+            <div className="px-6 flex flex-row">
+                <span className="text-4xl lg:text-base p-2">{this.i18n("alphabet")}</span>
+                <select
+                    required
+                    value={this.state.abKey}
+                    onChange={this.onAbSelect}
+                    className="text-4xl lg:text-base p-2 ml-2">
+                    {renderOptionsWithI18nKeys(ALPHABET_KEYS, this.props.lang)}
+                </select>
+            </div>
+        );
+    }
+
     renderTenses() {
         if (this.state.tenses.length == 0) {
             return this.renderLandingPage();
         }
         let groupedTables = {};
         let groupNames = [];
+        const lat = abIsLatin(this.state.abKey);
         for (var i = 0; i < this.state.tenses.length; ++i) {
             let tense = this.state.tenses[i];
             let groupNameKey = tense.groupNameKey;
-            let table = this.renderOneTense(tense);
+            let table = this.renderOneTense(tense, lat);
             if (groupedTables[groupNameKey] == null) {
                 groupNames.push(groupNameKey);
                 groupedTables[groupNameKey] = [];
@@ -1121,6 +1150,7 @@ class ViewerApp extends React.Component {
             <div>
                 <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">{this.i18n("conjInAllTensesTempl")(verb)}</h2>
                 {descr}
+                {this.renderAbSelector()}
                 <audio preload="none" ref="audio"><source type="audio/mpeg" ref="audioSrc"/></audio>
                 {groups}
             </div>
@@ -1134,7 +1164,7 @@ class ViewerApp extends React.Component {
         const lang = this.props.lang;
         const verb = "келу";
         const verbForms = generatePromoVerbForms(verb, false);
-        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, lang, null, false);
+        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, null, lang, null, false);
         const verbForm = "келмеймін";
         const subject = "келген";
         const declensionForms = generatePromoDeclensionForms(subject);
@@ -1150,7 +1180,7 @@ class ViewerApp extends React.Component {
                     <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
                     <table className="mx-4">
                         <tbody>
-                            {this.renderFormRows(verbForms, "")}
+                            {this.renderFormRows(verbForms, "", false)}
                         </tbody>
                     </table>
                     <a
@@ -1309,7 +1339,7 @@ class ViewerApp extends React.Component {
         );
         for (var i = 0; i < verbs.length; ++i) {
             let verb = verbs[i];
-            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, this.props.lang, null, false);
+            const link = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, null, this.props.lang, null, false);
             if (i > 0) {
                 items.push(
                     <span

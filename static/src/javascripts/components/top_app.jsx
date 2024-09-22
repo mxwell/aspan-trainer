@@ -39,8 +39,9 @@ class TopItem {
     getViewerUrl(lang) {
         return buildViewerUrl2(
             this.verb,
-            SENTENCE_TYPES[0],
+            null,
             this.exceptional,
+            null,
             lang,
             null,
             false,

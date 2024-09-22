@@ -2,7 +2,9 @@ import {
     GRAMMAR_PERSONS,
     GRAMMAR_NUMBERS,
     PRONOUN_BY_PERSON_NUMBER,
+    LAT2021_PRONOUN_BY_PERSON_NUMBER,
     POSSESSIVE_BY_PERSON_NUMBER,
+    LAT2021_POSSESSIVE_BY_PERSON_NUMBER,
     validateVerb,
     isVerbOptionalException,
     validPresentContPair,
@@ -17,6 +19,13 @@ export function getPronounByParams(pronounType, person, number) {
         return POSSESSIVE_BY_PERSON_NUMBER[person][number];
     }
     return PRONOUN_BY_PERSON_NUMBER[person][number];
+}
+
+export function getLatPronounByParams(pronounType, person, number) {
+    if (pronounType == POSSESSIVE_PRONOUN) {
+        return LAT2021_POSSESSIVE_BY_PERSON_NUMBER[person][number];
+    }
+    return LAT2021_PRONOUN_BY_PERSON_NUMBER[person][number];
 }
 
 export function getNomPronounByPersonNumber(person, number) {
