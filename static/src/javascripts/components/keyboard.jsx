@@ -37,7 +37,7 @@ function makeSpecialButton(special, dims) {
     return new ButtonInfo(special, special, null, null, special, dims);
 }
 
-const BUTTON_ROWS = [
+const CYR_BUTTON_ROWS = [
     [
         makeEmptyButton(DIMS_BASE),
         makeSymbolButton("!"),
@@ -103,6 +103,68 @@ const BUTTON_ROWS = [
     ],
 ];
 
+const LAT_BUTTON_ROWS = [
+    [
+        makeEmptyButton(DIMS_MID),
+        makeSymbolButton("!"),
+        makeSymbolButton("ä"),
+        makeSymbolButton("ı"),
+        makeSymbolButton("ñ"),
+        makeSymbolButton("ğ"),
+        makeEmptyButton(DIMS_BASE),
+        makeSymbolButton("?"),
+        makeSymbolButton("ü"),
+        makeSymbolButton("ū"),
+        makeSymbolButton("ö"),
+        makeSymbolButton("-"),
+        makeSpecialButton(TITLE_BS, DIMS_BS),
+    ],
+    [
+        makeEmptyButton(DIMS_MID),
+        makeSymbolButton("q"),
+        makeSymbolButton("w"),
+        makeSymbolButton("e"),
+        makeSymbolButton("r"),
+        makeSymbolButton("t"),
+        makeSymbolButton("y"),
+        makeSymbolButton("u"),
+        makeSymbolButton("i"),
+        makeSymbolButton("o"),
+        makeSymbolButton("p"),
+        makeEmptyButton(DIMS_BASE),
+        makeEmptyButton(DIMS_MID),
+    ],
+    [
+        makeSpecialButton(TITLE_CAPS, DIMS_WIDE),
+        makeSymbolButton("a"),
+        makeSymbolButton("s"),
+        makeSymbolButton("d"),
+        makeSymbolButton("f"),
+        makeSymbolButton("g"),
+        makeSymbolButton("h"),
+        makeSymbolButton("j"),
+        makeSymbolButton("k"),
+        makeSymbolButton("l"),
+        makeSymbolButton("ş"),
+        makeEmptyButton(DIMS_MID),
+    ],
+    [
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+        makeSymbolButton("z"),
+        makeSymbolButton("x"),
+        makeSymbolButton("c"),
+        makeSymbolButton("v"),
+        makeSymbolButton("b"),
+        makeSymbolButton("n"),
+        makeSymbolButton("m"),
+        makeEmptyButton(DIMS_BASE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+    ],
+    [
+        makeCustomSymbolButton(" ", " ", DIMS_SPACE),
+    ],
+];
+
 class TextInputChange {
     constructor(newText, newSelectionStart) {
         this.newText = newText;
@@ -160,6 +222,7 @@ function backspaceTextInput(textInput) {
  * props:
  * - insertCallback - function(string), which might trigger a `insertIntoTextInput(...)` call
  * - backspaceCallback - function(), which might trigger a `backspaceTextInput(...)` call
+ * - lat - true = latin 2021.01.28 layout, false or undefined = cyrillic layout,
  */
 class Keyboard extends React.Component {
     constructor(props) {
@@ -221,9 +284,10 @@ class Keyboard extends React.Component {
     }
 
     render() {
+        const buttonRows = (this.props.lat == true) ? LAT_BUTTON_ROWS : CYR_BUTTON_ROWS;
         return (
             <div className="my-2 flex flex-col w-full">
-                {this.renderRows(BUTTON_ROWS)}
+                {this.renderRows(buttonRows)}
             </div>
         );
     }

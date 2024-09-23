@@ -1019,7 +1019,7 @@ class ViewerApp extends React.Component {
         }
     }
 
-    renderKeyboard(keyboard) {
+    renderKeyboard(keyboard, lat) {
         if (!keyboard) {
             return null;
         }
@@ -1027,7 +1027,8 @@ class ViewerApp extends React.Component {
             <div className="mx-6 py-2 bg-gray-200">
                 <Keyboard
                     insertCallback={this.onInsert}
-                    backspaceCallback={this.onBackspace} />
+                    backspaceCallback={this.onBackspace}
+                    lat={lat} />
             </div>
         );
     }
@@ -1392,6 +1393,7 @@ class ViewerApp extends React.Component {
             ? "px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none"
             : "px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none"
         );
+        const lat = abIsLatin(this.state.abKey);
         return (
             <div className="flex">
                 <div className="md:py-6 lg:max-w-6xl" onClick={this.onBgClick}>
@@ -1433,7 +1435,7 @@ class ViewerApp extends React.Component {
                             </button>
                         </div>
                     </form>
-                    {this.renderKeyboard(keyboard)}
+                    {this.renderKeyboard(keyboard, lat)}
                     {this.renderWarning()}
                     {this.renderTranslation()}
                     {this.renderTenses()}
