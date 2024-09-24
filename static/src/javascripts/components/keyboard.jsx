@@ -19,6 +19,8 @@ const DIMS_SPACE = "h-10 w-64";
 const TITLE_BS = "backspace";
 const TITLE_CAPS = "caps";
 const TITLE_SHIFT = "shift";
+const TITLE_LATIN = "latin";
+const TITLE_CYRILLIC = "cyrillic";
 
 function makeEmptyButton(dims) {
     return new ButtonInfo(null, null, null, null, null, dims);
@@ -39,7 +41,7 @@ function makeSpecialButton(special, dims) {
 
 const CYR_BUTTON_ROWS = [
     [
-        makeEmptyButton(DIMS_BASE),
+        makeSpecialButton(TITLE_LATIN, DIMS_WIDE),
         makeSymbolButton("!"),
         makeSymbolButton("ә"),
         makeSymbolButton("і"),
@@ -105,7 +107,7 @@ const CYR_BUTTON_ROWS = [
 
 const LAT_BUTTON_ROWS = [
     [
-        makeEmptyButton(DIMS_MID),
+        makeSpecialButton(TITLE_CYRILLIC, DIMS_WIDE),
         makeSymbolButton("!"),
         makeSymbolButton("ä"),
         makeSymbolButton("ı"),
@@ -228,7 +230,7 @@ class Keyboard extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { caps: false, shift: false };
+        this.state = { caps: false, shift: false, lat: (this.props.lat == true) };
     }
 
     onBtnClick(e, buttonInfo) {
@@ -246,6 +248,10 @@ class Keyboard extends React.Component {
             this.setState({ caps: !this.state.caps, shift: false });
         } else if (buttonInfo.special == TITLE_SHIFT) {
             this.setState({ caps: false, shift: !this.state.shift });
+        } else if (buttonInfo.special == TITLE_LATIN) {
+            this.setState({ lat: true });
+        } else if (buttonInfo.special == TITLE_CYRILLIC) {
+            this.setState({ lat: false });
         } else {
             console.log(`unsupported button`);
             this.setState({ shift: false });
@@ -284,7 +290,7 @@ class Keyboard extends React.Component {
     }
 
     render() {
-        const buttonRows = (this.props.lat == true) ? LAT_BUTTON_ROWS : CYR_BUTTON_ROWS;
+        const buttonRows = (this.state.lat == true) ? LAT_BUTTON_ROWS : CYR_BUTTON_ROWS;
         return (
             <div className="my-2 flex flex-col w-full">
                 {this.renderRows(buttonRows)}
