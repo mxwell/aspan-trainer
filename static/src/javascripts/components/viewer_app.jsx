@@ -14,6 +14,7 @@ import { makeDetectRequest, makeSuggestRequest } from '../lib/requests';
 import {
     buildDeclensionUrl,
     buildExplanationUrl,
+    buildGcLandingUrl,
     buildParticipleDeclensionUrl,
     buildVerbDetectorUrl,
     buildVerbFormAudioUrl,
@@ -313,7 +314,7 @@ class ViewerApp extends React.Component {
         return this.loadingState();
     }
 
-    readUrlState(params, known, translation) {
+    readUrlState(params, known, translationVariants) {
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
             return null;
@@ -350,6 +351,13 @@ class ViewerApp extends React.Component {
         if (!recognized) {
             warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
             this.startDetection(verb);
+        }
+        let translation = null;
+        if (translationVariants != null) {
+            const index = forceExceptional ? 1 : 0;
+            if (translationVariants[index] != null) {
+                translation = translationVariants[index];
+            }
         }
         return this.makeState(
             /* loading */ false,
@@ -479,32 +487,27 @@ class ViewerApp extends React.Component {
         let response = await responseJsonPromise;
         let params = context.params;
         let verb = context.verb;
-        let parts = [];
         let known = response.length > 0;
-        if (this.props.lang == I18N_LANG_KK) {
+        let lang = this.props.lang;
+        if (lang == I18N_LANG_KK) {
             this.setState(
                 this.readUrlState(params, known, null)
             );
             return;
         }
+        let translationVariants = null;
         for (let i = 0; i < response.length; ++i) {
             let item = response[i].data;
-            let glosses = this.extractGlosses(item);
-            if (item.base == verb && glosses) {
-                for (let j = 0; j < glosses.length; ++j) {
-                    parts.push(glosses[j]);
+            if (item.base == verb) {
+                let itemTranslationVariants = this.extractTranslationVariants(item, lang);
+                if (itemTranslationVariants != null && itemTranslationVariants.length == 2) {
+                    translationVariants = itemTranslationVariants;
                 }
                 break;
             }
         }
-        const wiktionaryLang = (this.props.lang == I18N_LANG_RU) ? "ru" : "en";
-        const translation = {
-            meanings: parts,
-            src_link: `https://${wiktionaryLang}.wiktionary.org/wiki/${verb}`,
-            src_title: this.i18n("wiktionary_title"),
-        };
         this.setState(
-            this.readUrlState(params, known, translation)
+            this.readUrlState(params, known, translationVariants)
         );
     }
 
@@ -514,9 +517,9 @@ class ViewerApp extends React.Component {
 
         let params = context.params;
         let known = false;
-        let translation = null;
+        let translationVariants = null;
         this.setState(
-            this.readUrlState(params, known, translation)
+            this.readUrlState(params, known, translationVariants)
         );
     }
 
@@ -1055,25 +1058,22 @@ class ViewerApp extends React.Component {
     }
 
     renderTranslationEntry(translation) {
-        if (translation == null) {
-            return null;
-        } else if (translation.meanings.length == 0) {
+        if (translation == null || translation.length == 0) {
             return this.i18n("no_translation");
         } else {
-            return translation.meanings.join(", ");
+            return translation.join(", ");
         }
     }
 
-    renderTranslationSource(translation) {
-        if (translation == null) {
-            return null;
-        } else {
-            return (
-                <span className="pl-5 text-2xl lg:text-xs" title={translation.src_title}>
-                    <a href={translation.src_link} target="blank_">[↗]</a>
-                </span>
-            );
-        }
+    renderTranslationInvite() {
+        const link = buildGcLandingUrl(this.props.lang);
+        return (
+            <span className="pl-5" title="Kazakh Verb Dictionary">
+                <a href={link} target="blank_">
+                    <img src="/edit_square.svg" alt="add translation" className="h-12 lg:h-6" />
+                </a>
+            </span>
+        );
     }
 
     renderTranslation() {
@@ -1082,12 +1082,12 @@ class ViewerApp extends React.Component {
         }
         let translation = this.state.translation;
         return (
-            <fieldset className="text-3xl lg:text-base lg:mt-5 mx-3 lg:mx-5 p-5 text-gray-700 border-2 border-gray-500">
-                <legend className="ml-5 px-3 text-sm lg:text-xs text-gray-500">{this.i18n("translation_by_wiktionary")}</legend>
+            <fieldset className="text-3xl lg:text-base lg:mt-5 mx-3 lg:mx-5 p-5 text-gray-700 border-2 border-gray-500 flex flex-row">
+                <legend className="ml-5 px-3 text-sm lg:text-xs text-gray-500">{this.i18n("translation")}</legend>
                 <span className="italic pl-5">
                     {this.renderTranslationEntry(translation)}
                 </span>
-                {this.renderTranslationSource(translation)}
+                {this.renderTranslationInvite()}
             </fieldset>
         );
     }
@@ -1262,6 +1262,15 @@ class ViewerApp extends React.Component {
         } else {
             return null;
         }
+    }
+
+    extractTranslationVariants(data, lang) {
+        if (lang == I18N_LANG_EN) {
+            return [data.kvden, data.kvdenfe];
+        } else if (lang == I18N_LANG_RU) {
+            return [data.kvdru, data.kvdrufe];
+        }
+        return null;
     }
 
     renderSuggestions() {

@@ -125,6 +125,11 @@ function buildVerbGymUrl(lang) {
     return "/verb_gym_en.html";
 }
 
+function buildGcLandingUrl(lang) {
+    const fixedLang = (lang == I18N_LANG_RU) ? lang : I18N_LANG_EN;
+    return `/gc_landing_${fixedLang}.html`;
+}
+
 function buildGcLoginUrl(lang) {
     return `/login_${lang}.html`;
 }
@@ -197,6 +202,7 @@ export {
     buildViewerUrl2,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
+    buildGcLandingUrl,
     buildGcLoginUrl,
     buildGcSearchUrl,
     buildGcCreateUrl,

@@ -121,16 +121,11 @@ function prepareViewerOnlyTranslations(map) {
         "",
         "болса",
     );
-    setEnRuKz(map, "wiktionary_title",
-        "Wiktionary",
-        "Викисловарь",
-        "Уикисөздік",
+    setEnRuKz(map, "translation",
+        "translation",
+        "перевод",
+        "аударма",
     );
-    setEnRuKz(map, "translation_by_wiktionary",
-        "Translation by Wiktionary",
-        "Перевод Викисловаря",
-        "Уикисөздіктегі аудармасы",
-    )
     setEnRuKz(map, "no_translation",
         "no translation found",
         "перевод не найден",
