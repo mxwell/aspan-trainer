@@ -303,10 +303,6 @@ export function createFormByParams(verb, forceExceptional, sentenceType, tense, 
         console.log(`Unnecessary forceExceptional flag for the selected verb: ${verb}`);
         return null;
     }
-    if (tense != "presentTransitive") {
-        console.log(`tense is not supported: ${tense}`);
-        return null;
-    }
     const tenseId = CASE_KEYS.indexOf(tense);
     if (tenseId < 0) {
         console.log(`Unknown tense: ${tense}`);

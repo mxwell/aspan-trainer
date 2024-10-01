@@ -501,6 +501,25 @@ function prepareDetectorOnlyTranslations(map) {
     );
 }
 
+function prepareAnalyzerOnlyTranslations(map) {
+    setEnRu(map, "titleTextAnalyzer",
+        "Text analyzer",
+        "Анализатор текста",
+    );
+    setEnRu(map, "hintEnterTextForAnalysis",
+        "Enter text for analysis",
+        "Введите текст для анализа",
+    );
+    setEnRu(map, "analyzing",
+        "Analyzing text…",
+        "Анализ текста…",
+    );
+    setEnRu(map, "gotError",
+        "Encountered an error",
+        "Возникла ошибка",
+    );
+}
+
 function prepareCommonQuizTranslations(map) {
     setEnRuKz(map, "SentenceType", "Sentence type", "Тип предложения", "Сөйлем түрі");
 
@@ -1148,6 +1167,7 @@ function prepareTranslations() {
     prepareViewerOnlyTranslations(map);
     prepareExplanationOnlyTranslations(map);
     prepareDetectorOnlyTranslations(map);
+    prepareAnalyzerOnlyTranslations(map);
     prepareCommonQuizTranslations(map);
     prepareQuizOnlyTranslations(map);
     prepareTopOnlyTranslations(map);
