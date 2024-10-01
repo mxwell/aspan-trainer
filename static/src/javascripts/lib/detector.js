@@ -1,14 +1,16 @@
-import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS } from "./aspan";
+import { GRAMMAR_NUMBERS, GRAMMAR_PERSONS, SEPTIKS } from "./aspan";
 import { SENTENCE_TYPES } from "./sentence";
 
-class DetectedVerb {
-    constructor(verb, isExceptional, sentenceType, tense, grammarPerson, grammarNumber) {
+class DetectedWord {
+    constructor(verb, isExceptional, sentenceType, tense, grammarPerson, grammarNumber, isNoun, septik) {
         this.verb = verb;
         this.isExceptional = isExceptional;
         this.sentenceType = sentenceType;
         this.tense = tense;
         this.grammarPerson = grammarPerson;
         this.grammarNumber = grammarNumber;
+        this.isNoun = isNoun;
+        this.septik = septik;
     }
 }
 
@@ -45,6 +47,17 @@ function getGrammarNumber(n) {
     return GRAMMAR_NUMBERS[index];
 }
 
+function getSeptik(n) {
+    if (n.length == 0) {
+        return null;
+    }
+    const index = Number(n);
+    if (index < 0 || index >= SEPTIKS.length) {
+        return null;
+    }
+    return SEPTIKS[index];
+}
+
 function unpackResponseWord(word) {
     const verb = word.initial;
     if (verb == null || verb.length == 0) {
@@ -62,9 +75,35 @@ function unpackResponseWord(word) {
         }
         const grammarPerson = getGrammarPerson(parts[2]);
         const grammarNumber = getGrammarNumber(parts[3]);
-        return new DetectedVerb(verb, isExceptional, sentenceType, tense, grammarPerson, grammarNumber);
+        return new DetectedWord(
+            verb,
+            isExceptional,
+            sentenceType,
+            tense,
+            grammarPerson,
+            grammarNumber,
+            /* isNoun */ false,
+            /* septik */ null,
+        );
+    } else if (parts.length == 5) {
+        const sentenceType = getSentenceTypeByIndex(parts[0]);
+        const tense = parts[1];
+        const grammarPerson = getGrammarPerson(parts[2]);
+        const grammarNumber = getGrammarNumber(parts[3]);
+        const septik = getSeptik(parts[4]);
+        const isNoun = septik != null;
+        return new DetectedWord(
+            verb,
+            isExceptional,
+            sentenceType,
+            tense,
+            grammarPerson,
+            grammarNumber,
+            isNoun,
+            septik,
+        );
     }
-    return new DetectedVerb(verb, isExceptional, null, null, null, null);
+    return new DetectedWord(verb, isExceptional, null, null, null, null, false, null);
 }
 
 function unpackDetectResponse(responseWords) {

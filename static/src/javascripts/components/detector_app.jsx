@@ -51,6 +51,11 @@ function catCompletion(suggestion) {
     return parts.join("");
 }
 
+/**
+ * props:
+ * - lang: string
+ * - onlyVerbs: boolean
+ */
 class DetectorApp extends React.Component {
     constructor(props) {
         super(props);
@@ -101,6 +106,7 @@ class DetectorApp extends React.Component {
         makeDetectRequest(
             form,
             suggest,
+            this.props.onlyVerbs,
             this.handleDetectResponse,
             this.handleDetectError,
             {
@@ -376,7 +382,7 @@ class DetectorApp extends React.Component {
     }
 
     renderAllFormsLink() {
-        if (this.state.verb == null) {
+        if (this.state.verb == null || this.state.verb.isNoun) {
             return null;
         }
         const detectedVerb = this.state.verb;
@@ -434,12 +440,14 @@ class DetectorApp extends React.Component {
             return null;
         }
         const exceptionalClause = (
-            verb.isExceptional
+            verb.isExceptional == 1
             ? (<p className="italic text-orange-600">{this.i18n("ExceptionVerb")}</p>)
             : null
         );
         const tense = (
-            <strong className="italic">{this.i18n(verb.tense)}</strong>
+            !verb.isNoun
+            ? <strong className="italic">{this.i18n(verb.tense)}</strong>
+            : null
         );
         const sentenceType = (
             verb.sentenceType
@@ -448,12 +456,21 @@ class DetectorApp extends React.Component {
         );
         const grammarPerson = (
             verb.grammarPerson
-            ? (<p className="italic">{this.i18n(`gp_${verb.grammarPerson}`)}</p>)
+            ? (
+                verb.isNoun
+                ? (<p className="italic">{this.i18n(`poss_${verb.grammarPerson}`)}</p>)
+                : (<p className="italic">{this.i18n(`gp_${verb.grammarPerson}`)}</p>)
+            )
             : null
         );
         const grammarNumber = (
             verb.grammarNumber
             ? (<p className="italic">{this.i18n(`gn_${verb.grammarNumber}`)}</p>)
+            : null
+        );
+        const septik = (
+            verb.septik != null
+            ? (<p className="italic">{this.i18n(`septik_${verb.septik}`)}</p>)
             : null
         );
         return (
@@ -464,6 +481,7 @@ class DetectorApp extends React.Component {
                 {sentenceType}
                 {grammarPerson}
                 {grammarNumber}
+                {septik}
             </div>
         );
     }

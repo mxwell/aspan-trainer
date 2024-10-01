@@ -471,6 +471,22 @@ function prepareDetectorOnlyTranslations(map) {
         "Введённая форма содержит и латинские, и кириллические буквы. Это может повлиять на результат определения.",
         "Енгізілген форма латын және кирилл әріптерін қамтиды." // FIXME
     );
+    setEnRu(map, "poss_First",
+        "First person possessive",
+        "Притяжательная форма первого лица",
+    );
+    setEnRu(map, "poss_Second",
+        "Second person possessive",
+        "Притяжательная форма второго лица",
+    );
+    setEnRu(map, "poss_SecondPolite",
+        "Second person (polite) possessive",
+        "Притяжательная форма второго лица (вежливое обращение)",
+    );
+    setEnRu(map, "poss_Third",
+        "Third person possessive",
+        "Притяжательная форма третьего лица",
+    );
     setEnRu(map, "linkAllForms",
         "All forms",
         "Все формы",

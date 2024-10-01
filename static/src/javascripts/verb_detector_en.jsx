@@ -10,6 +10,6 @@ initUiLangSwitcher();
 const root = document.getElementById("detector_root");
 
 render(
-    <DetectorApp lang={I18N_LANG_EN} />,
+    <DetectorApp lang={I18N_LANG_EN} onlyVerbs={true}/>,
     root
 );

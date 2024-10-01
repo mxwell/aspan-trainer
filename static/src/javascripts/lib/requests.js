@@ -65,7 +65,7 @@ function makeSuggestRequest(lastEntered, successCallback, errorCallback, context
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function makeDetectRequest(lastEntered, suggest, successCallback, errorCallback, context) {
+function makeDetectRequest(lastEntered, suggest, onlyVerbs, successCallback, errorCallback, context) {
     const params = {
         q: lastEntered,
     };
@@ -73,7 +73,11 @@ function makeDetectRequest(lastEntered, suggest, successCallback, errorCallback,
         params["suggest"] = "1";
     }
     const query = encodeQueryData(params);
-    const url = `/detect?${query}`;
+    const url = (
+        onlyVerbs
+        ? `/kiltman_verb?${query}`
+        : `/kiltman_all?${query}`
+    );
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
