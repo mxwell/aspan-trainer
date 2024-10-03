@@ -518,6 +518,94 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Encountered an error",
         "Возникла ошибка",
     );
+    setEnRu(map, "noun",
+        "noun",
+        "существительное",
+    );
+    setEnRu(map, "verb",
+        "verb",
+        "глагол",
+    );
+    setEnRu(map, "analyzerSeptik_1",
+        "genitive case",
+        "родительный падеж",
+    );
+    setEnRu(map, "analyzerSeptik_2",
+        "dative case",
+        "дательный падеж",
+    );
+    setEnRu(map, "analyzerSeptik_3",
+        "accusative case",
+        "винительный падеж",
+    );
+    setEnRu(map, "analyzerSeptik_4",
+        "local case",
+        "местный падеж",
+    );
+    setEnRu(map, "analyzerSeptik_5",
+        "original case",
+        "исходный падеж",
+    );
+    setEnRu(map, "analyzerSeptik_6",
+        "instrumental case",
+        "творительный падеж",
+    );
+
+    setEnRu(map, "analyzerTense_infinitive", "infinitive", "инфинитив");
+    setEnRu(map, "analyzerTense_presentTransitive", "present indefinite", "переходное время");
+    setEnRu(map, "analyzerTense_presentColloquial", "colloquial present continuous", "разговорное настоящее время (разговорное)");
+    setEnRu(map, "analyzerTense_remotePast", "remote past", "давнопрошедшее очевидное время");
+    setEnRu(map, "analyzerTense_pastUncertain", "past uncertain", "давнопрошедшее неочевидное время");
+    setEnRu(map, "analyzerTense_pastTransitive", "past transitive", "прошедшее переходное время");
+    setEnRu(map, "analyzerTense_past", "past", "прошедшее время");
+    setEnRu(map, "analyzerTense_possibleFuture", "possible future", "будущее предположительное время");
+    setEnRu(map, "analyzerTense_intentionFuture", "intended future", "будущее время намерения");
+    setEnRu(map, "analyzerTense_conditionalMood", "conditional mood", "условное наклонение");
+    setEnRu(map, "analyzerTense_imperativeMood", "imperative mood", "повелительное наклонение");
+    setEnRu(map, "analyzerTense_pastParticiple", "past participle", "причастие прошедшего времени");
+    setEnRu(map, "analyzerTense_presentParticiple", "present participle", "причастие настоящего времени")
+    setEnRu(map, "analyzerTense_futureParticiple", "future participle", "причастие будущего времени");
+
+    setEnRu(map, "analyzerNegation",
+        "negation",
+        "отрицание",
+    );
+    setEnRu(map, "analyzerPoss_First",
+        "1p possessive",
+        "притяжательное 1л",
+    );
+    setEnRu(map, "analyzerPoss_Second",
+        "2p possessive",
+        "притяжательное 2л",
+    );
+    setEnRu(map, "analyzerPoss_SecondPolite",
+        "2p (polite) possessive",
+        "притяжательное 2л (вежливо)",
+    );
+    setEnRu(map, "analyzerPoss_Third",
+        "3p possessive",
+        "притяжательное 3л",
+    );
+    setEnRu(map, "analyzer_First",
+        "1p",
+        "1л",
+    );
+    setEnRu(map, "analyzer_Second",
+        "2p",
+        "2л",
+    );
+    setEnRu(map, "analyzer_SecondPolite",
+        "2p (polite)",
+        "2л (вежливо)",
+    );
+    setEnRu(map, "analyzer_Third",
+        "3p",
+        "3л",
+    );
+    setEnRu(map, "analyzer_Plural",
+        "plural",
+        "множественное число",
+    );
 }
 
 function prepareCommonQuizTranslations(map) {

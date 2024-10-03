@@ -4,6 +4,7 @@ import { makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, reproduceNoun, reproduceVerb, tokenize } from "../lib/analyzer";
 import { unpackDetectResponse } from "../lib/detector";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
+import { SENTENCE_TYPES } from "../lib/sentence";
 
 /**
  * props:
@@ -187,50 +188,70 @@ class AnalyzerApp extends React.Component {
         }
     }
 
+    getFormName(detectedWord) {
+        if (detectedWord.isNoun) {
+            const septik = detectedWord.septik;
+            if (septik != null && septik != 0) {
+                return this.i18n(`analyzerSeptik_${detectedWord.septik}`);
+            }
+        } else {
+            const tense = detectedWord.tense;
+            if (tense != null) {
+                return this.i18n(`analyzerTense_${tense}`);
+            }
+        }
+        return null;
+    }
+
     renderFormDetails(detectedWord) {
+        /* This tense gets detected on partial form occurrence, which is a false positive */
+        if (detectedWord.tense == "presentContinuous") {
+            return null;
+        }
         const exceptionalClause = (
             detectedWord.isExceptional == 1
             ? (<p className="italic">{this.i18n("ExceptionVerb")}</p>)
             : null
         );
-        const tense = (
-            !detectedWord.isNoun
-            ? <p className="italic">{this.i18n(detectedWord.tense)}</p>
+        const posName = (
+            detectedWord.isNoun
+            ? this.i18n("noun")
+            : this.i18n("verb")
+        );
+        const formName = this.getFormName(detectedWord);
+        const formElement = (
+            formName != null
+            ? (<p className="italic">{formName}</p>)
             : null
         );
-        const sentenceType = (
-            detectedWord.sentenceType
-            ? <p className="italic">{this.i18n(detectedWord.sentenceType)}</p>
+        const negation = (
+            detectedWord.sentenceType == SENTENCE_TYPES[1]
+            ? <p className="italic">{this.i18n("analyzerNegation")}</p>
             : null
         );
         const grammarPerson = (
             detectedWord.grammarPerson
             ? (
                 detectedWord.isNoun
-                ? (<p className="italic">{this.i18n(`poss_${detectedWord.grammarPerson}`)}</p>)
-                : (<p className="italic">{this.i18n(`gp_${detectedWord.grammarPerson}`)}</p>)
+                ? (<p className="italic">{this.i18n(`analyzerPoss_${detectedWord.grammarPerson}`)}</p>)
+                : (<p className="italic">{this.i18n(`analyzer_${detectedWord.grammarPerson}`)}</p>)
             )
             : null
         );
         const grammarNumber = (
-            detectedWord.grammarNumber
-            ? (<p className="italic">{this.i18n(`gn_${detectedWord.grammarNumber}`)}</p>)
-            : null
-        );
-        const septik = (
-            detectedWord.septik != null
-            ? (<p className="italic">{this.i18n(`septik_${detectedWord.septik}`)}</p>)
+            detectedWord.grammarNumber == "Plural"
+            ? (<p className="italic">{this.i18n("analyzer_Plural")}</p>)
             : null
         );
         return (
             <div className="flex flex-col border-2 border-gray-300 text-sm p-2">
-                <strong>{detectedWord.verb}</strong>
+                <strong className="text-center">{detectedWord.verb}</strong>
+                <p className="">{posName}</p>
                 {exceptionalClause}
-                {tense}
-                {sentenceType}
+                {formElement}
+                {negation}
                 {grammarPerson}
                 {grammarNumber}
-                {septik}
             </div>
         );
     }
@@ -244,7 +265,7 @@ class AnalyzerApp extends React.Component {
                     <div
                         key={htmlParts.length}
                         className="flex flex-col justify-top">
-                        <div className="text-center mt-10">
+                        <div className="text-center text-2xl bg-gray-200 mt-10">
                             <pre>{part.token.content}</pre>
                         </div>
                     </div>
@@ -254,7 +275,7 @@ class AnalyzerApp extends React.Component {
                     <div
                         key={htmlParts.length}
                         className="flex flex-col justify-top">
-                        <div className="text-center mt-10">
+                        <div className="text-center text-2xl bg-gray-200 mt-10">
                             {this.highlightDetectedWord(analysis)}
                         </div>
                         {this.renderFormDetails(analysis)}
