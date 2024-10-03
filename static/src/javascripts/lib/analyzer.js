@@ -27,13 +27,13 @@ function tokenize(input) {
     if (lastIndex < input.length) {
         tokens.push(new Token(input.slice(lastIndex), false));
     }
-
+    /*
     console.log(`tokenized into ${tokens.length} tokens`);
     for (const t of tokens) {
         const label = t.isWord ? "word: " : "";
         console.log(`- ${label}[${t.content}]`)
     }
-
+    */
     return tokens;
 }
 

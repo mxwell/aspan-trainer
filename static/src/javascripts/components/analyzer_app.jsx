@@ -47,12 +47,17 @@ class AnalyzerApp extends React.Component {
         const tokens = context.tokens;
         const pos = context.pos;
         const token = tokens[pos];
+        let detectedWord = null;
         if (response.words) {
-            const detectedWord = unpackDetectResponse(response.words);
-            this.pushAnalyzedToken(token, detectedWord);
-        } else {
-            this.pushAnalyzedToken(token, null);
+            const candidate = unpackDetectResponse(response.words);
+            /**
+             * Some tenses are problematic, hence the filtering.
+             */
+            if (candidate != null && candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
+                detectedWord = candidate;
+            }
         }
+        this.pushAnalyzedToken(token, detectedWord);
         this.processToken(tokens, pos + 1);
     }
 
@@ -204,10 +209,6 @@ class AnalyzerApp extends React.Component {
     }
 
     renderFormDetails(detectedWord) {
-        /* This tense gets detected on partial form occurrence, which is a false positive */
-        if (detectedWord.tense == "presentContinuous") {
-            return null;
-        }
         const exceptionalClause = (
             detectedWord.isExceptional == 1
             ? (<p className="italic">{this.i18n("ExceptionVerb")}</p>)
