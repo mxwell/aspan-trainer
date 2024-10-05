@@ -25,7 +25,6 @@ import {
 import {
     getOptionalExceptionalVerbMeanings,
     createSideQuizTask,
-    generateParticipleForms,
     generateVerbForms,
     generatePromoVerbForms,
     detectValidVerb,

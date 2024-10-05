@@ -45,9 +45,13 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "optativeMood", "Optative Mood", "Желательное наклонение", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
     setEnRuKz(map, "participle", "Participle", "Причастие", "Есімше");
+    setEnRuKz(map, "gerund", "Gerund", "Деепричастие", "Көсемше");
     setEnRuKz(map, "pastParticiple", "Past Participle", "Причастие прошедшего времени", "Өткен шақ есімше");
     setEnRuKz(map, "presentParticiple", "Present Participle", "Причастие настоящего времени", "Осы шақ есімше")
     setEnRuKz(map, "futureParticiple", "Future Participle", "Причастие будущего времени", "Келер шақ есімше");
+    setEnRuKz(map, "perfectGerund", "Perfect Gerund", "Совершенное деепричастие", "Perfect Gerund");
+    setEnRuKz(map, "continuousGerund", "Continuous Gerund", "Деепричастие настоящего времени", "Continuous Gerund");
+    setEnRuKz(map, "intentionGerund", "Intention Gerund", "Деепричастие намерения", "Intention Gerund");
 
     setEnRuKz(map, "service_error",
         "Service error",
@@ -197,6 +201,10 @@ function prepareViewerOnlyTranslations(map) {
     setEnRu(map, "participleDescr",
         "Hybrid verb form combining properties of verb and adjective",
         "Гибридная форма глагола, сочетающая свойства глагола и прилагательного",
+    );
+    setEnRu(map, "gerundDescr",
+        "Hybrid verb form combining properties of verb and adverb",
+        "Гибридная форма глагола, сочетающая свойства глагола и наречия",
     );
 
     setEnRuKz(map, "declLink",

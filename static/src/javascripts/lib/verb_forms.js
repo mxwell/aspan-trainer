@@ -19,6 +19,9 @@ import { getRandomInt, pickRandom } from './random';
 export const PARTICIPLE_PAST = "pastParticiple";
 export const PARTICIPLE_PRESENT = "presentParticiple";
 export const PARTICIPLE_FUTURE = "futureParticiple";
+export const GERUND_PERFECT = "perfectGerund";
+export const GERUND_CONTINUOUS = "continuousGerund";
+export const GERUND_INTENTION = "intentionGerund";
 
 class VerbForm {
     constructor(pronoun, latPronoun, formKey, verbPhrase, latVerbPhrase, declinable) {
@@ -63,7 +66,7 @@ function createForms(tenseNameKey, groupNameKey, pronounType, lat, caseFn) {
     return new TenseForms(tenseNameKey, groupNameKey, forms);
 }
 
-export function generateParticipleForms(verb, forceExceptional, sentenceType, lat) {
+function generateParticipleForms(verb, forceExceptional, sentenceType, lat) {
     let verbBuilder = new VerbBuilder(verb, forceExceptional);
 
     let forms = [];
@@ -77,7 +80,23 @@ export function generateParticipleForms(verb, forceExceptional, sentenceType, la
     const future = verbBuilder.futureParticiple(sentenceType);
     const latFuture = lat ? future.toLatin20210128() : null;
     forms.push(new VerbForm(null, null, PARTICIPLE_FUTURE, future, latFuture, declinable));
-    return new TenseForms("participle", "participle", forms);
+    return new TenseForms("participle", "hybrid", forms);
+}
+
+function generateGerundForms(verb, forceExceptional, sentenceType, lat) {
+    let verbBuilder = new VerbBuilder(verb, forceExceptional);
+
+    let forms = [];
+    const perfect = verbBuilder.perfectGerund(sentenceType);
+    const latPerfect = lat ? perfect.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, GERUND_PERFECT, perfect, latPerfect, false));
+    const cont = verbBuilder.continuousGerund(sentenceType);
+    const latCont = lat ? cont.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, GERUND_CONTINUOUS, cont, latCont, false));
+    const intention = verbBuilder.intentionGerund(sentenceType);
+    const latIntention = lat ? intention.toLatin20210128() : null;
+    forms.push(new VerbForm(null, null, GERUND_INTENTION, intention, latIntention, false));
+    return new TenseForms("gerund", "hybrid", forms);
 }
 
 export function generatePromoVerbForms(verb, forceExceptional) {
@@ -206,6 +225,7 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
         (person, number) => verbBuilder.canClause(person, number, sentenceType, shak),
     ));
     tenses.push(generateParticipleForms(verb, forceExceptional, sentenceType, lat));
+    tenses.push(generateGerundForms(verb, forceExceptional, sentenceType, lat));
     return tenses;
 }
 
