@@ -27,6 +27,7 @@ parcel build static/src/html/gc_search_{en,ru}.pug
 parcel build static/src/html/gc_stats_{en,ru}.pug
 parcel build static/src/html/login_{en,ru}.pug
 
+parcel build static/src/html/posts_en.pug
 parcel build static/src/html/post_llm_vocab_en.pug
 
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
@@ -42,6 +43,7 @@ mkdir -p ${KK_OUTPUT}
 mv "${OUTPUT_DIR}/viewer_kk.html" "${KK_OUTPUT}/index.html"
 
 mkdir -p ${EN_POSTS}
+mv "${OUTPUT_DIR}/posts_en.html" "${EN_POSTS}/index.html"
 mv "${OUTPUT_DIR}/post_llm_vocab_en.html" "${EN_POSTS}/llm_vocab.html"
 
 echo "Output files are put under ${OUTPUT_DIR}"
