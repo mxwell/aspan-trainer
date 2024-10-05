@@ -5,17 +5,17 @@ include partials/viewer_page_en
         p(class="m-2") For those who are learning Kazakh language or developing tools for it, LLMs seem to be useful. However, which LLM should one choose? Benchmarks might help to decide.
         p(class="m-2") Here we are presenting a small benchmark, created mostly to test the waters. Perhaps, it will evolve over time to cover newer models and use better methods.
         h2(class="m-2 text-2xl") Models
-        p(class="m-2") We have chosen three major providers: OpenAI, Anthropic and Google. Each of them has a variety of models, we picked two from each provider, a cheap versatile model and a more powerful versatile model. We have excluded expensive options to limit costs and because their usage doesn't seem practical in use cases with a big volume of input.
+        p(class="m-2") We have chosen three major providers: OpenAI, Anthropic and Google. Each of them has a variety of models, we picked two from each provider, a cheap versatile model and a more powerful versatile model.
         p(class="m-2") From OpenAI, we have measured GPT-4o-mini and GPT-4o. There are also more recent models from o1 family, but they seem too specialized for our purpose.
         p(class="m-2") From Anthropic, we have taken Claude 3 Haiku and Claude 3.5 Sonnet.
         p(class="m-2") From Google, we have benchmarked Gemini 1.5 Flash and Gemini 1.5 Pro.
         h2(class="m-2 text-2xl") Method
         p(class="m-2") Measurement were conducted on 2024.10.05.
         p(class="m-2") There are many possible ways to measure knowledge of Kazakh language. We approached it from a potential use case. What if we are building a Kazakh-Russian dictionary from scratch and want to use LLM? Then we might be interested in the ratio of correct word translations produced by a model.
-        p(class="m-2") This benchmark is small because we measured translations of only 25 random Kazakh words. 15 of which are verbs and 10 are nouns. It incurred expenses under $0.2. Therefore, going 10x from here should still be affordable.
+        p(class="m-2") This benchmark is small. We have measured translations of only 25 random Kazakh words. 15 of which are verbs and 10 are nouns. It incurred expenses under $0.2. Therefore, going 10x from here should still be affordable.
         p(class="m-2") However, we had to collect an extensive set of translations for each word, to allow more leeway for LLM. This part is quite time consuming and limits the experiment scale.
-        p(class="m-2") A single prompt written in Russian was used for all models. The prompt language is chosen intentionally to be the same as the translation target language. The prompt is straighforward and was tweaked very little if at all. A small note about Gemini 1.5 Flash: it really struggled to maintain the output format and lost score points because of it.
-        p(class="m-2") The prompt was run with the 25 input words against the chosen 6 models, using a Python script. It helped that each provider ships a Python package for easier integration.
+        p(class="m-2") A single prompt written in Russian was used for all models. The prompt language is chosen intentionally to be the same as the translation target language. The prompt is straightforward and was tweaked very little if at all. A small note about Gemini 1.5 Flash: it really struggled to maintain the output format and lost score points because of it.
+        p(class="m-2") The prompt was executed with the 25 input words against the chosen 6 models, using a Python script. It helped that each of the providers ships a Python package for easier integration.
         p(class="m-2")
             span Scoring: for each word, we extracted LLM translations and sorted them into known and unknown, then averaged ratio of&nbsp;
             code(class="border-2 p-2") known / (known + unknown)
@@ -24,7 +24,7 @@ include partials/viewer_page_en
         h2(class="m-2 text-2xl") Conclusion
         p(class="m-2") The results are on the chart above.
         p(class="m-2") There is a noticeable difference between a cheap and a more expensive options by each provider. So it makes sense to prefer a more expensive and a more powerful model over the cheapest one.
-        p(class="m-2") Gemini performed significantly worse than competitors. We can explain it partially by the fact that Gemini doesn't officially support Kazakh language and it is far from their focus. Other providers are less specific about the languages supported by their models.
+        p(class="m-2") Gemini performed significantly worse than competitors. We can explain it in part by the fact that Gemini doesn't officially support Kazakh language and it is far from their focus. Other providers are less specific about the languages supported by their models.
         p(class="m-2") To our surprise, GPT-4o can translate Kazakh words better than Claude 3.5 Sonnet. But Sonnet is still quite good.
         p(class="m-2") Based on this benchmark results, we can advise use of GPT-4o and Claude 3.5 Sonnet for tasks related to Kazakh language.
     script(src="https://www.gstatic.com/charts/loader.js")
