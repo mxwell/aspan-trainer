@@ -573,6 +573,9 @@ function prepareAnalyzerOnlyTranslations(map) {
     setEnRu(map, "analyzerTense_pastParticiple", "past participle", "причастие прошедшего времени");
     setEnRu(map, "analyzerTense_presentParticiple", "present participle", "причастие настоящего времени")
     setEnRu(map, "analyzerTense_futureParticiple", "future participle", "причастие будущего времени");
+    setEnRu(map, "analyzerTense_perfectGerund", "perfect gerund", "совершенное деепричастие");
+    setEnRu(map, "analyzerTense_continuousGerund", "continuous gerund", "деепричастие настоящего времени");
+    setEnRu(map, "analyzerTense_intentionGerund", "intention gerund", "деепричастие намерения");
 
     setEnRu(map, "analyzerNegation",
         "negation",

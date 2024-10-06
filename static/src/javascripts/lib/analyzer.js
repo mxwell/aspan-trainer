@@ -68,6 +68,12 @@ function reproduceVerb(dw) {
         return vb.presentParticiple(st);
     } else if (dw.tense == "futureParticiple") {
         return vb.futureParticiple(st);
+    } else if (dw.tense == "perfectGerund") {
+        return vb.perfectGerund(st);
+    } else if (dw.tense == "continuousGerund") {
+        return vb.continuousGerund(st);
+    } else if (dw.tense == "intentionGerund") {
+        return vb.intentionGerund(st);
     }
 
     const personNumber = new PersonNumber(dw.grammarPerson, dw.grammarNumber, null);
