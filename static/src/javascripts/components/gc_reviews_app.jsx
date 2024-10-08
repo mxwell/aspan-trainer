@@ -370,14 +370,14 @@ class GcReviewsApp extends React.Component {
                     <button
                         type="button"
                         onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE", approveDelta)}
-                        className={`${approveClass} mx-2 px-6 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
+                        className={`${approveClass} mx-2 w-24 h-12 py-2 rounded focus:outline-none focus:shadow-outline flex flex-row justify-center`}>
                         <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
                         <span className="pl-2 text-2xl text-white">{approves}</span>
                     </button>
                     <button
                         type="button"
                         onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE", disapproveDelta)}
-                        className={`${disapproveClass} px-4 py-1 rounded focus:outline-none focus:shadow-outline flex flex-row`}>
+                        className={`${disapproveClass} w-24 h-12 py-2 rounded focus:outline-none focus:shadow-outline flex flex-row justify-center`}>
                         <img src="/thumb_down.svg" alt="thumb down" className="h-8" />
                         <span className="pl-2 text-2xl text-white">{disapproves}</span>
                     </button>
@@ -479,7 +479,7 @@ class GcReviewsApp extends React.Component {
                         </tbody>
                     </table>
                     <div className="w-full flex flex-row justify-between">
-                        <div className="p-2 border-2 rounded">
+                        <div className="p-2 border-2 rounded break-all">
                             {this.i18n("reference")}: {entry.reference}
                         </div>
                         {this.renderReviewControls(entry)}
