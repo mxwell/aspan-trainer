@@ -470,10 +470,6 @@ function prepareDetectorOnlyTranslations(map) {
         "Enter verb form",
         "Введите форму глагола",
     );
-    setEnRu(map, "no_verb_detected",
-        "Failed to detect verb in the entered text",
-        "Не удалось обнаружить глагол в введённом тексте",
-    );
     setEnRuKz(map, "mixedAlphabetsInForm",
         "Entered form has both Latin and Cyrillic letters. It might affect the detection result.",
         "Введённая форма содержит и латинские, и кириллические буквы. Это может повлиять на результат определения.",
@@ -506,6 +502,14 @@ function prepareDetectorOnlyTranslations(map) {
     setEnRu(map, "lookupDictionaries",
         "Lookup dictionaries",
         "Поиск в словарях",
+    );
+    setEnRu(map, "youMightBeInterestedInAnalyzer",
+        "If you detect verb forms, you might be interested in the new feature:",
+        "Если вы определяете формы глаголов, вам может быть интересна новая функция:",
+    );
+    setEnRu(map, "detectsBothVerbAndNoun",
+        "It detects both verb and noun forms.",
+        "Он определяет формы как глаголов, так и существительных.",
     );
 }
 

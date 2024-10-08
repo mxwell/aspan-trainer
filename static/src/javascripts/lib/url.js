@@ -71,6 +71,10 @@ function buildVerbDetectorUrl(form, lang) {
     return buildUrl(path, params);
 }
 
+function buildTextAnalyzerUrl(lang) {
+    return `/text_analyzer_${lang}.html`;
+}
+
 function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
@@ -199,6 +203,7 @@ export {
     buildParticipleDeclensionUrl,
     buildExplanationUrl,
     buildVerbDetectorUrl,
+    buildTextAnalyzerUrl,
     buildViewerUrl2,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,

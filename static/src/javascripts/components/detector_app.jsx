@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildGlosbeUrl, buildLugatUrl, buildSozdikUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
+import { buildGlosbeUrl, buildLugatUrl, buildSozdikUrl, buildTextAnalyzerUrl, buildVerbDetectorUrl, buildViewerUrl2, parseParams } from "../lib/url"
 import { makeDetectRequest } from "../lib/requests";
 import { pickRandom } from "../lib/random";
 import { SENTENCE_TYPES } from "../lib/sentence";
@@ -414,11 +414,8 @@ class DetectorApp extends React.Component {
         } else if (this.state.error) {
             result = this.i18n("service_error");
             extraClass = "text-red-600";
-        } else if (this.state.modified) {
-            result = "(·_·)";
-            extraClass = "text-gray-600";
         } else {
-            result = this.i18n("no_verb_detected");
+            result = "(·_·)";
             extraClass = "text-gray-600";
         }
         return (
@@ -522,14 +519,32 @@ class DetectorApp extends React.Component {
 
     render() {
         return (
-            <div onClick={this.onBgClick}>
-                <h1 className="text-center text-4xl italic text-gray-600">
-                    {this.i18n("title_verb_detector")}
-                </h1>
-                {this.renderForm()}
-                {this.renderFindings()}
-                {this.renderDetails()}
-                {this.renderDictionaries()}
+            <div onClick={this.onBgClick} className="w-1/2">
+                <div className="flex flex-row justify-center">
+                    <div className="text-red-800 bg-red-100 p-4 rounded">
+                            <p className="text-center">
+                                {this.i18n("youMightBeInterestedInAnalyzer")}
+                                &nbsp;
+                                <a href={buildTextAnalyzerUrl(this.props.lang)} className="underline">
+                                    {this.i18n("titleTextAnalyzer")}
+                                </a>.
+                            </p>
+                            <p className="text-center">
+                                {this.i18n("detectsBothVerbAndNoun")}
+                            </p>
+                    </div>
+                </div>
+                <div className="flex flex-row justify-center">
+                    <div>
+                        <h1 className="text-center text-4xl italic text-gray-600 mt-10">
+                            {this.i18n("title_verb_detector")}
+                        </h1>
+                        {this.renderForm()}
+                        {this.renderFindings()}
+                        {this.renderDetails()}
+                        {this.renderDictionaries()}
+                    </div>
+                </div>
             </div>
         );
     }
