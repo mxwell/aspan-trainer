@@ -1221,6 +1221,10 @@ function prepareGcOnlyTranslations(map) {
         "added a review",
         "добавил(а) ревью",
     );
+    setEnRu(map, "titleData",
+        "Data",
+        "Данные",
+    );
     setEnRu(map, "titleStats",
         "Stats",
         "Статистика",
@@ -1232,6 +1236,22 @@ function prepareGcOnlyTranslations(map) {
     setEnRu(map, "noStatsData",
         "No stats data",
         "Нет данных статистики",
+    );
+    setEnRu(map, "titleDownloads",
+        "Downloads",
+        "Загрузки",
+    );
+    setEnRu(map, "loadingDownloads",
+        "Loading downloads",
+        "Загрузка данных о загрузках",
+    );
+    setEnRu(map, "columnDate",
+        "Date",
+        "Дата",
+    );
+    setEnRu(map, "columnLink",
+        "Link",
+        "Ссылка",
     );
     setEnRu(map, "statsEnTranslations",
         "English translations",

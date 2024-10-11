@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { gcGetStats } from "../lib/gc_api";
+import { gcGetDownloads, gcGetStats } from "../lib/gc_api";
 
 /**
  * props:
@@ -12,9 +12,12 @@ class GcStatsApp extends React.Component {
 
         this.handleGetStatsResponse = this.handleGetStatsResponse.bind(this);
         this.handleGetStatsError = this.handleGetStatsError.bind(this);
+        this.handleGetDownloadsResponse = this.handleGetDownloadsResponse.bind(this);
+        this.handleGetDownloadsError = this.handleGetDownloadsError.bind(this);
 
         this.state = this.defaultState();
         this.startGetStats();
+        this.startGetDownloads();
     }
 
     makeState() {
@@ -22,6 +25,9 @@ class GcStatsApp extends React.Component {
             loading: true,
             error: false,
             stats: null,
+            downloadsLoading: true,
+            downloadsError: false,
+            downloads: null,
         };
     }
 
@@ -73,6 +79,46 @@ class GcStatsApp extends React.Component {
         );
     }
 
+    putToDownloadsErrorState() {
+        this.setState({
+            downloadsLoading: false,
+            downloadsError: true,
+        });
+    }
+
+    async handleGetDownloadsResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleGetDownloadsResponse: error message: ${message}`);
+            this.putToDownloadsErrorState();
+            return;
+        }
+        const downloads = response.downloads;
+        if (downloads == null) {
+            console.log("handleGetDownloadsResponse: null downloads");
+            this.putToDownloadsErrorState();
+            return;
+        }
+        console.log(`Loaded ${downloads.length} downloads`);
+        const downloadsLoading = false;
+        this.setState({ downloadsLoading, downloads });
+    }
+
+    async handleGetDownloadsError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`handleGetDownloadsError: ${responseText}`);
+        this.putToDownloadsErrorState();
+    }
+
+    startGetDownloads() {
+        gcGetDownloads(
+            this.handleGetDownloadsResponse,
+            this.handleGetDownloadsError,
+            {},
+        );
+    }
+
     renderStats() {
         if (this.state.error) {
             return (
@@ -93,7 +139,7 @@ class GcStatsApp extends React.Component {
             );
         }
         return (
-            <div className="flex flex-col">
+            <div className="flex flex-col m-4">
                 <div className="">
                     {this.i18n("statsEnTranslations")}:&nbsp;
                     <strong>{enCount}</strong>
@@ -106,13 +152,66 @@ class GcStatsApp extends React.Component {
         );
     }
 
+    renderDownloads() {
+        if (this.state.downloadsError) {
+            return (
+                <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
+            );
+        }
+        if (this.state.downloadsLoading) {
+            return (
+                <p className="text-center">{this.i18n("loadingDownloads")}</p>
+            );
+        }
+        const downloads = this.state.downloads;
+        return (
+            <table className="text-center m-4">
+                <thead>
+                    <tr>
+                        <th className="p-2 border-2">{this.i18n("columnDate")}</th>
+                        <th className="p-2 border-2">{this.i18n("statsRuTranslations")}</th>
+                        <th className="p-2 border-2">{this.i18n("statsEnTranslations")}</th>
+                        <th className="p-2 border-2"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {downloads.map((item, index) => (
+                        <tr key={index}>
+                            <td className="p-2 border-2">{item.id}</td>
+                            <td className="p-2 border-2">{item.kkru}</td>
+                            <td className="p-2 border-2">{item.kken}</td>
+                            <td className="p-2 border-2">
+                                <a href={item.url} className="underline text-red-400">{this.i18n("columnLink")}</a>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        );
+    }
+
     render() {
         return (
             <div>
                 <h1 className="my-4 text-center text-4xl italic text-gray-600">
-                    {this.i18n("titleStats")}
+                    {this.i18n("titleData")}
                 </h1>
-                {this.renderStats()}
+                <h2 className="mt-10 text-center text-3xl text-gray-500">
+                    {this.i18n("titleStats")}
+                </h2>
+                <div className="flex flex-row justify-center">
+                    <div>
+                        {this.renderStats()}
+                    </div>
+                </div>
+                <h2 className="mt-10 text-center text-3xl text-gray-500">
+                    {this.i18n("titleDownloads")}
+                </h2>
+                <div className="flex flex-row justify-center">
+                    <div>
+                        {this.renderDownloads()}
+                    </div>
+                </div>
             </div>
         );
     }

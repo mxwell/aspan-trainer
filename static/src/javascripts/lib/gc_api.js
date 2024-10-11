@@ -148,6 +148,11 @@ function gcGetStats(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetDownloads(successCallback, errorCallback, context) {
+    const url = "/gcapi/v1/get_downloads";
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetUntranslated(dstLang, successCallback, errorCallback, context) {
     const params = {
         dst: dstLang,
@@ -254,6 +259,7 @@ export {
     gcRetractReviewVote,
     gcDiscardReview,
     gcGetStats,
+    gcGetDownloads,
     gcGetUntranslated,
     gcGetLlmTranslations,
     parseJwt,
