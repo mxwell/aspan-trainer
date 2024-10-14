@@ -75,7 +75,7 @@ function buildTextAnalyzerUrl(lang) {
     return `/text_analyzer_${lang}.html`;
 }
 
-function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg) {
+function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, eg=false) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
     }
@@ -102,6 +102,9 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxV
     }
     if (auxNeg == true) {
         params.push("aux_neg=true");
+    }
+    if (eg == true) {
+        params.push("eg=true");
     }
     const path = (
         (lang == I18N_LANG_RU)

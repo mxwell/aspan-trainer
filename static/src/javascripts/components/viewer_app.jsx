@@ -38,6 +38,7 @@ import { generatePromoDeclensionForms } from '../lib/declension';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
 import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
 import { abIsLatin, ALPHABET_KEYS, parseAlphabetKey } from '../lib/ab';
+import { gcGetVerbFormExamples } from '../lib/gc_api';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -219,6 +220,8 @@ class ViewerApp extends React.Component {
         this.handleTranslateError = this.handleTranslateError.bind(this);
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
+        this.handleGetVerbFormExamplesResponse = this.handleGetVerbFormExamplesResponse.bind(this);
+        this.handleGetVerbFormExamplesError = this.handleGetVerbFormExamplesError.bind(this);
         this.onTenseTitleClick = this.onTenseTitleClick.bind(this);
         this.playSound = this.playSound.bind(this);
         this.onPlusClick = this.onPlusClick.bind(this);
@@ -231,10 +234,18 @@ class ViewerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.buildSideQuizState = this.buildSideQuizState.bind(this);
 
-        this.state = this.requestInfo() || this.defaultState();
+        const state = this.requestInfo() || this.defaultState();
+        this.state = state;
+        if (state.eg) {
+            this.requestVerbFormExamples(
+                state.verb,
+                state.forceExceptional,
+                state.sentenceType,
+            );
+        }
     }
 
-    makeState(loading, verb, normalized, forceExceptional, abKey, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
+    makeState(loading, verb, normalized, forceExceptional, abKey, eg, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
@@ -243,6 +254,8 @@ class ViewerApp extends React.Component {
             normalized: normalized,
             forceExceptional: forceExceptional,
             abKey: abKey,
+            eg: eg,
+            formExamples: {},
             known: known,
             auxVerb: auxVerb,
             auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
@@ -271,6 +284,7 @@ class ViewerApp extends React.Component {
             /* normalized */ null,
             /* forceExceptional */ false,
             /* abKey */ ALPHABET_KEYS[0],
+            /* eg */ false,
             /* known */ false,
             /* auxVerb */ AUX_VERBS[0],
             /* auxNeg */ false,
@@ -323,6 +337,7 @@ class ViewerApp extends React.Component {
         const auxVerb = parseAuxVerb(params.aux);
         const auxNeg = params.aux_neg == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
+        const eg = params.eg == "true"
         var tenses = [];
         var warning = null;
         if (hasMixedAlphabets(verb)) {
@@ -364,6 +379,7 @@ class ViewerApp extends React.Component {
             normalized,
             forceExceptional,
             abKey,
+            eg,
             known,
             auxVerb,
             auxNeg,
@@ -373,6 +389,48 @@ class ViewerApp extends React.Component {
             tenses,
             warning,
             meanings,
+        );
+    }
+
+    async handleGetVerbFormExamplesResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleGetVerbFormExamplesResponse: error message: ${message}`);
+            return;
+        }
+        const formExamples = response.verb_form_examples;
+        if (formExamples == null) {
+            console.log("handleGetVerbFormExamplesResponse: null verb_form_examples");
+            return;
+        }
+        console.log(`Loaded verb form examples`);
+        this.setState({ formExamples });
+    }
+
+    async handleGetVerbFormExamplesError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`handleGetVerbFormExamplesError: ${responseText}`);
+    }
+
+    requestVerbFormExamples(verb, fe, sentenceType) {
+        let neg = null;
+        if (sentenceType == SENTENCE_TYPES[0]) {
+            neg = false;
+        } else if (sentenceType == SENTENCE_TYPES[1]) {
+            neg = true;
+        } else {
+            console.log("verb form examples not supported for sentence type");
+            return;
+        }
+
+        gcGetVerbFormExamples(
+            verb,
+            fe,
+            neg,
+            this.handleGetVerbFormExamplesResponse,
+            this.handleGetVerbFormExamplesError,
+            {},
         );
     }
 
@@ -745,12 +803,29 @@ class ViewerApp extends React.Component {
         );
     }
 
+    renderFormExample(formText, seenForms) {
+        if (!this.state.eg || seenForms[formText]) {
+            return null;
+        }
+        seenForms[formText] = true;
+        const example = this.state.formExamples[formText];
+        if (!example || example.length == 0) {
+            return null;
+        }
+        return (
+            <td className="pl-4 text-gray-600 text-sm italic max-w-md">
+                {example}
+            </td>
+        );
+    }
+
     renderFormRows(tenseForms, tense, lat) {
         const normalized = this.state.normalized;
         const fe = this.state.forceExceptional;
         const known = this.state.known;
 
         let rows = [];
+        let seenForms = {};
         for (var i = 0; i < tenseForms.forms.length; ++i) {
             let form = tenseForms.forms[i];
             const pronoun = (lat ? form.latPronoun : form.pronoun);
@@ -766,6 +841,7 @@ class ViewerApp extends React.Component {
                     {this.renderAudio(normalized, fe, known, form)}
                     {this.buildExplanationLinkCell(tense, i)}
                     {this.buildDeclensionLinkCell(form)}
+                    {this.renderFormExample(form.verbPhrase.raw, seenForms)}
                 </tr>
             );
         }
@@ -1116,12 +1192,13 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0) {
             return this.renderLandingPage();
         }
+        const toGroup = !this.state.eg;
         let groupedTables = {};
         let groupNames = [];
         const lat = abIsLatin(this.state.abKey);
         for (var i = 0; i < this.state.tenses.length; ++i) {
             let tense = this.state.tenses[i];
-            let groupNameKey = tense.groupNameKey;
+            let groupNameKey = toGroup ? tense.groupNameKey : tense.tenseNameKey;
             let table = this.renderOneTense(tense, lat);
             if (groupedTables[groupNameKey] == null) {
                 groupNames.push(groupNameKey);

@@ -172,6 +172,17 @@ function gcGetLlmTranslations(wordId, model, successCallback, errorCallback, con
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetVerbFormExamples(verb, fe, neg, successCallback, errorCallback, context) {
+    const params = {
+        v: verb,
+        fe: fe ? 1 : 0,
+        neg: neg ? 1 : 0,
+    };
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_verb_form_examples?${query}`;
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 const gcTokenKey = "gc-v1-token";
 
 function parseJwt (token) {
@@ -262,6 +273,7 @@ export {
     gcGetDownloads,
     gcGetUntranslated,
     gcGetLlmTranslations,
+    gcGetVerbFormExamples,
     parseJwt,
     gcTokenIsValid,
     gcStoreToken,
