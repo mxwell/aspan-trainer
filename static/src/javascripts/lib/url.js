@@ -75,7 +75,7 @@ function buildTextAnalyzerUrl(lang) {
     return `/text_analyzer_${lang}.html`;
 }
 
-function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, eg=false) {
+function doBuildViewerUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, eg) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
     }
@@ -112,6 +112,14 @@ function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxV
         : `/${lang}/`
     );
     return buildUrl(path, params);
+}
+
+function buildViewerUrl2(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg) {
+    return doBuildViewerUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, /* eg */ false);
+}
+
+function buildViewerWithExamplesUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg) {
+    return doBuildViewerUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, /* eg */ true);
 }
 
 function buildVerbFormAudioUrl(verb, fe, text) {
@@ -208,6 +216,7 @@ export {
     buildVerbDetectorUrl,
     buildTextAnalyzerUrl,
     buildViewerUrl2,
+    buildViewerWithExamplesUrl,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
     buildGcLandingUrl,
