@@ -1209,6 +1209,10 @@ function prepareGcOnlyTranslations(map) {
         "All",
         "Все",
     );
+    setEnRu(map, "withApproves",
+        "With approves",
+        "С одобрениями",
+    );
     setEnRu(map, "loadingReviews",
         "Loading reviews…",
         "Загрузка списка ревью…",

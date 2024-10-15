@@ -25,13 +25,14 @@ class GcReviewsApp extends React.Component {
 
         const state = this.readUrlState() || this.defaultState();
         this.state = state;
-        this.startGetReviews(state.page, state.direction);
+        this.startGetReviews(state.page, state.direction, this.state.approvesMin);
     }
 
-    makeState(page, direction) {
+    makeState(page, direction, approvesMin) {
         return {
             page: page,
             direction: direction,
+            approvesMin: approvesMin,
             loading: true,
             voting: false,
             error: false,
@@ -40,7 +41,7 @@ class GcReviewsApp extends React.Component {
     }
 
     defaultState() {
-        return this.makeState(0, null);
+        return this.makeState(0, /* direction */ null, /* approvesMin */ null);
     }
 
     readUrlState() {
@@ -54,8 +55,12 @@ class GcReviewsApp extends React.Component {
                 return null;
             }
         }
+        let approvesMin = null;
+        if (direction == null && params.am) {
+            approvesMin = params.am;
+        }
         const page = Math.max(0, Number(params.p)) || 0;
-        return this.makeState(page, direction);
+        return this.makeState(page, direction, approvesMin);
     }
 
     i18n(key) {
@@ -100,10 +105,11 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    startGetReviews(page, direction) {
+    startGetReviews(page, direction, approvesMin) {
         gcGetReviews(
             page,
             direction,
+            approvesMin,
             this.handleGetReviewsResponse,
             this.handleGetReviewsError,
             {},
@@ -303,16 +309,38 @@ class GcReviewsApp extends React.Component {
 
     renderDirNavigation() {
         const direction = this.state.direction;
+        const approvesMin = this.state.approvesMin;
         const links = [
-            this.renderDirectionLink("allReviews", direction != null ? buildGcReviewsUrl(0, null, this.props.lang) : null)
+            this.renderDirectionLink(
+                "allReviews",
+                (
+                    (direction != null || approvesMin != null)
+                    ? buildGcReviewsUrl(0, /* dir */ null, /* approvesMin */ null, this.props.lang)
+                    : null
+                )
+            )
         ];
+        links.push(
+            this.renderDirectionLink(
+                "withApproves",
+                (
+                    approvesMin != null
+                    ? null
+                    : buildGcReviewsUrl(0, /* dir */ null, /* approvesMin */ 1, this.props.lang)
+                )
+            )
+        );
         for (let transDirection of COMMON_TRANS_DIRECTIONS) {
             const matches = (
                 direction != null
                 && transDirection.src == direction.src
                 && transDirection.dst == direction.dst
             );
-            const url = matches ? null : buildGcReviewsUrl(0, transDirection.toKey(), this.props.lang);
+            const url = (
+                matches
+                ? null
+                : buildGcReviewsUrl(0, transDirection.toKey(), /* approvesMin */ null, this.props.lang)
+            );
             links.push(this.renderDirectionLink(transDirection.toKey(), url));
         }
         return (
@@ -502,15 +530,16 @@ class GcReviewsApp extends React.Component {
         const page = this.state.page;
         const direction = this.state.direction;
         const dir = (direction != null) ? direction.toKey() : null;
+        const approvesMin = this.state.approvesMin;
         const links = [];
         if (page > 1) {
-            links.push({href: buildGcReviewsUrl(0, dir, this.props.lang), label: "⇤"});
+            links.push({href: buildGcReviewsUrl(0, dir, approvesMin, this.props.lang), label: "⇤"});
         }
         if (page > 0) {
-            links.push({href: buildGcReviewsUrl(page - 1, dir, this.props.lang), label: "←"});
+            links.push({href: buildGcReviewsUrl(page - 1, dir, approvesMin, this.props.lang), label: "←"});
         }
         if (reviews.length >= 20) {
-            links.push({href: buildGcReviewsUrl(page + 1, dir, this.props.lang), label: "→"});
+            links.push({href: buildGcReviewsUrl(page + 1, dir, approvesMin, this.props.lang), label: "→"});
         }
         const htmlLinks = [];
         for (let link of links) {

@@ -91,12 +91,15 @@ function gcGetFeed(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcGetReviews(page, direction, successCallback, errorCallback, context) {
-    let params = (
-        (direction != null)
-        ? { src: direction.src, dst: direction.dst, p: page }
-        : { p: page }
-    );
+function gcGetReviews(page, direction, approvesMin, successCallback, errorCallback, context) {
+    let params = { p: page };
+    if (direction != null) {
+        params.src = direction.src;
+        params.dst = direction.dst;
+    }
+    if (approvesMin != null) {
+        params.am = approvesMin;
+    }
     const query = encodeQueryData(params);
     const url = `/gcapi/v1/get_reviews?${query}`;
     const token = getCurrentGcToken() || "lala";
