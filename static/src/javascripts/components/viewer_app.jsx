@@ -1153,7 +1153,7 @@ class ViewerApp extends React.Component {
     }
 
     renderTranslation() {
-        if (!this.state.enableTranslation || this.state.verb.length == 0) {
+        if (!this.state.enableTranslation || this.state.tenses.length == 0) {
             return null;
         }
         let translation = this.state.translation;
