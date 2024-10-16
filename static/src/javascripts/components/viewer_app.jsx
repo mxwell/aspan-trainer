@@ -1190,8 +1190,11 @@ class ViewerApp extends React.Component {
     }
 
     renderTenses() {
-        if (this.state.tenses.length == 0) {
+        if (this.state.verb.length == 0) {
             return this.renderLandingPage();
+        }
+        if (this.state.tenses.length == 0) {
+            return null;
         }
         const toGroup = !this.state.eg;
         let groupedTables = {};
@@ -1453,8 +1456,7 @@ class ViewerApp extends React.Component {
     }
 
     renderQuiz() {
-        const chosenVerb = this.state.verb;
-        if (this.state.collapse || chosenVerb.length == 0) {
+        if (this.state.collapse || this.state.tenses.length == 0) {
             return null;
         }
         return (
