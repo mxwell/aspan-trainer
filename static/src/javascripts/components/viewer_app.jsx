@@ -625,6 +625,7 @@ class ViewerApp extends React.Component {
         makeDetectRequest(
             form,
             suggest,
+            /* onlyVerbs */ true,
             this.handleDetectResponse,
             this.handleDetectError,
             {
