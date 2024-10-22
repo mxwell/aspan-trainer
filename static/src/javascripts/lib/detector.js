@@ -162,16 +162,19 @@ function unpackResponseWordWithPos(word) {
     );
 }
 
+/**
+ * @returns array of DetectedForm
+ */
 function unpackDetectResponseWithPos(responseWords) {
+    let result = [];
     for (let i = 0; i < responseWords.length; ++i) {
         let word = responseWords[i];
         let unpacked = unpackResponseWordWithPos(word);
         if (unpacked != null) {
-            return unpacked;
+            result.push(unpacked);
         }
-        // TODO unpack next words
     }
-    return null;
+    return result;
 }
 
 export {

@@ -1,10 +1,9 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { makeDetectRequest } from "../lib/requests";
-import { AnalyzedPart, reproduceNoun, reproduceVerb, tokenize } from "../lib/analyzer";
-import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
-import { SENTENCE_TYPES } from "../lib/sentence";
+import { AnalyzedPart, tokenize } from "../lib/analyzer";
 import { unpackDetectResponseWithPos } from "../lib/detector";
+import { AnalyzedPartView } from "./analyzed_part_view";
 
 /**
  * props:
@@ -47,17 +46,19 @@ class AnalyzerApp extends React.Component {
         const tokens = context.tokens;
         const pos = context.pos;
         const token = tokens[pos];
-        let detectedWord = null;
+        let detectedForms = [];
         if (response.words) {
-            const candidate = unpackDetectResponseWithPos(response.words);
+            const candidates = unpackDetectResponseWithPos(response.words);
             /**
              * Some tenses are problematic, hence the filtering.
              */
-            if (candidate != null && candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
-                detectedWord = candidate;
+            for (const candidate of candidates) {
+                if (candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
+                    detectedForms.push(candidate);
+                }
             }
         }
-        this.pushAnalyzedToken(pos, token, detectedWord);
+        this.pushAnalyzedToken(pos, token, detectedForms);
         this.processToken(tokens, pos + 1);
     }
 
@@ -67,10 +68,8 @@ class AnalyzerApp extends React.Component {
         this.setState({ analyzing: false, error: true });
     }
 
-    pushAnalyzedToken(pos, token, analysis) {
-        const label = analysis != null ? "w/ analysis" : "w/o analysis";
-        console.log(`adding token ${label}: [${token.content}]`);
-        let part = new AnalyzedPart(token, analysis);
+    pushAnalyzedToken(pos, token, detectedForms) {
+        let part = new AnalyzedPart(token, detectedForms);
         let breakdown = this.state.breakdown;
         if (pos == 0 || breakdown == null) {
             breakdown = [part];
@@ -107,7 +106,7 @@ class AnalyzerApp extends React.Component {
                 this.detect(tokens, pos, token.content.toLowerCase());
                 return;
             } else {
-                this.pushAnalyzedToken(pos, token, null);
+                this.pushAnalyzedToken(pos, token, []);
             }
         }
         console.log("all tokens are processed");
@@ -183,111 +182,19 @@ class AnalyzerApp extends React.Component {
         }
     }
 
-    highlightDetectedWord(detectedWord) {
-        const pos = detectedWord.pos;
-        if (pos == "n") {
-            const phrasal = reproduceNoun(detectedWord);
-            return highlightDeclensionPhrasal(phrasal);
-        } else if (pos == "v") {
-            const phrasal = reproduceVerb(detectedWord);
-            return highlightPhrasal(phrasal, -1);
-        } else {
-            return [
-                <span>{detectedWord.base}</span>
-            ];
-        }
-    }
-
-    getFormName(pos, detectedWord) {
-        if (pos == "n") {
-            const septik = detectedWord.septik;
-            if (septik != null && septik != 0) {
-                return this.i18n(`analyzerSeptik_${detectedWord.septik}`);
-            }
-        } else if (pos == "v") {
-            const tense = detectedWord.tense;
-            if (tense != null) {
-                return this.i18n(`analyzerTense_${tense}`);
-            }
-        }
-        return null;
-    }
-
-    renderFormDetails(detectedWord) {
-        const pos = detectedWord.pos;
-        const posName = this.i18n(`pos_${pos}`);
-        const exceptionalClause = (
-            detectedWord.excVerb == 1
-            ? (<p className="italic">{this.i18n("ExceptionVerb")}</p>)
-            : null
-        );
-        const formName = this.getFormName(pos, detectedWord);
-        const formElement = (
-            formName != null
-            ? (<p className="italic">{formName}</p>)
-            : null
-        );
-        const negation = (
-            detectedWord.sentenceType == SENTENCE_TYPES[1]
-            ? <p className="italic">{this.i18n("analyzerNegation")}</p>
-            : null
-        );
-        const grammarPerson = (
-            detectedWord.grammarPerson
-            ? (
-                pos == "n"
-                ? (<p className="italic">{this.i18n(`analyzerPoss_${detectedWord.grammarPerson}`)}</p>)
-                : (<p className="italic">{this.i18n(`analyzer_${detectedWord.grammarPerson}`)}</p>)
-            )
-            : null
-        );
-        const grammarNumber = (
-            detectedWord.grammarNumber == "Plural"
-            ? (<p className="italic">{this.i18n("analyzer_Plural")}</p>)
-            : null
-        );
-        return (
-            <div className="flex flex-col border-2 border-gray-300 text-sm p-2">
-                <strong className="text-center">{detectedWord.base}</strong>
-                <p className="">{posName}</p>
-                {exceptionalClause}
-                {formElement}
-                {negation}
-                {grammarPerson}
-                {grammarNumber}
-            </div>
-        );
-    }
-
     renderBreakdown() {
         const htmlParts = [];
         for (const part of this.state.breakdown) {
-            const analysis = part.analysis;
-            if (analysis == null) {
-                htmlParts.push(
-                    <div
-                        key={htmlParts.length}
-                        className="flex flex-col justify-top">
-                        <div className="text-center text-2xl bg-gray-200 mt-10">
-                            <pre>{part.token.content}</pre>
-                        </div>
-                    </div>
-                );
-            } else {
-                htmlParts.push(
-                    <div
-                        key={htmlParts.length}
-                        className="flex flex-col justify-top">
-                        <div className="text-center text-2xl bg-gray-200 mt-10">
-                            {this.highlightDetectedWord(analysis)}
-                        </div>
-                        {this.renderFormDetails(analysis)}
-                    </div>
-                );
-            }
+            htmlParts.push(
+                <AnalyzedPartView
+                    key={htmlParts.length}
+                    analyzedPart={part}
+                    lang={this.props.lang}
+                />
+            );
         }
         return (
-            <div className="flex flex-row flex-wrap">
+            <div className="m-4 flex flex-row flex-wrap">
                 {htmlParts}
             </div>
         );

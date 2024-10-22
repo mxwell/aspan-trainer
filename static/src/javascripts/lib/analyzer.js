@@ -38,9 +38,9 @@ function tokenize(input) {
 }
 
 class AnalyzedPart {
-    constructor(token, analysis) {
+    constructor(token, detectedForms) {
         this.token = token;
-        this.analysis = analysis;
+        this.detectedForms = detectedForms;
     }
 }
 

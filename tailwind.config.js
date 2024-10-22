@@ -19,6 +19,7 @@ module.exports = {
         "./static/src/html/viewer_en.pug",
         "./static/src/html/viewer_kk.pug",
         "./static/src/javascripts/components/analyzer_app.jsx",
+        "./static/src/javascripts/components/analyzed_part_view.jsx",
         "./static/src/javascripts/components/close_button.jsx",
         "./static/src/javascripts/components/declension_app.jsx",
         "./static/src/javascripts/components/detector_app.jsx",

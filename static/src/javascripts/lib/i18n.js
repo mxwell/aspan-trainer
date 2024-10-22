@@ -610,6 +610,11 @@ function prepareAnalyzerOnlyTranslations(map) {
         "instrumental case",
         "творительный падеж",
     );
+    setEnRu(map,
+        "exceptionVerb",
+        "exception verb",
+        "глагол-исключение",
+    );
 
     setEnRu(map, "analyzerTense_infinitive", "infinitive", "инфинитив");
     setEnRu(map, "analyzerTense_presentTransitive", "present indefinite", "переходное время");
