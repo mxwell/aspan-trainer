@@ -57,7 +57,7 @@ class AnalyzerApp extends React.Component {
                 detectedWord = candidate;
             }
         }
-        this.pushAnalyzedToken(token, detectedWord);
+        this.pushAnalyzedToken(pos, token, detectedWord);
         this.processToken(tokens, pos + 1);
     }
 
@@ -67,12 +67,12 @@ class AnalyzerApp extends React.Component {
         this.setState({ analyzing: false, error: true });
     }
 
-    pushAnalyzedToken(token, analysis) {
+    pushAnalyzedToken(pos, token, analysis) {
         const label = analysis != null ? "w/ analysis" : "w/o analysis";
         console.log(`adding token ${label}: [${token.content}]`);
         let part = new AnalyzedPart(token, analysis);
         let breakdown = this.state.breakdown;
-        if (breakdown == null) {
+        if (pos == 0 || breakdown == null) {
             breakdown = [part];
         } else {
             breakdown.push(part);
@@ -107,7 +107,7 @@ class AnalyzerApp extends React.Component {
                 this.detect(tokens, pos, token.content.toLowerCase());
                 return;
             } else {
-                this.pushAnalyzedToken(token, null);
+                this.pushAnalyzedToken(pos, token, null);
             }
         }
         console.log("all tokens are processed");
@@ -140,7 +140,7 @@ class AnalyzerApp extends React.Component {
             console.log("already analyzing");
             return;
         }
-        this.setState({ analyzing: true, breakdown: [] });
+        this.setState({ analyzing: true });
         this.startDetection(lastEntered);
     }
 
@@ -248,7 +248,7 @@ class AnalyzerApp extends React.Component {
         );
         return (
             <div className="flex flex-col border-2 border-gray-300 text-sm p-2">
-                <strong className="text-center">{detectedWord.verb}</strong>
+                <strong className="text-center">{detectedWord.base}</strong>
                 <p className="">{posName}</p>
                 {exceptionalClause}
                 {formElement}
