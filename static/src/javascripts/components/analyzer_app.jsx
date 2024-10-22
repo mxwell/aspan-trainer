@@ -2,9 +2,9 @@ import React from "react";
 import { i18n } from "../lib/i18n";
 import { makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, reproduceNoun, reproduceVerb, tokenize } from "../lib/analyzer";
-import { unpackDetectResponse } from "../lib/detector";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 import { SENTENCE_TYPES } from "../lib/sentence";
+import { unpackDetectResponseWithPos } from "../lib/detector";
 
 /**
  * props:
@@ -49,7 +49,7 @@ class AnalyzerApp extends React.Component {
         const token = tokens[pos];
         let detectedWord = null;
         if (response.words) {
-            const candidate = unpackDetectResponse(response.words);
+            const candidate = unpackDetectResponseWithPos(response.words);
             /**
              * Some tenses are problematic, hence the filtering.
              */
@@ -184,22 +184,27 @@ class AnalyzerApp extends React.Component {
     }
 
     highlightDetectedWord(detectedWord) {
-        if (detectedWord.isNoun) {
+        const pos = detectedWord.pos;
+        if (pos == "n") {
             const phrasal = reproduceNoun(detectedWord);
             return highlightDeclensionPhrasal(phrasal);
-        } else {
+        } else if (pos == "v") {
             const phrasal = reproduceVerb(detectedWord);
             return highlightPhrasal(phrasal, -1);
+        } else {
+            return [
+                <span>{detectedWord.base}</span>
+            ];
         }
     }
 
-    getFormName(detectedWord) {
-        if (detectedWord.isNoun) {
+    getFormName(pos, detectedWord) {
+        if (pos == "n") {
             const septik = detectedWord.septik;
             if (septik != null && septik != 0) {
                 return this.i18n(`analyzerSeptik_${detectedWord.septik}`);
             }
-        } else {
+        } else if (pos == "v") {
             const tense = detectedWord.tense;
             if (tense != null) {
                 return this.i18n(`analyzerTense_${tense}`);
@@ -209,17 +214,14 @@ class AnalyzerApp extends React.Component {
     }
 
     renderFormDetails(detectedWord) {
+        const pos = detectedWord.pos;
+        const posName = this.i18n(`pos_${pos}`);
         const exceptionalClause = (
-            detectedWord.isExceptional == 1
+            detectedWord.excVerb == 1
             ? (<p className="italic">{this.i18n("ExceptionVerb")}</p>)
             : null
         );
-        const posName = (
-            detectedWord.isNoun
-            ? this.i18n("noun")
-            : this.i18n("verb")
-        );
-        const formName = this.getFormName(detectedWord);
+        const formName = this.getFormName(pos, detectedWord);
         const formElement = (
             formName != null
             ? (<p className="italic">{formName}</p>)
@@ -233,7 +235,7 @@ class AnalyzerApp extends React.Component {
         const grammarPerson = (
             detectedWord.grammarPerson
             ? (
-                detectedWord.isNoun
+                pos == "n"
                 ? (<p className="italic">{this.i18n(`analyzerPoss_${detectedWord.grammarPerson}`)}</p>)
                 : (<p className="italic">{this.i18n(`analyzer_${detectedWord.grammarPerson}`)}</p>)
             )

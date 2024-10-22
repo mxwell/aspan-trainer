@@ -45,7 +45,7 @@ class AnalyzedPart {
 }
 
 function reproduceNoun(dw) {
-    let nb = new NounBuilder(dw.verb);
+    let nb = new NounBuilder(dw.base);
     if (dw.grammarPerson) {
         return nb.possessiveSeptikForm(
             dw.grammarPerson,
@@ -60,7 +60,7 @@ function reproduceNoun(dw) {
 }
 
 function reproduceVerb(dw) {
-    let vb = new VerbBuilder(dw.verb, dw.isExceptional);
+    let vb = new VerbBuilder(dw.base, dw.excVerb);
     const st = dw.sentenceType;
     if (dw.tense == "pastParticiple") {
         return vb.pastParticiple(st);
@@ -78,8 +78,8 @@ function reproduceVerb(dw) {
 
     const personNumber = new PersonNumber(dw.grammarPerson, dw.grammarNumber, null);
     return createFormByParams(
-        dw.verb,
-        dw.isExceptional,
+        dw.base,
+        dw.excVerb,
         st,
         dw.tense,
         personNumber

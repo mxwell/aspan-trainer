@@ -538,6 +538,54 @@ function prepareAnalyzerOnlyTranslations(map) {
         "verb",
         "глагол",
     );
+    setEnRu(map, "pos_n",
+        "noun",
+        "существительное",
+    );
+    setEnRu(map, "pos_v",
+        "verb",
+        "глагол",
+    );
+    setEnRu(map, "pos_j",
+        "adjective",
+        "прилагательное",
+    );
+    setEnRu(map, "pos_b",
+        "adverb",
+        "наречие",
+    );
+    setEnRu(map, "pos_p",
+        "pronoun",
+        "местоимение",
+    );
+    setEnRu(map, "pos_i",
+        "interjection",
+        "междометие",
+    );
+    setEnRu(map, "pos_o",
+        "onomatopoeia",
+        "ономатопея",
+    );
+    setEnRu(map, "pos_l",
+        "numeral",
+        "числительное",
+    );
+    setEnRu(map, "pos_c",
+        "conjunction",
+        "союз",
+    );
+    setEnRu(map, "pos_e",
+        "preposition",
+        "предлог",
+    );
+    setEnRu(map, "pos_t",
+        "particle",
+        "частица",
+    );
+    setEnRu(map, "pos_s",
+        "postposition",
+        "послелог",
+    );
     setEnRu(map, "analyzerSeptik_1",
         "genitive case",
         "родительный падеж",

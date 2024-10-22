@@ -117,6 +117,64 @@ function unpackDetectResponse(responseWords) {
     return null;
 }
 
+class DetectedForm {
+    constructor(pos, base, sentenceType, excVerb, tense, grammarPerson, grammarNumber, septik) {
+        this.pos = pos;
+        this.base = base;
+        this.sentenceType = sentenceType;
+        this.excVerb = excVerb;
+        this.tense = tense;
+        this.grammarPerson = grammarPerson;
+        this.grammarNumber = grammarNumber;
+        this.septik = septik;
+    }
+}
+
+function unpackResponseWordWithPos(word) {
+    const base = word.initial;
+    if (base == null || base.length == 0) {
+        console.log("No initial in response word.");
+        return null;
+    }
+
+    const meta = word.meta;
+    let pos = meta.pos;
+    let excVerb = false;
+    if (pos == "w") {
+        pos = "v";
+        excVerb = true;
+    }
+    const parts = word.transition.split(":");
+    const sentenceType = getSentenceTypeByIndex(parts[0]);
+    const tense = parts[1];
+    const grammarPerson = getGrammarPerson(parts[2]);
+    const grammarNumber = getGrammarNumber(parts[3]);
+    const septik = getSeptik(parts[4]);
+    return new DetectedForm(
+        pos,
+        base,
+        sentenceType,
+        excVerb,
+        tense,
+        grammarPerson,
+        grammarNumber,
+        septik,
+    );
+}
+
+function unpackDetectResponseWithPos(responseWords) {
+    for (let i = 0; i < responseWords.length; ++i) {
+        let word = responseWords[i];
+        let unpacked = unpackResponseWordWithPos(word);
+        if (unpacked != null) {
+            return unpacked;
+        }
+        // TODO unpack next words
+    }
+    return null;
+}
+
 export {
     unpackDetectResponse,
+    unpackDetectResponseWithPos,
 };
