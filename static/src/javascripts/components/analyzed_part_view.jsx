@@ -4,6 +4,11 @@ import { i18n } from "../lib/i18n";
 import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 
+function copyToClipboard(text) {
+    console.log(`Copying ${text}`);
+    navigator.clipboard.writeText(text);
+}
+
 /**
  * props:
  * - analyzedPart: AnalyzedPart
@@ -87,7 +92,11 @@ class AnalyzedPartView extends React.Component {
         const hasNext = index + 1 < total;
         if (!hasPrev && !hasNext) {
             return (
-                <strong className="text-center">{base}</strong>
+                <strong
+                    className="cursor-pointer text-center"
+                    onClick={(e) => { copyToClipboard(base); }}>
+                    {base}
+                </strong>
             );
         }
         const prevButton = (
@@ -103,7 +112,11 @@ class AnalyzedPartView extends React.Component {
         return (
             <div className="flex flex-row justify-between wider-analyzed-part">
                 {prevButton}
-                <strong>{base}</strong>
+                <strong
+                    className="cursor-pointer"
+                    onClick={(e) => { copyToClipboard(base); }}>
+                    {base}
+                </strong>
                 {nextButton}
             </div>
         );

@@ -226,14 +226,23 @@ class AnalyzerApp extends React.Component {
     }
 
     renderIntro() {
-        if (this.state.error || this.state.analyzing || this.state.breakdown.length > 0) {
+        if (this.state.error || this.state.analyzing) {
             return null;
+        }
+        let msg1 = null;
+        let msg2 = null;
+        if (this.state.breakdown.length == 0) {
+            msg1 = "analyzerIntro";
+            msg2 = "demoHint";
+        } else {
+            msg1 = "clipboardHint";
+            msg2 = "clearHint";
         }
         return (
             <div className="flex flex-row justify-center">
                 <div className="lg:w-1/5">
-                    <p className="m-2 p-4 border-2 rounded-2xl bg-blue-100 text-gray-700">{this.i18n("analyzerIntro")}</p>
-                    <p className="m-2 p-4 border-2 rounded-2xl bg-indigo-100 text-gray-700">{this.i18n("demoHint")}</p>
+                    <p className="m-2 p-4 border-2 rounded-2xl bg-blue-100 text-gray-700">{this.i18n(msg1)}</p>
+                    <p className="m-2 p-4 border-2 rounded-2xl bg-indigo-100 text-gray-700">{this.i18n(msg2)}</p>
                 </div>
             </div>
         );
@@ -282,9 +291,9 @@ class AnalyzerApp extends React.Component {
                     </a>
                 </h1>
                 {this.renderForm()}
-                {this.renderIntro()}
                 {this.renderBreakdown()}
                 {this.renderAnalysisStatus()}
+                {this.renderIntro()}
             </div>
         );
     }
