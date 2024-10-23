@@ -518,6 +518,14 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Text analyzer",
         "Анализатор текста",
     );
+    setEnRu(map, "analyzerIntro",
+        "Enter a sentence to see its words analyzed. The analyzer determines a part of speech and grammatical features for each word. It also highlight parts within a word.",
+        "Введите предложение, чтобы увидеть анализ его слов. Анализатор определяет часть речи и грамматические признаки для каждого слова. Он также подсвечивает части внутри слова."
+    );
+    setEnRu(map, "demoHint",
+        "Press the DEMO button to run the analyzer with a random sentence.",
+        "Нажмите кнопку DEMO, чтобы запустить анализатор со случайным предложением.",
+    );
     setEnRu(map, "hintEnterTextForAnalysis",
         "Enter text for analysis",
         "Введите текст для анализа",

@@ -4,6 +4,20 @@ import { makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, tokenize } from "../lib/analyzer";
 import { unpackDetectResponseWithPos } from "../lib/detector";
 import { AnalyzedPartView } from "./analyzed_part_view";
+import { pickRandom } from "../lib/random";
+import { buildTextAnalyzerUrl } from "../lib/url";
+
+const DEMO_POOL = [
+    "Парижден оралған спортшылардан коронавирус анықталған",
+    "Аумағы жөнінен Каспий, Арал теңіздерінен кейінгі үшінші орында, әлемдегі ең үлкен көлдер тізімінде он төртінші орында",
+    "Морфологиялық құрамы жағынан етістіктер дара етістіктер мен күрделі етістіктер деп аталатын екі салаға бөлінеді",
+    "Сені мен жұма күні құтқардым, сондықтан сенің атың Жұма болады деп түсіндірдім",
+    "Құдай тағала әрбір ақылы бар кісіге иман парыз, әрбір иманы бар кісіге ғибадат парыз деген екен",
+];
+
+function pickDemoSentence() {
+    return pickRandom(DEMO_POOL);
+}
 
 /**
  * props:
@@ -16,6 +30,7 @@ class AnalyzerApp extends React.Component {
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onDemo = this.onDemo.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         this.state = this.defaultState();
@@ -27,6 +42,7 @@ class AnalyzerApp extends React.Component {
             lastEntered: text,
             analyzing: false,
             error: false,
+            tokenCount: 0,
             breakdown: [],
         };
     }
@@ -120,12 +136,36 @@ class AnalyzerApp extends React.Component {
             this.setState({ analyzing: false, error: true });
             return;
         }
+        this.setState({ tokenCount: tokens.length });
         this.processToken(tokens, 0);
     }
 
     onChange(event) {
         let lastEntered = event.target.value;
         this.setState({ lastEntered });
+    }
+
+    analyze(text) {
+        if (this.state.analyzing) {
+            console.log("already analyzing");
+            return;
+        }
+        this.setState({ analyzing: true });
+        this.startDetection(text);
+    }
+
+    onDemo(event) {
+        event.preventDefault();
+
+        if (this.state.analyzing) {
+            console.log("already analyzing");
+            return;
+        }
+
+        const text = pickDemoSentence();
+        const lastEntered = text;
+        this.setState({ text, lastEntered });
+        this.analyze(text);
     }
 
     onSubmit(event) {
@@ -135,12 +175,28 @@ class AnalyzerApp extends React.Component {
             console.log("empty input");
             return;
         }
+        this.analyze(lastEntered);
+    }
+
+    renderSubmitButton() {
         if (this.state.analyzing) {
-            console.log("already analyzing");
-            return;
+            return (
+                <button
+                    type="submit"
+                    disabled
+                    className="bg-gray-500 hover:bg-gray-500 text-white text-4xl font-bold px-4 rounded focus:outline-none">
+                    ⋯
+                </button>
+            );
+        } else {
+            return (
+                <button
+                    type="submit"
+                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    →
+                </button>
+            );
         }
-        this.setState({ analyzing: true });
-        this.startDetection(lastEntered);
     }
 
     renderForm() {
@@ -157,25 +213,42 @@ class AnalyzerApp extends React.Component {
                     className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     placeholder={this.i18n("hintEnterTextForAnalysis")}
                     />
-                <div className="px-3 py-2 flex flex-row justify-end">
+                <div className="p-2 flex flex-row justify-between">
                     <button
-                        type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
-                        →
+                        onClick={this.onDemo}
+                        className="bg-indigo-500 hover:bg-indigo-700 text-white text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                        DEMO
                     </button>
+                    {this.renderSubmitButton()}
                 </div>
             </form>
+        );
+    }
+
+    renderIntro() {
+        if (this.state.error || this.state.analyzing || this.state.breakdown.length > 0) {
+            return null;
+        }
+        return (
+            <div className="flex flex-row justify-center">
+                <div className="lg:w-1/5">
+                    <p className="m-2 p-4 border-2 rounded-2xl bg-blue-100 text-gray-700">{this.i18n("analyzerIntro")}</p>
+                    <p className="m-2 p-4 border-2 rounded-2xl bg-indigo-100 text-gray-700">{this.i18n("demoHint")}</p>
+                </div>
+            </div>
         );
     }
 
     renderAnalysisStatus() {
         if (this.state.error) {
             return (
-                <p>{this.i18n("gotError")}</p>
+                <p className="text-center text-2xl text-red-600">{this.i18n("gotError")}</p>
             );
         } else if (this.state.analyzing) {
             return (
-                <p>{this.i18n("analyzing")}</p>
+                <p className="text-center text-2xl text-gray-600">
+                    {this.i18n("analyzing")} {this.state.breakdown.length}&nbsp;/&nbsp;{this.state.tokenCount}
+                </p>
             );
         } else {
             return null;
@@ -204,11 +277,14 @@ class AnalyzerApp extends React.Component {
         return (
             <div className="flex flex-col w-full">
                 <h1 className="text-center text-4xl italic text-gray-600">
-                    {this.i18n("titleTextAnalyzer")}
+                    <a href={buildTextAnalyzerUrl(this.props.lang)}>
+                        {this.i18n("titleTextAnalyzer")}
+                    </a>
                 </h1>
                 {this.renderForm()}
-                {this.renderAnalysisStatus()}
+                {this.renderIntro()}
                 {this.renderBreakdown()}
+                {this.renderAnalysisStatus()}
             </div>
         );
     }
