@@ -71,8 +71,13 @@ function buildVerbDetectorUrl(form, lang) {
     return buildUrl(path, params);
 }
 
-function buildTextAnalyzerUrl(lang) {
-    return `/text_analyzer_${lang}.html`;
+function buildTextAnalyzerUrl(text, lang) {
+    let params = [];
+    if (text.length > 0) {
+        params.push(`text=${encodeURI(text)}`);
+    }
+    const path = `/text_analyzer_${lang}.html`;
+    return buildUrl(path, params);
 }
 
 function doBuildViewerUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, eg) {

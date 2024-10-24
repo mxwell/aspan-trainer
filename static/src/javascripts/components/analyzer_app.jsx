@@ -5,7 +5,7 @@ import { AnalyzedPart, tokenize } from "../lib/analyzer";
 import { unpackDetectResponseWithPos } from "../lib/detector";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
-import { buildTextAnalyzerUrl } from "../lib/url";
+import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -15,7 +15,13 @@ const DEMO_POOL = [
     "Құдай тағала әрбір ақылы бар кісіге иман парыз, әрбір иманы бар кісіге ғибадат парыз деген екен",
 ];
 
-function pickDemoSentence() {
+function pickDemoSentence(cur) {
+    for (let i = 0; i < 3; ++i) {
+        const pick = pickRandom(DEMO_POOL);
+        if (pick != cur) {
+            return pick;
+        }
+    }
     return pickRandom(DEMO_POOL);
 }
 
@@ -33,7 +39,13 @@ class AnalyzerApp extends React.Component {
         this.onDemo = this.onDemo.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
-        this.state = this.defaultState();
+        const urlState = this.readUrlState();
+        if (urlState != null) {
+            this.state = urlState;
+            this.analyze(urlState.text);
+        } else {
+            this.state = this.defaultState();
+        }
     }
 
     makeState(text) {
@@ -51,6 +63,16 @@ class AnalyzerApp extends React.Component {
         return this.makeState(
             /* text */ "",
         );
+    }
+
+    readUrlState() {
+        const params = parseParams();
+        const text = params.text;
+        if (text == null || text.length == 0) {
+            return null;
+        }
+        this.star
+        return this.makeState(text);
     }
 
     i18n(key) {
@@ -162,9 +184,11 @@ class AnalyzerApp extends React.Component {
             return;
         }
 
-        const text = pickDemoSentence();
+        const text = pickDemoSentence(this.state.lastEntered);
         const lastEntered = text;
         this.setState({ text, lastEntered });
+        const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
+        window.history.pushState(null, "", newUrl);
         this.analyze(text);
     }
 
@@ -175,6 +199,8 @@ class AnalyzerApp extends React.Component {
             console.log("empty input");
             return;
         }
+        const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
+        window.history.pushState(null, "", newUrl);
         this.analyze(lastEntered);
     }
 
@@ -208,7 +234,7 @@ class AnalyzerApp extends React.Component {
                     autoFocus
                     onChange={this.onChange}
                     value={this.state.lastEntered}
-                    maxLength="256"
+                    maxLength="2048"
                     required
                     className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     placeholder={this.i18n("hintEnterTextForAnalysis")}
@@ -286,7 +312,7 @@ class AnalyzerApp extends React.Component {
         return (
             <div className="flex flex-col w-full">
                 <h1 className="text-center text-4xl italic text-gray-600">
-                    <a href={buildTextAnalyzerUrl(this.props.lang)}>
+                    <a href={buildTextAnalyzerUrl("", this.props.lang)}>
                         {this.i18n("titleTextAnalyzer")}
                     </a>
                 </h1>

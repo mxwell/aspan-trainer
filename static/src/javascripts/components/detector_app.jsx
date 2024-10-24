@@ -525,7 +525,7 @@ class DetectorApp extends React.Component {
                             <p className="text-center">
                                 {this.i18n("youMightBeInterestedInAnalyzer")}
                                 &nbsp;
-                                <a href={buildTextAnalyzerUrl(this.props.lang)} className="underline">
+                                <a href={buildTextAnalyzerUrl(this.state.lastEntered, this.props.lang)} className="underline">
                                     {this.i18n("titleTextAnalyzer")}
                                 </a>.
                             </p>
