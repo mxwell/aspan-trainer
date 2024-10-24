@@ -7,6 +7,11 @@ import { buildGcLoginUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
 import { COMMON_TRANS_DIRECTIONS, COMMON_TRANS_DIRECTION_BY_KEY } from "../lib/gc";
 import { InvalidAuthTokenException } from "../lib/requests";
 
+function copyToClipboard(text) {
+    console.log(`Copying ${text}`);
+    navigator.clipboard.writeText(text);
+}
+
 /**
  * props:
  * - lang
@@ -494,12 +499,20 @@ class GcReviewsApp extends React.Component {
                             </tr>
                             <tr className="border-t-2 text-base">
                                 <td className="bg-gray-300 pl-4 py-2">
-                                    <span className="text-3xl text-indigo-800">{entry.src_word}</span>
+                                    <span
+                                        className="text-3xl text-indigo-800 cursor-pointer"
+                                        onClick={(e) => { copyToClipboard(entry.src_word); }}>
+                                        {entry.src_word}
+                                    </span>
                                     {this.renderPos(entry.src_pos, entry.src_exc_verb)}
                                     {renderComment(entry.src_comment, commentClass, 128)}
                                 </td>
                                 <td className="border-l-2 border-white bg-gray-300 pl-4 py-2">
-                                    <span className="text-3xl text-indigo-800">{entry.dst_word}</span>
+                                    <span
+                                        className="text-3xl text-indigo-800 cursor-pointer"
+                                        onClick={(e) => { copyToClipboard(entry.dst_word); }}>
+                                        {entry.dst_word}
+                                    </span>
                                     {this.renderPos(entry.dst_pos, entry.dst_exc_verb)}
                                     {renderComment(entry.dst_comment, commentClass, 128)}
                                 </td>
