@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { gcAddReviewVote, gcDiscardReview, gcGetReviews, gcRetractReviewVote } from "../lib/gc_api";
+import { gcAddReviewVote, gcDiscardReview, gcGetReviews2, gcRetractReviewVote } from "../lib/gc_api";
 import { unixEpochToString } from "../lib/datetime";
 import { renderComment } from "./gc_common";
 import { buildGcLoginUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
@@ -11,6 +11,8 @@ function copyToClipboard(text) {
     console.log(`Copying ${text}`);
     navigator.clipboard.writeText(text);
 }
+
+const kPageSize = 20;
 
 /**
  * props:
@@ -30,18 +32,19 @@ class GcReviewsApp extends React.Component {
 
         const state = this.readUrlState() || this.defaultState();
         this.state = state;
-        this.startGetReviews(state.page, state.direction, this.state.approvesMin);
+        this.startGetReviews(state.offset, state.direction, this.state.approvesMin);
     }
 
-    makeState(page, direction, approvesMin) {
+    makeState(offset, direction, approvesMin) {
         return {
-            page: page,
+            offset: offset,
             direction: direction,
             approvesMin: approvesMin,
             loading: true,
             voting: false,
             error: false,
             reviews: null,
+            goneCount: 0,
         };
     }
 
@@ -64,8 +67,8 @@ class GcReviewsApp extends React.Component {
         if (direction == null && params.am) {
             approvesMin = params.am;
         }
-        const page = Math.max(0, Number(params.p)) || 0;
-        return this.makeState(page, direction, approvesMin);
+        const offset = Math.max(0, Number(params.o)) || 0;
+        return this.makeState(offset, direction, approvesMin);
     }
 
     i18n(key) {
@@ -110,9 +113,10 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    startGetReviews(page, direction, approvesMin) {
-        gcGetReviews(
-            page,
+    startGetReviews(offset, direction, approvesMin) {
+        gcGetReviews2(
+            offset,
+            kPageSize,
             direction,
             approvesMin,
             this.handleGetReviewsResponse,
@@ -157,20 +161,26 @@ class GcReviewsApp extends React.Component {
             this.putToErrorState();
             return;
         }
+        const entryIndex = context.entryIndex;
+        if (entryIndex == null) {
+            console.log("handleChangeReviewVoteResponse: null entryIndex in context");
+            this.putToErrorState();
+            return;
+        }
         console.log(`Updated for review ${reviewId}: ${approves} vs ${disapproves}, own ${ownApproves} vs ${ownDisapproves}, gone ${gone}`);
         const voting = false;
         let reviews = this.state.reviews;
-        for (let review of reviews) {
-            if (review.review_id == reviewId) {
-                review.approves = approves;
-                review.disapproves = disapproves;
-                review.own_approves = ownApproves;
-                review.own_disapproves = ownDisapproves;
-                review.gone = gone;
-                break;
-            }
+        let goneCount = this.state.goneCount;
+        let review = reviews[entryIndex];
+        review.approves = approves;
+        review.disapproves = disapproves;
+        review.own_approves = ownApproves;
+        review.own_disapproves = ownDisapproves;
+        review.gone = gone;
+        if (gone) {
+            goneCount += 1;
         }
-        this.setState({ voting, reviews });
+        this.setState({ voting, reviews, goneCount });
     }
 
     async handleChangeReviewVoteError(context, responseTextPromise) {
@@ -189,7 +199,7 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    handleVoteClick(event, reviewId, vote, delta) {
+    handleVoteClick(event, entryIndex, reviewId, vote, delta) {
         event.preventDefault();
         console.log(`Vote clicked: ${reviewId}, ${vote}, ${delta}`);
         if (this.state.voting) {
@@ -209,7 +219,7 @@ class GcReviewsApp extends React.Component {
                     vote,
                     this.handleChangeReviewVoteResponse,
                     this.handleChangeReviewVoteError,
-                    { reviewId },
+                    { reviewId, entryIndex },
                 );
             } catch (exc) {
                 if (exc instanceof InvalidAuthTokenException) {
@@ -227,7 +237,7 @@ class GcReviewsApp extends React.Component {
                     vote,
                     this.handleChangeReviewVoteResponse,
                     this.handleChangeReviewVoteError,
-                    { reviewId },
+                    { reviewId, entryIndex },
                 );
             } catch (exc) {
                 if (exc instanceof InvalidAuthTokenException) {
@@ -255,16 +265,20 @@ class GcReviewsApp extends React.Component {
             this.putToErrorState();
             return;
         }
+        const entryIndex = context.entryIndex;
+        if (entryIndex == null) {
+            console.log("handleDiscardReviewResponse: null entryIndex in context");
+            this.putToErrorState();
+            return;
+        }
         console.log(`Discarded review ${reviewId}`);
         const voting = false;
         let reviews = this.state.reviews;
-        for (let review of reviews) {
-            if (review.review_id == reviewId) {
-                review.gone = true;
-                break;
-            }
-        }
-        this.setState({ voting, reviews });
+        let review = reviews[entryIndex];
+        let goneCount = this.state.goneCount;
+        review.gone = true;
+        goneCount += 1;
+        this.setState({ voting, reviews, goneCount });
     }
 
     async handleDiscardReviewError(context, responseTextPromise) {
@@ -273,7 +287,7 @@ class GcReviewsApp extends React.Component {
         this.putToErrorState();
     }
 
-    handleDiscardClick(event, reviewId) {
+    handleDiscardClick(event, entryIndex, reviewId) {
         event.preventDefault();
         console.log(`Delete clicked: ${reviewId}`);
         if (this.state.voting) {
@@ -287,7 +301,7 @@ class GcReviewsApp extends React.Component {
                 reviewId,
                 this.handleDiscardReviewResponse,
                 this.handleDiscardReviewError,
-                { reviewId },
+                { entryIndex, reviewId },
             );
         } catch (exc) {
             if (exc instanceof InvalidAuthTokenException) {
@@ -369,7 +383,7 @@ class GcReviewsApp extends React.Component {
         return null;
     }
 
-    renderReviewControls(entry) {
+    renderReviewControls(entryIndex, entry) {
         const gone = entry.gone == true;
         const approves = (entry.approves > 0 ? String(entry.approves) : "");
         const disapproves = (entry.disapproves > 0 ? String(entry.disapproves) : "");
@@ -402,14 +416,14 @@ class GcReviewsApp extends React.Component {
                 <div className="flex flex-row">
                     <button
                         type="button"
-                        onClick={(event) => this.handleVoteClick(event, entry.review_id, "APPROVE", approveDelta)}
+                        onClick={(event) => this.handleVoteClick(event, entryIndex, entry.review_id, "APPROVE", approveDelta)}
                         className={`${approveClass} mx-2 w-24 h-12 py-2 rounded focus:outline-none focus:shadow-outline flex flex-row justify-center`}>
                         <img src="/thumb_up.svg" alt="thumb up" className="h-8" />
                         <span className="pl-2 text-2xl text-white">{approves}</span>
                     </button>
                     <button
                         type="button"
-                        onClick={(event) => this.handleVoteClick(event, entry.review_id, "DISAPPROVE", disapproveDelta)}
+                        onClick={(event) => this.handleVoteClick(event, entryIndex, entry.review_id, "DISAPPROVE", disapproveDelta)}
                         className={`${disapproveClass} w-24 h-12 py-2 rounded focus:outline-none focus:shadow-outline flex flex-row justify-center`}>
                         <img src="/thumb_down.svg" alt="thumb down" className="h-8" />
                         <span className="pl-2 text-2xl text-white">{disapproves}</span>
@@ -471,7 +485,8 @@ class GcReviewsApp extends React.Component {
         }
         let listItems = [];
         const commentClass = "py-2 px-4 text-gray-700 italic";
-        for (let entry of reviews) {
+        for (let entryIndex = 0; entryIndex < reviews.length; ++entryIndex) {
+            const entry = reviews[entryIndex];
             listItems.push(
                 <li key={listItems.length}
                     className="my-10 p-6 text-gray-700 border-2 bg-gray-100 rounded-2xl">
@@ -523,7 +538,7 @@ class GcReviewsApp extends React.Component {
                         <div className="p-2 border-2 rounded break-all">
                             {this.i18n("reference")}: {entry.reference}
                         </div>
-                        {this.renderReviewControls(entry)}
+                        {this.renderReviewControls(entryIndex, entry)}
                     </div>
                 </li>
             );
@@ -540,19 +555,22 @@ class GcReviewsApp extends React.Component {
         if (reviews == null) {
             return null;
         }
-        const page = this.state.page;
+        const offset = this.state.offset;
         const direction = this.state.direction;
         const dir = (direction != null) ? direction.toKey() : null;
         const approvesMin = this.state.approvesMin;
+        const goneCount = this.state.goneCount;
         const links = [];
-        if (page > 1) {
+        if (offset > 1) {
             links.push({href: buildGcReviewsUrl(0, dir, approvesMin, this.props.lang), label: "⇤"});
         }
-        if (page > 0) {
-            links.push({href: buildGcReviewsUrl(page - 1, dir, approvesMin, this.props.lang), label: "←"});
+        if (offset > 0) {
+            const prevOffset = Math.max(0, offset - kPageSize);
+            links.push({href: buildGcReviewsUrl(prevOffset, dir, approvesMin, this.props.lang), label: "←"});
         }
-        if (reviews.length >= 20) {
-            links.push({href: buildGcReviewsUrl(page + 1, dir, approvesMin, this.props.lang), label: "→"});
+        if (reviews.length >= kPageSize) {
+            const nextOffset = Math.max(0, offset + kPageSize - goneCount);
+            links.push({href: buildGcReviewsUrl(nextOffset, dir, approvesMin, this.props.lang), label: "→"});
         }
         const htmlLinks = [];
         for (let link of links) {

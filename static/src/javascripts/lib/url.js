@@ -178,7 +178,7 @@ function buildGcCreatePrefilledUrl(word, src, dst, lang) {
     return buildUrl(path, params);
 }
 
-function buildGcReviewsUrl(page, dir, approvesMin, lang) {
+function buildGcReviewsUrl(offset, dir, approvesMin, lang) {
     let params = [];
     if (dir) {
         params.push(`dir=${dir}`);
@@ -186,8 +186,8 @@ function buildGcReviewsUrl(page, dir, approvesMin, lang) {
     if (approvesMin != null) {
         params.push(`am=${approvesMin}`);
     }
-    if (page > 0) {
-        params.push(`p=${page}`);
+    if (offset > 0) {
+        params.push(`o=${offset}`);
     }
     const path = `/gc_reviews_${lang}.html`;
     return buildUrl(path, params);

@@ -91,8 +91,8 @@ function gcGetFeed(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
-function gcGetReviews(page, direction, approvesMin, successCallback, errorCallback, context) {
-    let params = { p: page };
+function gcGetReviews2(offset, count, direction, approvesMin, successCallback, errorCallback, context) {
+    let params = { o: offset, c: count };
     if (direction != null) {
         params.src = direction.src;
         params.dst = direction.dst;
@@ -101,7 +101,7 @@ function gcGetReviews(page, direction, approvesMin, successCallback, errorCallba
         params.am = approvesMin;
     }
     const query = encodeQueryData(params);
-    const url = `/gcapi/v1/get_reviews?${query}`;
+    const url = `/gcapi/v2/get_reviews?${query}`;
     const token = getCurrentGcToken() || "lala";
     return makeGetApiRequest(url, successCallback, errorCallback, context, token, true);
 }
@@ -267,7 +267,7 @@ export {
     gcAddWord,
     gcAddTranslation,
     gcGetFeed,
-    gcGetReviews,
+    gcGetReviews2,
     gcAddReview,
     gcAddReviewVote,
     gcRetractReviewVote,
