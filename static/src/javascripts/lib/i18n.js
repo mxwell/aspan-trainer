@@ -58,6 +58,16 @@ function prepareCommonTranslations(map) {
         "Ошибка сервиса",
         "Қызмет қатесі",
     );
+    setEnRuKz(map, "gotError",
+        "Encountered an error",
+        "Возникла ошибка",
+        "Қызмет қатесі",
+    );
+    setEnRuKz(map, "isLoading",
+        "Loading..",
+        "Загрузка..",
+        "Жүктелуде..",
+    );
 
     setEnRuKz(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
@@ -68,11 +78,6 @@ function prepareCommonTranslations(map) {
 
 function prepareViewerOnlyTranslations(map) {
     /* viewer texts */
-    setEnRuKz(map, "isLoading",
-        "Loading..",
-        "Загрузка..",
-        "Жүктелуде..",
-    );
     setEnRuKz(map, "useFormToFindVerbConj",
         "To find the conjugation of any verb in the Kazakh language, enter the dictionary form of the verb in the field and click 'Submit'.",
         "Чтобы найти спряжение любого глагола в казахском языке, введите словарную форму глагола в поле и нажмите 'Отправить'.",
@@ -542,10 +547,6 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Analyzing text…",
         "Анализ текста…",
     );
-    setEnRu(map, "gotError",
-        "Encountered an error",
-        "Возникла ошибка",
-    );
     setEnRu(map, "noun",
         "noun",
         "существительное",
@@ -689,6 +690,21 @@ function prepareAnalyzerOnlyTranslations(map) {
     setEnRu(map, "analyzer_Plural",
         "plural",
         "множественное число",
+    );
+}
+
+function prepareDictOnlyTranslations(map) {
+    setEnRu(map, "titleDict",
+        "Dictionary",
+        "Словарь",
+    );
+    setEnRu(map, "hintEnterWordForm",
+        "Enter a word in any form",
+        "Введите слово в любой форме",
+    );
+    setEnRu(map, "foundResults",
+        "Found results",
+        "Найдено результатов",
     );
 }
 
@@ -1364,6 +1380,7 @@ function prepareTranslations() {
     prepareExplanationOnlyTranslations(map);
     prepareDetectorOnlyTranslations(map);
     prepareAnalyzerOnlyTranslations(map);
+    prepareDictOnlyTranslations(map);
     prepareCommonQuizTranslations(map);
     prepareQuizOnlyTranslations(map);
     prepareTopOnlyTranslations(map);

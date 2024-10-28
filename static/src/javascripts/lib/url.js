@@ -80,6 +80,15 @@ function buildTextAnalyzerUrl(text, lang) {
     return buildUrl(path, params);
 }
 
+function buildDictUrl(word, lang) {
+    const path = `/dict_${lang}.html`;
+    if (word == null || word.length == 0) {
+        return path;
+    }
+    let params = [`w=${encodeURI(word)}`];
+    return buildUrl(path, params);
+}
+
 function doBuildViewerUrl(verb, sentenceType, forceExceptional, abKey, lang, auxVerb, auxNeg, eg) {
     if (auxVerb === undefined) {
         throw new Error("auxVerb is undefined in buildViewerUrl2");
@@ -223,6 +232,7 @@ export {
     buildExplanationUrl,
     buildVerbDetectorUrl,
     buildTextAnalyzerUrl,
+    buildDictUrl,
     buildViewerUrl2,
     buildViewerWithExamplesUrl,
     buildVerbFormAudioUrl,
