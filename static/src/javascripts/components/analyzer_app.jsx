@@ -71,7 +71,6 @@ class AnalyzerApp extends React.Component {
         if (text == null || text.length == 0) {
             return null;
         }
-        this.star
         return this.makeState(text);
     }
 
