@@ -3,6 +3,7 @@ import { i18n } from "../lib/i18n";
 import { buildDictUrl, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
 import { unpackDetectResponseWithPos } from "../lib/detector";
+import { SENTENCE_TYPES } from "../lib/sentence";
 
 /**
  * props:
@@ -17,8 +18,13 @@ class DictApp extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
-        // TODO lookup if cgi param
-        this.state = this.readUrlState() || this.defaultState();
+        const urlState = this.readUrlState();
+        if (urlState != null) {
+            this.state = urlState;
+            this.lookup(urlState.word);
+        } else {
+            this.state = this.defaultState();
+        }
     }
 
     makeState(word) {
@@ -144,6 +150,73 @@ class DictApp extends React.Component {
         );
     }
 
+    renderFormDetails(detectedForm) {
+        let featureHtmls = [];
+        let pos = detectedForm.pos;
+        let title = null;
+        if (pos == "n") {
+            title = this.i18n("titleNounFormT")(detectedForm.base);
+            const septik = detectedForm.septik;
+            if (septik != null && septik != 0) {
+                featureHtmls.push(
+                    <div key={featureHtmls.length}>
+                        {this.i18n(`analyzerSeptik_${septik}`)}
+                    </div>
+                );
+            }
+            if (detectedForm.grammarPerson) {
+                featureHtmls.push(
+                    <div key={featureHtmls.length}>
+                        {this.i18n(`analyzerPoss_${detectedForm.grammarPerson}`)}
+                    </div>
+                );
+            }
+        } else if (pos == "v") {
+            title = this.i18n("titleVerbFormT")(detectedForm.base);
+            const tense = detectedForm.tense;
+            if (tense != null) {
+                featureHtmls.push(
+                    <div key={featureHtmls.length}>
+                        {this.i18n(`analyzerTense_${tense}`)}
+                    </div>
+                );
+            }
+            if (detectedForm.sentenceType == SENTENCE_TYPES[1]) {
+                featureHtmls.push(
+                    <div key={featureHtmls.length}>
+                        {this.i18n("analyzerNegation")}
+                    </div>
+                );
+            }
+            if (detectedForm.grammarPerson) {
+                featureHtmls.push(
+                    <div key={featureHtmls.length}>
+                        {this.i18n(`analyzer_${detectedForm.grammarPerson}`)}
+                    </div>
+                );
+            }
+        } else {
+            title = this.i18n("titleWordFormT")(detectedForm.base);
+        }
+        if (detectedForm.grammarNumber == "Plural") {
+            featureHtmls.push(
+                <div key={featureHtmls.length}>
+                    {this.i18n("analyzer_Plural")}
+                </div>
+            );
+        }
+        if (featureHtmls.length == 0) {
+            return (<div></div>);
+        }
+        return (
+            <div>
+                <h3>{title}</h3>
+                {featureHtmls}
+            </div>
+        );
+    }
+
+    // TODO show exception verbs
     renderDetectedForms() {
         if (this.state.error || this.state.loading) {
             return;
@@ -157,9 +230,10 @@ class DictApp extends React.Component {
             const detectedForm = detectedForms[index];
             const oneBasedIndex = Number(index) + 1;
             formHtmls.push(
-                <div key={formHtmls.length}>
+                <div key={formHtmls.length}
+                    className="m-2 p-2 border-2">
                     <div className="flex flex-row justify-between">
-                        <span>{detectedForm.base}</span>
+                        {this.renderFormDetails(detectedForm)}
                         <span>{oneBasedIndex}/{total}</span>
                     </div>
                 </div>
@@ -167,8 +241,8 @@ class DictApp extends React.Component {
         }
 
         return (
-            <div className="m-4 flex flex-col">
-                <p className="italic">
+            <div className="flex flex-col">
+                <p className="m-2 italic">
                     {this.i18n("foundResults", this.props.lang)}: {total}
                 </p>
                 {formHtmls}

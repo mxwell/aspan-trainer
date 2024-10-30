@@ -61,7 +61,7 @@ class AnalyzedPartView extends React.Component {
         if (pos == "n") {
             const septik = detectedForm.septik;
             if (septik != null && septik != 0) {
-                return this.i18n(`analyzerSeptik_${detectedForm.septik}`);
+                return this.i18n(`analyzerSeptik_${septik}`);
             }
         } else if (pos == "v") {
             const tense = detectedForm.tense;
