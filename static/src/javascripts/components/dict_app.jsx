@@ -216,6 +216,24 @@ class DictApp extends React.Component {
         );
     }
 
+    renderTranslations(detectedForm) {
+        let glossHtmls = [];
+        for (const gloss of detectedForm.ruGlosses) {
+            glossHtmls.push(
+                <li key={glossHtmls.length}>{gloss}</li>
+            );
+        }
+
+        return (
+            <div className="bg-green-200 p-2">
+                <h3>{this.i18n("translationTo_ru")}</h3>
+                <ul>
+                    {glossHtmls}
+                </ul>
+            </div>
+        );
+    }
+
     // TODO show exception verbs
     renderDetectedForms() {
         if (this.state.error || this.state.loading) {
@@ -236,6 +254,7 @@ class DictApp extends React.Component {
                         {this.renderFormDetails(detectedForm)}
                         <span>{oneBasedIndex}/{total}</span>
                     </div>
+                    {this.renderTranslations(detectedForm)}
                 </div>
             );
         }

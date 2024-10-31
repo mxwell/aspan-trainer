@@ -118,7 +118,7 @@ function unpackDetectResponse(responseWords) {
 }
 
 class DetectedForm {
-    constructor(pos, base, sentenceType, excVerb, tense, grammarPerson, grammarNumber, septik) {
+    constructor(pos, base, sentenceType, excVerb, tense, grammarPerson, grammarNumber, septik, ruGlosses) {
         this.pos = pos;
         this.base = base;
         this.sentenceType = sentenceType;
@@ -127,6 +127,7 @@ class DetectedForm {
         this.grammarPerson = grammarPerson;
         this.grammarNumber = grammarNumber;
         this.septik = septik;
+        this.ruGlosses = ruGlosses;
     }
 }
 
@@ -150,6 +151,12 @@ function unpackResponseWordWithPos(word) {
     const grammarPerson = getGrammarPerson(parts[2]);
     const grammarNumber = getGrammarNumber(parts[3]);
     const septik = getSeptik(parts[4]);
+    let ruGlosses = [];
+    if (meta.ruwkt) {
+        for (const item of meta.ruwkt) {
+            ruGlosses.push(item);
+        }
+    }
     return new DetectedForm(
         pos,
         base,
@@ -159,6 +166,7 @@ function unpackResponseWordWithPos(word) {
         grammarPerson,
         grammarNumber,
         septik,
+        ruGlosses,
     );
 }
 

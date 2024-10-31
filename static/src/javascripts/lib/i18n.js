@@ -718,6 +718,10 @@ function prepareDictOnlyTranslations(map) {
         (word) => `Form of the word «${word}»`,
         (word) => `Форма слова «${word}»`,
     );
+    setEnRu(map, "translationTo_ru",
+        "Translation to Russian",
+        "Перевод на русский",
+    );
 }
 
 function prepareCommonQuizTranslations(map) {
