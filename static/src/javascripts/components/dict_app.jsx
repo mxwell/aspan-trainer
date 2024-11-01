@@ -67,7 +67,7 @@ class DictApp extends React.Component {
              * Some tenses are problematic, hence the filtering.
              */
             for (const candidate of candidates) {
-                if (candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
+                if (candidate.tense != "presentContinuous") {
                     detectedForms.push(candidate);
                 }
             }
@@ -173,7 +173,7 @@ class DictApp extends React.Component {
             }
         } else if (pos == "v") {
             const tense = detectedForm.tense;
-            if (tense != null) {
+            if (tense != null && tense != "infinitive") {
                 featureHtmls.push(
                     <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzerTense_${tense}`)}
@@ -245,7 +245,7 @@ class DictApp extends React.Component {
         if (pos == "n") {
             const phrasal = reproduceNoun(detectedForm);
             return highlightDeclensionPhrasal(phrasal);
-        } else if (pos == "v") {
+        } else if (pos == "v" && detectedForm.tense != "infinitive") {
             const phrasal = reproduceVerb(detectedForm);
             return highlightPhrasal(phrasal, -1);
         } else {
