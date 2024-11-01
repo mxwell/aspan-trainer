@@ -706,17 +706,9 @@ function prepareDictOnlyTranslations(map) {
         "Found results",
         "Найдено результатов",
     );
-    setEnRu(map, "titleNounFormT",
-        (word) => `Form of the noun «${word}»`,
-        (word) => `Форма существительного «${word}»`,
-    );
-    setEnRu(map, "titleVerbFormT",
-        (word) => `Form of the verb «${word}»`,
-        (word) => `Форма глагола «${word}»`,
-    );
-    setEnRu(map, "titleWordFormT",
-        (word) => `Form of the word «${word}»`,
-        (word) => `Форма слова «${word}»`,
+    setEnRu(map, "titleForm",
+        "Form",
+        "Форма"
     );
     setEnRu(map, "translationTo_ru",
         "Translation to Russian",

@@ -4,6 +4,8 @@ import { buildDictUrl, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
 import { unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
+import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
+import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 
 /**
  * props:
@@ -124,7 +126,7 @@ class DictApp extends React.Component {
             return (
                 <button
                     type="submit"
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    className="bg-yellow-700 hover:bg-yellow-800 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                     →
                 </button>
             );
@@ -153,65 +155,62 @@ class DictApp extends React.Component {
     renderFormDetails(detectedForm) {
         let featureHtmls = [];
         let pos = detectedForm.pos;
-        let title = null;
         if (pos == "n") {
-            title = this.i18n("titleNounFormT")(detectedForm.base);
             const septik = detectedForm.septik;
             if (septik != null && septik != 0) {
                 featureHtmls.push(
-                    <div key={featureHtmls.length}>
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzerSeptik_${septik}`)}
-                    </div>
+                    </li>
                 );
             }
             if (detectedForm.grammarPerson) {
                 featureHtmls.push(
-                    <div key={featureHtmls.length}>
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzerPoss_${detectedForm.grammarPerson}`)}
-                    </div>
+                    </li>
                 );
             }
         } else if (pos == "v") {
-            title = this.i18n("titleVerbFormT")(detectedForm.base);
             const tense = detectedForm.tense;
             if (tense != null) {
                 featureHtmls.push(
-                    <div key={featureHtmls.length}>
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzerTense_${tense}`)}
-                    </div>
+                    </li>
                 );
             }
             if (detectedForm.sentenceType == SENTENCE_TYPES[1]) {
                 featureHtmls.push(
-                    <div key={featureHtmls.length}>
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n("analyzerNegation")}
-                    </div>
+                    </li>
                 );
             }
             if (detectedForm.grammarPerson) {
                 featureHtmls.push(
-                    <div key={featureHtmls.length}>
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzer_${detectedForm.grammarPerson}`)}
-                    </div>
+                    </li>
                 );
             }
-        } else {
-            title = this.i18n("titleWordFormT")(detectedForm.base);
         }
         if (detectedForm.grammarNumber == "Plural") {
             featureHtmls.push(
-                <div key={featureHtmls.length}>
+                <li className="list-disc ml-4" key={featureHtmls.length}>
                     {this.i18n("analyzer_Plural")}
-                </div>
+                </li>
             );
         }
         if (featureHtmls.length == 0) {
             return (<div></div>);
         }
         return (
-            <div>
-                <h3>{title}</h3>
-                {featureHtmls}
+            <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-500">
+                <h3>{this.i18n("titleForm")} {this.highlightDetectedForm(detectedForm)}</h3>
+                <ul>
+                    {featureHtmls}
+                </ul>
             </div>
         );
     }
@@ -220,18 +219,40 @@ class DictApp extends React.Component {
         let glossHtmls = [];
         for (const gloss of detectedForm.ruGlosses) {
             glossHtmls.push(
-                <li key={glossHtmls.length}>{gloss}</li>
+                <li
+                    className="list-disc ml-4 text-xl"
+                    key={glossHtmls.length}>
+                    {gloss}
+                </li>
             );
+        }
+        if (glossHtmls.length == 0) {
+            glossHtmls.push(<li className="h-10"></li>);
         }
 
         return (
-            <div className="bg-green-200 p-2">
-                <h3>{this.i18n("translationTo_ru")}</h3>
-                <ul>
+            <div className="p-2 bg-gradient-to-tr from-blue-500 to-blue-800 text-white">
+                <h3 className="text-sm text-right">{this.i18n("translationTo_ru")}</h3>
+                <ul className="ml-2">
                     {glossHtmls}
                 </ul>
             </div>
         );
+    }
+
+    highlightDetectedForm(detectedForm) {
+        const pos = detectedForm.pos;
+        if (pos == "n") {
+            const phrasal = reproduceNoun(detectedForm);
+            return highlightDeclensionPhrasal(phrasal);
+        } else if (pos == "v") {
+            const phrasal = reproduceVerb(detectedForm);
+            return highlightPhrasal(phrasal, -1);
+        } else {
+            return [
+                <span>{detectedForm.base}</span>
+            ];
+        }
     }
 
     // TODO show exception verbs
@@ -249,11 +270,17 @@ class DictApp extends React.Component {
             const oneBasedIndex = Number(index) + 1;
             formHtmls.push(
                 <div key={formHtmls.length}
-                    className="m-2 p-2 border-2">
-                    <div className="flex flex-row justify-between">
-                        {this.renderFormDetails(detectedForm)}
-                        <span>{oneBasedIndex}/{total}</span>
+                    className="m-2 border-2">
+                    <div className="p-2 flex flex-row justify-between bg-yellow-700 text-white">
+                        <span className="p-2 text-2xl">
+                            {detectedForm.base}
+                        </span>
+                        <span className="p-1 text-sm">
+                            <p className="text-right">{oneBasedIndex}/{total}</p>
+                            <p>{this.i18n(`pos_${detectedForm.pos}`)}</p>
+                        </span>
                     </div>
+                    {this.renderFormDetails(detectedForm)}
                     {this.renderTranslations(detectedForm)}
                 </div>
             );
@@ -261,7 +288,7 @@ class DictApp extends React.Component {
 
         return (
             <div className="flex flex-col">
-                <p className="m-2 italic">
+                <p className="m-4 italic">
                     {this.i18n("foundResults", this.props.lang)}: {total}
                 </p>
                 {formHtmls}
