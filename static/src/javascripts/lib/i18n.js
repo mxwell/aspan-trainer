@@ -700,8 +700,8 @@ function prepareDictOnlyTranslations(map) {
         "Словарь",
     );
     setEnRu(map, "hintEnterWordForm",
-        "Enter a word in any form",
-        "Введите слово в любой форме",
+        "Enter a word",
+        "Введите слово",
     );
     setEnRu(map, "foundResults",
         "Found results",

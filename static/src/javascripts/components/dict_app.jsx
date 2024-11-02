@@ -254,7 +254,7 @@ class DictApp extends React.Component {
             );
         }
         if (glossHtmls.length == 0) {
-            glossHtmls.push(<li className="h-10"></li>);
+            glossHtmls.push(<li className="h-10" key={glossHtmls.length}></li>);
         }
 
         return (
@@ -282,7 +282,6 @@ class DictApp extends React.Component {
         }
     }
 
-    // TODO show exception verbs
     renderDetectedForms() {
         if (this.state.error || this.state.loading) {
             return;
