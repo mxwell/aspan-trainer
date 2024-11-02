@@ -15,6 +15,7 @@ import {
     getPronounByParams,
 } from './grammar_utils';
 import { getRandomInt, pickRandom } from './random';
+import { SENTENCE_TYPES } from './sentence';
 
 export const PARTICIPLE_PAST = "pastParticiple";
 export const PARTICIPLE_PRESENT = "presentParticiple";
@@ -101,15 +102,40 @@ function generateGerundForms(verb, forceExceptional, sentenceType, lat) {
 
 export function generatePromoVerbForms(verb, forceExceptional) {
     let forms = [];
-    const number = "Singular";
-    const sentenceType = "Statement";
+    const verbBuilder = new VerbBuilder(verb, forceExceptional);
+    const number = GRAMMAR_NUMBERS[0];
+    const sentenceType = SENTENCE_TYPES[0];
     for (const person of GRAMMAR_PERSONS) {
-        const verbBuilder = new VerbBuilder(verb, forceExceptional);
         const phrasal = verbBuilder.presentTransitiveForm(person, number, sentenceType);
         const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
         forms.push(new VerbForm(pronoun, null, null, phrasal, null, false));
     }
     return new TenseForms("presentTransitive", "present", forms);
+}
+
+export function generatePreviewVerbForms(verb, forceExceptional) {
+    let forms = [];
+    const verbBuilder = new VerbBuilder(verb, forceExceptional);
+    const number = GRAMMAR_NUMBERS[0];
+    const sentenceType = SENTENCE_TYPES[0];
+    forms.push(
+        verbBuilder.imperativeMood(
+            GRAMMAR_PERSONS[1],
+            number,
+            sentenceType
+        ).raw
+    );
+    forms.push(
+        verbBuilder.presentTransitiveForm(
+            GRAMMAR_PERSONS[3],
+            number,
+            sentenceType
+        ).raw
+    );
+    forms.push(
+        verbBuilder.perfectGerund(sentenceType).raw
+    );
+    return forms;
 }
 
 export function detectValidVerb(verb) {

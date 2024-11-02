@@ -69,6 +69,12 @@ function prepareCommonTranslations(map) {
         "Жүктелуде..",
     );
 
+    setEnRuKz(map, "titleConjugation",
+        "Conjugation",
+        "Спряжение",
+        "Жіктелу",
+    );
+
     setEnRuKz(map, "chooseVerbExceptionOrNot",
         "The verb has two meanings with one behaving regularly and other behaving like an exception",
         "Глагол имеет два значения, одно спрягается обычным способом, а другое как исключение.",
@@ -216,11 +222,6 @@ function prepareViewerOnlyTranslations(map) {
         "declension",
         "склонение",
         "септелу",
-    );
-    setEnRuKz(map, "titleConjugation",
-        "Conjugation",
-        "Спряжение",
-        "Жіктелу",
     );
     setEnRuKz(map, "titleDeclension",
         "Declension",

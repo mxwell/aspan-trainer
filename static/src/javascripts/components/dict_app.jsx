@@ -1,11 +1,12 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildDictUrl, parseParams } from "../lib/url";
+import { buildDictUrl, buildViewerUrl2, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
 import { unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
+import { generatePreviewVerbForms } from "../lib/verb_forms";
 
 /**
  * props:
@@ -152,6 +153,32 @@ class DictApp extends React.Component {
         );
     }
 
+    renderConjugation(detectedForm) {
+        if (detectedForm.pos != "v") {
+            return null;
+        }
+        const forms = generatePreviewVerbForms(detectedForm.base, detectedForm.excVerb);
+        if (forms.length == 0) {
+            return null;
+        }
+        const url = buildViewerUrl2(
+            detectedForm.base,
+            /* sentenceType */ SENTENCE_TYPES[0],
+            detectedForm.excVerb,
+            /* abKey */ null,
+            this.props.lang,
+            /* auxVerb */ null,
+            /* auxNeg */ false
+        );
+        return (
+            <div className="flex flex-row p-4 bg-yellow-100">
+                <span>{this.i18n("titleConjugation")}:&nbsp;</span>
+                <span className="italic">{forms.join(", ")}</span>
+                <span>&nbsp;[<a href={url}>↗</a>]</span>
+            </div>
+        );
+    }
+
     renderFormDetails(detectedForm) {
         let featureHtmls = [];
         let pos = detectedForm.pos;
@@ -280,6 +307,7 @@ class DictApp extends React.Component {
                             <p>{this.i18n(`pos_${detectedForm.pos}`)}</p>
                         </span>
                     </div>
+                    {this.renderConjugation(detectedForm)}
                     {this.renderFormDetails(detectedForm)}
                     {this.renderTranslations(detectedForm)}
                 </div>
