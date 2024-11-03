@@ -2,6 +2,7 @@
 
 import argparse
 from dataclasses import dataclass, field
+import json
 import logging
 from lxml import etree
 import os
@@ -78,7 +79,7 @@ def make_meta_urls(host, suffix_by_language, main_language, lastmod):
     return result
 
 
-def generate_sitemap(url_list):
+def generate_sitemap(url_list, output_path):
     namespaces = {
         "xhtml": "http://www.w3.org/1999/xhtml",
     }
@@ -122,9 +123,10 @@ def generate_sitemap(url_list):
     # Convert the tree to a byte string
     sitemap = etree.tostring(urlset, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-    # Write to a file
-    with open("sitemap.xml", "wb") as f:
+    fullpath = f"gen_sitemap/{output_path}"
+    with open(fullpath, "wb") as f:
         f.write(sitemap)
+    logging.info("Written %d URLs to %s", len(url_list), fullpath)
 
 
 def collect_verbs(verbs_path):
@@ -140,6 +142,72 @@ def collect_verbs(verbs_path):
     return result
 
 
+def make_urls_batch(host, lastmod, input_file, seen):
+    urls = []
+    for line in input_file:
+        obj = json.loads(line)
+        if "ruwkt" not in obj:
+            continue
+        if len(obj["ruwkt"]) == 0:
+            continue
+
+        for form in obj["forms"]:
+            word = form["form"]
+            if word in seen:
+                continue
+            seen.add(word)
+            escaped = urllib.parse.quote(word)
+            url = f"{host}/dict_ru.html?w={word}"
+            urls.append(WebsiteInfo(url, lastmod, [], []))
+
+        if len(urls) > 10000:
+            break
+
+    return urls
+
+
+def make_dict_sitemap(host, lastmod, dict_forms_path, sitemap_prefix_path):
+    seen = set()
+    batch_counter = 0
+    sitemaps = []
+    with open(dict_forms_path) as input_file:
+        while True:
+            urls = make_urls_batch(host, lastmod, input_file, seen)
+            if len(urls) == 0:
+                break
+            batch_counter += 1
+            output_path = f"{sitemap_prefix_path}{batch_counter}.xml"
+            generate_sitemap(urls, output_path)
+            sitemaps.append(output_path)
+    return sitemaps
+
+
+def generate_index(host, lastmod, sitemaps, output_path):
+    namespaces = {
+        "xhtml": "http://www.w3.org/1999/xhtml",
+    }
+    sitemapindex = etree.Element(
+        "sitemapindex",
+        xmlns="http://www.sitemaps.org/schemas/sitemap/0.9",
+        nsmap=namespaces
+    )
+
+    for sitemap_name in sitemaps:
+        url_element = etree.SubElement(sitemapindex, "sitemap")
+        loc = etree.SubElement(url_element, "loc")
+        loc.text = f"{host}/{sitemap_name}"
+
+        lastmod_element = etree.SubElement(url_element, "lastmod")
+        lastmod_element.text = lastmod
+
+    result = etree.tostring(sitemapindex, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+
+    fullpath = f"gen_sitemap/{output_path}"
+    with open(fullpath, "wb") as f:
+        f.write(result)
+    logging.info("Written %d entries to %s", len(sitemaps), fullpath)
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
 
@@ -147,6 +215,7 @@ def main():
     parser.add_argument("--host", type=str, required=True, help="Host name for the website")
     parser.add_argument("--verbs-path", type=str, required=True, help="Path to verbs file")
     parser.add_argument("--lastmod", type=str, default="2024-01-14", help="A string like 2024-01-14 to use as URLs lastmod")
+    parser.add_argument("--dict-forms", type=str, help="An optional path to JSON lines file with word forms")
     args = parser.parse_args()
 
     main_language = "ru"
@@ -176,7 +245,15 @@ def main():
     verbs = collect_verbs(args.verbs_path)
     urls = section_paths
     urls += make_spa_urls(args.host, prefix_by_language, main_language, verbs, args.lastmod)
-    generate_sitemap(urls)
+    generate_sitemap(urls, "sitemap0.xml")
+
+    sitemaps = ["sitemap0.xml"]
+
+    if args.dict_forms:
+        sitemaps.extend(make_dict_sitemap(args.host, args.lastmod, args.dict_forms, "sitemap"))
+
+    if len(sitemaps) > 1:
+        generate_index(args.host, args.lastmod, sitemaps, "sitemap_index.xml")
 
 
 if __name__ == '__main__':
