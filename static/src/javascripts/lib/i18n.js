@@ -695,13 +695,21 @@ function prepareAnalyzerOnlyTranslations(map) {
 }
 
 function prepareDictOnlyTranslations(map) {
-    setEnRu(map, "titleDict",
-        "Dictionary",
-        "Словарь",
+    setEnRu(map, "titleDictKkRu",
+        "Kazakh-Russian Dictionary",
+        "Казахско-русский словарь",
     );
     setEnRu(map, "hintEnterWordForm",
         "Enter a word",
         "Введите слово",
+    );
+    setEnRu(map, "inviteToDict",
+        "Enter a Kazakh word in any form into the field to see its translations.",
+        "Введите казахское слово в любой форме в поле, чтобы увидеть его перевод.",
+    );
+    setEnRu(map, "dictSource",
+        "The translation source is the open Kazakh Verb Dictionary",
+        "Источник переводов ‒ открытый словарь Kazakh Verb Dictionary",
     );
     setEnRu(map, "foundResults",
         "Found results",

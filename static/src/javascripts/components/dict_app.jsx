@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildDictUrl, buildViewerUrl2, parseParams } from "../lib/url";
+import { buildDictUrl, buildGcLandingUrl, buildViewerUrl2, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
 import { unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
@@ -108,6 +108,7 @@ class DictApp extends React.Component {
             console.log("empty input");
             return;
         }
+        this.setState({ word: lastEntered });
         const newUrl = buildDictUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
         this.lookup(lastEntered);
@@ -150,6 +151,18 @@ class DictApp extends React.Component {
                     />
                 {this.renderSubmitButton()}
             </form>
+        );
+    }
+
+    renderInvite() {
+        return (
+            <div className="m-4 max-w-md text-center text-xl text-gray-800">
+                <p className="">{this.i18n("inviteToDict")}</p>
+                <p>
+                    {this.i18n("dictSource")}&nbsp;
+                    <span>[<a href={buildGcLandingUrl(this.props.lang)}>↗</a>]</span>
+                </p>
+            </div>
         );
     }
 
@@ -286,6 +299,9 @@ class DictApp extends React.Component {
         if (this.state.error || this.state.loading) {
             return;
         }
+        if (this.state.word.length == 0) {
+            return this.renderInvite();
+        }
 
         const detectedForms = this.state.detectedForms;
 
@@ -345,7 +361,7 @@ class DictApp extends React.Component {
                 <div className="flex flex-col">
                     <h1 className="text-center text-4xl italic text-gray-600">
                         <a href={buildDictUrl("", this.props.lang)}>
-                            {this.i18n("titleDict")}
+                            {this.i18n("titleDictKkRu")}
                         </a>
                     </h1>
                     {this.renderForm()}
