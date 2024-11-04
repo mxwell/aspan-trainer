@@ -221,18 +221,20 @@ def main():
     main_language = "ru"
     alt_langs = ["en", "kk"]
 
-    def make_section(templ):
+    def make_section(templ, exclude_langs=None):
         ru = templ.format(args.host, "ru")
-        alts = [templ.format(args.host, lang) for lang in alt_langs]
+        excluded = exclude_langs or []
+        alts = [templ.format(args.host, lang) for lang in alt_langs if lang not in excluded]
         return WebsiteInfo(ru, args.lastmod, alt_langs, alts)
 
     section_paths = [
         WebsiteInfo("{}/".format(args.host), args.lastmod, alt_langs, ["{}/en".format(args.host), "{}/kk".format(args.host)]),
         # make_section("{}/verb_detector_{}.html"),
         # make_section("{}/declension_{}.html"),
-        make_section("{}/present_top_{}.html"),
+        make_section("{}/present_top_{}.html", exclude_langs=["kk"]),
         # make_section("{}/verb_gym_{}.html"),
-        make_section("{}/timeline_{}.html"),
+        make_section("{}/timeline_{}.html", exclude_langs=["kk"]),
+        make_section("{}/dict_{}.html", exclude_langs=["kk"]),
         make_section("{}/about_{}.html"),
     ]
 
