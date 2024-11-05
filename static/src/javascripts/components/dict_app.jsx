@@ -7,6 +7,7 @@ import { SENTENCE_TYPES } from "../lib/sentence";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 import { generatePreviewVerbForms } from "../lib/verb_forms";
+import { trimAndLowercase } from "../lib/input_validation";
 
 /**
  * props:
@@ -103,15 +104,15 @@ class DictApp extends React.Component {
 
     onSubmit(event) {
         event.preventDefault();
-        const lastEntered = this.state.lastEntered;
-        if (lastEntered.length == 0) {
+        const word = trimAndLowercase(this.state.lastEntered);
+        if (word.length == 0) {
             console.log("empty input");
             return;
         }
-        this.setState({ word: lastEntered });
-        const newUrl = buildDictUrl(lastEntered, this.props.lang);
+        this.setState({ word: word });
+        const newUrl = buildDictUrl(word, this.props.lang);
         window.history.pushState(null, "", newUrl);
-        this.lookup(lastEntered);
+        this.lookup(word);
     }
 
     renderSubmitButton() {
