@@ -8,6 +8,10 @@ import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 import { generatePreviewVerbForms } from "../lib/verb_forms";
 import { trimAndLowercase } from "../lib/input_validation";
+import { catCompletion } from "../lib/suggest";
+
+const DEFAULT_SUGGESTIONS = [];
+const DEFAULT_SUGGESTION_POS = -1;
 
 /**
  * props:
@@ -20,6 +24,8 @@ class DictApp extends React.Component {
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onBgClick = this.onBgClick.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         const urlState = this.readUrlState();
@@ -35,6 +41,8 @@ class DictApp extends React.Component {
         return {
             word: word,
             lastEntered: word,
+            suggestions: DEFAULT_SUGGESTIONS,
+            currentFocus: DEFAULT_SUGGESTION_POS,
             loading: false,
             error: false,
             detectedForms: [],
@@ -62,6 +70,11 @@ class DictApp extends React.Component {
 
     async handleDetectResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
+        const word = this.state.word;
+        if (word != context.word) {
+            console.log("Lookup results are out of date");
+            return;
+        }
         let detectedForms = [];
         if (response.words) {
             const candidates = unpackDetectResponseWithPos(response.words);
@@ -75,7 +88,21 @@ class DictApp extends React.Component {
             }
         }
         const loading = false;
-        this.setState({ loading, detectedForms });
+        let suggestions = [];
+        const currentFocus = DEFAULT_SUGGESTION_POS;
+        const inSuggestions = response.suggestions;
+        if (inSuggestions && inSuggestions.length > 0) {
+            for (let i = 0; i < inSuggestions.length; ++i) {
+                suggestions.push({
+                    completion: inSuggestions[i].completion,
+                    raw: catCompletion(inSuggestions[i]),
+                });
+            }
+            if (suggestions.length == 1 && suggestions[0].raw == word) {
+                suggestions = [];
+            }
+        }
+        this.setState({ loading, detectedForms, suggestions, currentFocus });
     }
 
     async handleDetectError(context, responseTextPromise) {
@@ -84,22 +111,122 @@ class DictApp extends React.Component {
         this.setState({ loading: false, error: true });
     }
 
-    lookup(lastEntered) {
-        const suggest = false;
+    lookup(word, suggest) {
         const onlyVerbs = false;
         makeDetectRequest(
-            lastEntered,
+            word,
             suggest,
             onlyVerbs,
             this.handleDetectResponse,
             this.handleDetectError,
-            { }
+            { word }
         );
+    }
+
+    changeInputText(lastEntered, suggest) {
+        const word = trimAndLowercase(lastEntered);
+        if (word.length > 0) {
+            this.lookup(word, suggest);
+        }
+        this.setState({ word, lastEntered });
     }
 
     onChange(event) {
         let lastEntered = event.target.value;
-        this.setState({ lastEntered });
+        this.changeInputText(lastEntered, /* suggest */ true);
+    }
+
+    moveActiveSuggestion(posChange) {
+        if (posChange == 0) return;
+        let suggestions = this.state.suggestions;
+        let prevFocus = this.state.currentFocus;
+        let currentFocus = prevFocus + posChange;
+        if (currentFocus >= suggestions.length || suggestions.length == 0) {
+            currentFocus = 0;
+        } else if (currentFocus < 0) {
+            currentFocus = suggestions.length - 1;
+        }
+        this.setState({ currentFocus });
+    }
+
+    clearSuggestions() {
+        this.setState({
+            suggestions: DEFAULT_SUGGESTIONS,
+        });
+    }
+
+    activateSuggestion(lastEntered) {
+        this.changeInputText(lastEntered, /* suggest */ false);
+    }
+
+    onKeyDown(e) {
+        if (e.keyCode == 40) {  // arrow down
+            this.moveActiveSuggestion(1);
+        } else if (e.keyCode == 38) { // arrow up
+            this.moveActiveSuggestion(-1);
+        } else if (e.keyCode == 27) { // esc
+            this.clearSuggestions();
+        } else if (e.keyCode == 13) { // enter
+            let suggestions = this.state.suggestions;
+            let currentFocus = this.state.currentFocus;
+            if (0 <= currentFocus && currentFocus < suggestions.length) {
+                e.preventDefault();
+                let lastEntered = suggestions[currentFocus].raw;
+                this.activateSuggestion(lastEntered);
+            }
+        }
+    }
+
+    onSuggestionClick(word, e) {
+        e.stopPropagation();
+        this.activateSuggestion(word);
+    }
+
+    onBgClick(e) {
+        this.clearSuggestions();
+    }
+
+    renderSuggestions() {
+        let suggestions = this.state.suggestions;
+        if (suggestions.length == 0) {
+            return null;
+        }
+
+        let currentFocus = this.state.currentFocus;
+
+        let items = [];
+        for (let i = 0; i < suggestions.length; ++i) {
+            let completion = suggestions[i].completion;
+            let parts = [];
+            for (let j = 0; j < completion.length; ++j) {
+                let item = completion[j];
+                if (item.hl) {
+                    parts.push(<strong key={j}>{item.text}</strong>);
+                } else {
+                    parts.push(<span key={j}>{item.text}</span>);
+                }
+            }
+            let word = suggestions[i].raw;
+            let divClasses = "p-2 border-b-2 border-gray-300 text-2xl lg:text-xl";
+            if (i == currentFocus) {
+                divClasses += " bg-blue-500 text-white";
+            } else {
+                divClasses += " bg-white text-gray-700";
+            }
+            items.push(
+                <div
+                    onClick={(e) => { this.onSuggestionClick(word, e) }}
+                    key={i}
+                    className={divClasses} >
+                    {parts}
+                </div>
+            );
+        }
+        return (
+            <div className="absolute z-50 left-0 right-0 border-l-2 border-r-2 border-gray-300 mx-2">
+                {items}
+            </div>
+        );
     }
 
     onSubmit(event) {
@@ -109,10 +236,10 @@ class DictApp extends React.Component {
             console.log("empty input");
             return;
         }
-        this.setState({ word: word });
+        this.setState({ word });
         const newUrl = buildDictUrl(word, this.props.lang);
         window.history.pushState(null, "", newUrl);
-        this.lookup(word);
+        this.lookup(word, /* suggest */ false);
     }
 
     renderSubmitButton() {
@@ -139,18 +266,22 @@ class DictApp extends React.Component {
     renderForm() {
         return (
             <form onSubmit={this.onSubmit} className="p-3 flex flex-row justify-center">
-                <input
-                    type="text"
-                    size="20"
-                    maxLength="100"
-                    autoFocus
-                    autocapitalize="none"
-                    onChange={this.onChange}
-                    value={this.state.lastEntered}
-                    required
-                    className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                    placeholder={this.i18n("hintEnterWordForm")}
-                    />
+                <div className="relative">
+                    <input
+                        type="text"
+                        size="20"
+                        maxLength="100"
+                        autoFocus
+                        autocapitalize="none"
+                        onChange={this.onChange}
+                        onKeyDown={this.onKeyDown}
+                        value={this.state.lastEntered}
+                        required
+                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        placeholder={this.i18n("hintEnterWordForm")}
+                        />
+                    {this.renderSuggestions()}
+                </div>
                 {this.renderSubmitButton()}
             </form>
         );
@@ -359,7 +490,7 @@ class DictApp extends React.Component {
 
     render() {
         return (
-            <div className="flex flex-row justify-center">
+            <div onClick={this.onBgClick} className="flex flex-row justify-center">
                 <div className="flex flex-col">
                     <h1 className="text-center text-4xl italic text-gray-600">
                         <a href={buildDictUrl("", this.props.lang)}>

@@ -6,6 +6,7 @@ import { pickRandom } from "../lib/random";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { hasMixedAlphabets, trimAndLowercase } from "../lib/input_validation";
 import { unpackDetectResponse } from "../lib/detector";
+import { catCompletion } from "../lib/suggest";
 
 const PRESET_VERB_FORMS = [
     "аламын",
@@ -38,17 +39,6 @@ function pickExamples(chosenForm, exampleCount) {
         }
     }
     return forms;
-}
-
-function catCompletion(suggestion) {
-    const completion = suggestion.completion;
-    let parts = [];
-    if (completion) {
-        for (let i = 0; i < completion.length; ++i) {
-            parts.push(completion[i].text);
-        }
-    }
-    return parts.join("");
 }
 
 /**
