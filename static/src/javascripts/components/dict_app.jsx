@@ -9,6 +9,7 @@ import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 import { generatePreviewVerbForms } from "../lib/verb_forms";
 import { trimAndLowercase } from "../lib/input_validation";
 import { catCompletion } from "../lib/suggest";
+import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
@@ -26,6 +27,9 @@ class DictApp extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onBgClick = this.onBgClick.bind(this);
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         const urlState = this.readUrlState();
@@ -41,6 +45,7 @@ class DictApp extends React.Component {
         return {
             word: word,
             lastEntered: word,
+            keyboard: false,
             suggestions: DEFAULT_SUGGESTIONS,
             currentFocus: DEFAULT_SUGGESTION_POS,
             loading: false,
@@ -131,6 +136,36 @@ class DictApp extends React.Component {
         this.setState({ word, lastEntered });
     }
 
+    onKeyboardClick(e) {
+        e.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
+    updateText(change) {
+        this.setState(
+            { lastEntered: change.newText },
+            () => {
+                const wi = this.refs.wordInput;
+                wi.selectionStart = change.newSelectionStart;
+                wi.selectionEnd = change.newSelectionStart;
+                wi.focus();
+            }
+        );
+    }
+
+    onInsert(fragment) {
+        const textInput = this.refs.wordInput;
+        const change = insertIntoTextInput(textInput, fragment);
+        this.updateText(change);
+    }
+
+    onBackspace() {
+        const textInput = this.refs.wordInput;
+        const change = backspaceTextInput(textInput);
+        this.updateText(change);
+    }
+
     onChange(event) {
         let lastEntered = event.target.value;
         this.changeInputText(lastEntered, /* suggest */ true);
@@ -188,7 +223,7 @@ class DictApp extends React.Component {
 
     renderSuggestions() {
         let suggestions = this.state.suggestions;
-        if (suggestions.length == 0) {
+        if (suggestions.length == 0 || this.state.keyboard) {
             return null;
         }
 
@@ -229,6 +264,20 @@ class DictApp extends React.Component {
         );
     }
 
+    renderKeyboard() {
+        const keyboard = this.state.keyboard;
+        if (!keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace} />
+            </div>
+        );
+    }
+
     onSubmit(event) {
         event.preventDefault();
         const word = trimAndLowercase(this.state.lastEntered);
@@ -248,7 +297,7 @@ class DictApp extends React.Component {
                 <button
                     type="submit"
                     disabled
-                    className="bg-gray-500 hover:bg-gray-500 text-white text-4xl font-bold px-4 rounded focus:outline-none">
+                    className="mx-2 bg-gray-500 hover:bg-gray-500 text-white text-4xl font-bold px-4 rounded focus:outline-none">
                     ⋯
                 </button>
             );
@@ -256,7 +305,7 @@ class DictApp extends React.Component {
             return (
                 <button
                     type="submit"
-                    className="bg-yellow-700 hover:bg-yellow-800 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    className="mx-2 bg-yellow-700 hover:bg-yellow-800 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                     →
                 </button>
             );
@@ -264,10 +313,16 @@ class DictApp extends React.Component {
     }
 
     renderForm() {
+        const keyboardClass = (
+            this.state.keyboard
+            ? "px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            : "px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none"
+        );
         return (
             <form onSubmit={this.onSubmit} className="p-3 flex flex-row justify-center">
                 <div className="relative">
                     <input
+                        ref="wordInput"
                         type="text"
                         size="20"
                         maxLength="100"
@@ -277,11 +332,17 @@ class DictApp extends React.Component {
                         onKeyDown={this.onKeyDown}
                         value={this.state.lastEntered}
                         required
-                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        className="shadow appearance-none border rounded p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                         placeholder={this.i18n("hintEnterWordForm")}
                         />
                     {this.renderSuggestions()}
                 </div>
+                <button
+                    type="button"
+                    onClick={this.onKeyboardClick}
+                    className={keyboardClass}>
+                    <img src="/keyboard.svg" alt="keyboard show or hide" className="h-12" />
+                </button>
                 {this.renderSubmitButton()}
             </form>
         );
@@ -289,7 +350,7 @@ class DictApp extends React.Component {
 
     renderInvite() {
         return (
-            <div className="m-4 max-w-md text-center text-xl text-gray-800">
+            <div className="m-4 text-center text-xl text-gray-800">
                 <p className="">{this.i18n("inviteToDict")}</p>
                 <p>
                     {this.i18n("dictSource")}&nbsp;
@@ -433,8 +494,8 @@ class DictApp extends React.Component {
             return null;
         }
         return (
-            <div className="mx-4 my-20 max-w-md text-center text-xl text-gray-800">
-                <p>
+            <div className="mx-4 my-20 flex flex-row justify-center">
+                <p className="max-w-md text-center text-xl text-gray-800">
                     {this.i18n("inviteToContrib")}&nbsp;
                     <span>[<a href={buildGcLandingUrl(this.props.lang)}>↗</a>]</span>
                 </p>
@@ -513,6 +574,7 @@ class DictApp extends React.Component {
                         </a>
                     </h1>
                     {this.renderForm()}
+                    {this.renderKeyboard()}
                     {this.renderDetectedForms()}
                     {this.renderStatus()}
                 </div>
