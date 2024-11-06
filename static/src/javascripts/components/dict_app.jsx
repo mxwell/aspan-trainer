@@ -144,6 +144,7 @@ class DictApp extends React.Component {
                     size="20"
                     maxLength="100"
                     autoFocus
+                    autocapitalize="none"
                     onChange={this.onChange}
                     value={this.state.lastEntered}
                     required
