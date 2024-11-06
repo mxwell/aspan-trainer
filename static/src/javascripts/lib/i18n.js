@@ -715,6 +715,10 @@ function prepareDictOnlyTranslations(map) {
         "Found results",
         "Найдено результатов",
     );
+    setEnRu(map, "inviteToContrib",
+        "You can help the project and add more translations to the open Kazakh Verb Dictionary",
+        "Вы можете помочь проекту и добавить больше переводов в открытый словарь Kazakh Verb Dictionary",
+    );
     setEnRu(map, "titleForm",
         "Form",
         "Форма"

@@ -428,6 +428,20 @@ class DictApp extends React.Component {
         }
     }
 
+    renderContribInvite(total) {
+        if (total == 0) {
+            return null;
+        }
+        return (
+            <div className="mx-4 my-20 max-w-md text-center text-xl text-gray-800">
+                <p>
+                    {this.i18n("inviteToContrib")}&nbsp;
+                    <span>[<a href={buildGcLandingUrl(this.props.lang)}>↗</a>]</span>
+                </p>
+            </div>
+        );
+    }
+
     renderDetectedForms() {
         if (this.state.error || this.state.loading) {
             return;
@@ -468,6 +482,7 @@ class DictApp extends React.Component {
                     {this.i18n("foundResults", this.props.lang)}: {total}
                 </p>
                 {formHtmls}
+                {this.renderContribInvite(total)}
             </div>
         );
     }
