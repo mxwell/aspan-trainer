@@ -109,7 +109,7 @@ class GcWordStart extends React.Component {
                     size="20"
                     minLength="1"
                     maxLength="64"
-                    autocapitalize="none"
+                    autoCapitalize="none"
                     value={this.props.lastEntered}
                     onChange={this.onWordChange}
                     placeholder={placeholder}

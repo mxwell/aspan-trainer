@@ -77,7 +77,7 @@ class KeyboardInput extends React.Component {
                         size="20"
                         minLength="1"
                         maxLength="64"
-                        autocapitalize="none"
+                        autoCapitalize="none"
                         required
                         spellCheck="false"
                         value={this.props.lastEntered}

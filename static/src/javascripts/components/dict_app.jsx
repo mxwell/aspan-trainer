@@ -327,7 +327,7 @@ class DictApp extends React.Component {
                         size="20"
                         maxLength="100"
                         autoFocus
-                        autocapitalize="none"
+                        autoCapitalize="none"
                         onChange={this.onChange}
                         onKeyDown={this.onKeyDown}
                         value={this.state.lastEntered}
@@ -489,10 +489,7 @@ class DictApp extends React.Component {
         }
     }
 
-    renderContribInvite(total) {
-        if (total == 0) {
-            return null;
-        }
+    renderContribInvite() {
         return (
             <div className="mx-4 my-20 flex flex-row justify-center">
                 <p className="max-w-md text-center text-xl text-gray-800">
@@ -503,47 +500,73 @@ class DictApp extends React.Component {
         );
     }
 
+    renderPos(pos) {
+        return (<span className="text-blue-500 text-xs italic pl-2">
+            &nbsp;{pos}
+        </span>);
+    }
+
+    renderFormTransition(word, detectedForm) {
+        if (word == detectedForm.base) {
+            return null;
+        }
+
+        return (<span className="mx-4">
+            ⇠&nbsp;{this.highlightDetectedForm(detectedForm)}
+        </span>);
+    }
+
+    renderTranslationRows(word, detectedForms) {
+        let rows = [];
+        for (let detectedForm of detectedForms) {
+            for (const gloss of detectedForm.ruGlosses) {
+                rows.push(
+                    <tr
+                        className="border-t-2 text-base"
+                        key={rows.length}>
+                        <td className="bg-gray-200 pl-4 py-2">
+                            {gloss}
+                        </td>
+                        <td className="border-l-2 bg-gray-100 pl-4 py-2">
+                            {detectedForm.base}
+                            <span className="text-blue-500 text-xs italic pl-2">
+                                {this.i18n(`pos_${detectedForm.pos}`)}
+                            </span>
+                            {this.renderFormTransition(word, detectedForm)}
+                        </td>
+                    </tr>
+                );
+            }
+        }
+        return rows;
+    }
+
     renderDetectedForms() {
         if (this.state.error || this.state.loading) {
             return;
         }
-        if (this.state.word.length == 0) {
+        const word = this.state.word;
+        if (word.length == 0) {
             return this.renderInvite();
         }
 
         const detectedForms = this.state.detectedForms;
 
-        const formHtmls = [];
-        const total = detectedForms.length;
-        for (const index in detectedForms) {
-            const detectedForm = detectedForms[index];
-            const oneBasedIndex = Number(index) + 1;
-            formHtmls.push(
-                <div key={formHtmls.length}
-                    className="m-2 border-2">
-                    <div className="p-2 flex flex-row justify-between bg-yellow-700 text-white">
-                        <span className="p-2 text-2xl">
-                            {detectedForm.base}
-                        </span>
-                        <span className="p-1 text-sm">
-                            <p className="text-right">{oneBasedIndex}/{total}</p>
-                            <p>{this.i18n(`pos_${detectedForm.pos}`)}</p>
-                        </span>
-                    </div>
-                    {this.renderConjugation(detectedForm)}
-                    {this.renderFormDetails(detectedForm)}
-                    {this.renderTranslations(detectedForm)}
-                </div>
-            );
-        }
-
         return (
             <div className="flex flex-col">
-                <p className="m-4 italic">
-                    {this.i18n("foundResults", this.props.lang)}: {total}
+                <p className="pl-4 text-sm text-gray-600">
+                    {this.i18n("kkRuTranslationFor")}&nbsp;{word}
                 </p>
-                {formHtmls}
-                {this.renderContribInvite(total)}
+                <table className="my-4 w-full">
+                    <tbody>
+                        <tr className="bg-gray-600 text-white">
+                            <th className="w-1/2 py-2">{this.i18n("ru")}</th>
+                            <th className="w-1/2 py-2 border-l-2">{this.i18n("kk")}</th>
+                        </tr>
+                        {this.renderTranslationRows(word, detectedForms)}
+                    </tbody>
+                </table>
+                {this.renderContribInvite()}
             </div>
         );
     }

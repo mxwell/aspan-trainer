@@ -711,13 +711,13 @@ function prepareDictOnlyTranslations(map) {
         "The translation source is the open Kazakh Verb Dictionary",
         "Источник переводов ‒ открытый словарь Kazakh Verb Dictionary",
     );
-    setEnRu(map, "foundResults",
-        "Found results",
-        "Найдено результатов",
-    );
     setEnRu(map, "inviteToContrib",
         "You can help the project and add more translations to the open Kazakh Verb Dictionary",
         "Вы можете помочь проекту и добавить больше переводов в открытый словарь Kazakh Verb Dictionary",
+    );
+    setEnRu(map, "kkRuTranslationFor",
+        "Translation from Kazakh to Russian for:",
+        "Перевод с казахского на русский для:",
     );
     setEnRu(map, "titleForm",
         "Form",
