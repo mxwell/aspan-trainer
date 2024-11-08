@@ -2,7 +2,7 @@ import React from "react";
 import { i18n } from "../lib/i18n";
 import { buildDictUrl, buildGcLandingUrl, buildViewerUrl2, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
-import { unpackDetectResponseWithPos } from "../lib/detector";
+import { sortDetectedForms, unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
@@ -87,10 +87,11 @@ class DictApp extends React.Component {
              * Some tenses are problematic, hence the filtering.
              */
             for (const candidate of candidates) {
-                if (candidate.tense != "presentContinuous") {
+                if (candidate.tense != "presentContinuous" && candidate.ruGlosses.length > 0) {
                     detectedForms.push(candidate);
                 }
             }
+            sortDetectedForms(detectedForms);
         }
         const loading = false;
         let suggestions = [];
@@ -305,7 +306,7 @@ class DictApp extends React.Component {
             return (
                 <button
                     type="submit"
-                    className="mx-2 bg-yellow-700 hover:bg-yellow-800 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    className="mx-2 bg-blue-700 hover:bg-blue-800 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                     →
                 </button>
             );
@@ -377,12 +378,22 @@ class DictApp extends React.Component {
             /* auxVerb */ null,
             /* auxNeg */ false
         );
+        let htmlParts = [<span key="0">{forms[0]}</span>];
+        for (let i = 1; i < forms.length; ++i) {
+            htmlParts.push(
+                <span key={htmlParts.length} className="text-gray-600 text-bold"> | </span>
+            );
+            htmlParts.push(
+                <span key={htmlParts.length}>{forms[i]}</span>
+            );
+        }
+        htmlParts.push(
+            <span key={htmlParts.length} className="text-gray-600">&nbsp;[<a href={url}>↗</a>]</span>
+        )
         return (
-            <div className="flex flex-row p-4 bg-yellow-100">
-                <span>{this.i18n("titleConjugation")}:&nbsp;</span>
-                <span className="italic">{forms.join(", ")}</span>
-                <span>&nbsp;[<a href={url}>↗</a>]</span>
-            </div>
+            <span>
+                {htmlParts}
+            </span>
         );
     }
 
@@ -518,7 +529,31 @@ class DictApp extends React.Component {
 
     renderTranslationRows(word, detectedForms) {
         let rows = [];
+        let prevPos = null;
+        let prevBase = null;
+        let prevExcVerb = null;
         for (let detectedForm of detectedForms) {
+            let pos = detectedForm.pos;
+            let base = detectedForm.base;
+            let excVerb = detectedForm.excVerb;
+            if (prevPos != pos || prevBase != base || prevExcVerb != excVerb) {
+                prevPos = pos;
+                prevBase = base;
+                prevExcVerb = excVerb;
+                rows.push(
+                    <tr
+                        className="border-t-2 text-sm bg-gray-400"
+                        key={rows.length}>
+                        <td></td>
+                        <td className="border-l-2 pl-4">
+                            <span className="text-blue-500 pr-2">
+                                {this.i18n(`pos_${pos}`)}
+                            </span>
+                            {this.renderConjugation(detectedForm)}
+                        </td>
+                    </tr>
+                );
+            }
             for (const gloss of detectedForm.ruGlosses) {
                 rows.push(
                     <tr
@@ -528,10 +563,7 @@ class DictApp extends React.Component {
                             {gloss}
                         </td>
                         <td className="border-l-2 bg-gray-100 pl-4 py-2">
-                            {detectedForm.base}
-                            <span className="text-blue-500 text-xs italic pl-2">
-                                {this.i18n(`pos_${detectedForm.pos}`)}
-                            </span>
+                            {base}
                             {this.renderFormTransition(word, detectedForm)}
                         </td>
                     </tr>

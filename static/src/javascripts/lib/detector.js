@@ -185,7 +185,26 @@ function unpackDetectResponseWithPos(responseWords) {
     return result;
 }
 
+function sortDetectedForms(detectedForms) {
+    detectedForms.sort(function(a, b) {
+        if (a.pos != b.pos) {
+            return a.pos < b.pos ? -1 : 1;
+        }
+        if (a.base != b.base) {
+            return a.base < b.base ? -1 : 1;
+        }
+        if (a.excVerb != b.excVerb) {
+            if (a.excVerb) {
+                return 1;
+            }
+            return -1;
+        }
+        return 0;
+    });
+}
+
 export {
     unpackDetectResponse,
     unpackDetectResponseWithPos,
+    sortDetectedForms,
 };
