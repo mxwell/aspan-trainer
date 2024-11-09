@@ -26,6 +26,7 @@ module.exports = {
         "./static/src/javascripts/components/declension_app.jsx",
         "./static/src/javascripts/components/detector_app.jsx",
         "./static/src/javascripts/components/dict_app.jsx",
+        "./static/src/javascripts/components/dict_form_details.jsx",
         "./static/src/javascripts/components/edit_button.jsx",
         "./static/src/javascripts/components/explanation_app.jsx",
         "./static/src/javascripts/components/gc_create_app.jsx",

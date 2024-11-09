@@ -4,12 +4,11 @@ import { buildDictUrl, buildGcLandingUrl, buildViewerUrl2, parseParams } from ".
 import { makeDetectRequest } from "../lib/requests";
 import { sortDetectedForms, unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
-import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
-import { reproduceNoun, reproduceVerb } from "../lib/analyzer";
 import { generatePreviewVerbForms } from "../lib/verb_forms";
 import { trimAndLowercase } from "../lib/input_validation";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
+import { DictFormDetails } from "./dict_form_details";
 
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
@@ -397,109 +396,6 @@ class DictApp extends React.Component {
         );
     }
 
-    renderFormDetails(detectedForm) {
-        let featureHtmls = [];
-        let pos = detectedForm.pos;
-        if (pos == "n") {
-            const septik = detectedForm.septik;
-            if (septik != null && septik != 0) {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n(`analyzerSeptik_${septik}`)}
-                    </li>
-                );
-            }
-            if (detectedForm.grammarPerson) {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n(`analyzerPoss_${detectedForm.grammarPerson}`)}
-                    </li>
-                );
-            }
-        } else if (pos == "v") {
-            const tense = detectedForm.tense;
-            if (tense != null && tense != "infinitive") {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n(`analyzerTense_${tense}`)}
-                    </li>
-                );
-            }
-            if (detectedForm.sentenceType == SENTENCE_TYPES[1]) {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n("analyzerNegation")}
-                    </li>
-                );
-            }
-            if (detectedForm.grammarPerson) {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n(`analyzer_${detectedForm.grammarPerson}`)}
-                    </li>
-                );
-            }
-        }
-        if (detectedForm.grammarNumber == "Plural") {
-            featureHtmls.push(
-                <li className="list-disc ml-4" key={featureHtmls.length}>
-                    {this.i18n("analyzer_Plural")}
-                </li>
-            );
-        }
-        if (featureHtmls.length == 0) {
-            return (<div></div>);
-        }
-        return (
-            <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-500">
-                <h3>{this.i18n("titleForm")} {this.highlightDetectedForm(detectedForm)}</h3>
-                <ul>
-                    {featureHtmls}
-                </ul>
-            </div>
-        );
-    }
-
-    renderTranslations(detectedForm) {
-        let glossHtmls = [];
-        for (const gloss of detectedForm.ruGlosses) {
-            glossHtmls.push(
-                <li
-                    className="list-disc ml-4 text-xl"
-                    key={glossHtmls.length}>
-                    {gloss}
-                </li>
-            );
-        }
-        if (glossHtmls.length == 0) {
-            glossHtmls.push(<li className="h-10" key={glossHtmls.length}></li>);
-        }
-
-        return (
-            <div className="p-2 bg-gradient-to-tr from-blue-500 to-blue-800 text-white">
-                <h3 className="text-sm text-right">{this.i18n("translationTo_ru")}</h3>
-                <ul className="ml-2">
-                    {glossHtmls}
-                </ul>
-            </div>
-        );
-    }
-
-    highlightDetectedForm(detectedForm) {
-        const pos = detectedForm.pos;
-        if (pos == "n") {
-            const phrasal = reproduceNoun(detectedForm);
-            return highlightDeclensionPhrasal(phrasal);
-        } else if (pos == "v" && detectedForm.tense != "infinitive") {
-            const phrasal = reproduceVerb(detectedForm);
-            return highlightPhrasal(phrasal, -1);
-        } else {
-            return [
-                <span>{detectedForm.base}</span>
-            ];
-        }
-    }
-
     renderContribInvite() {
         return (
             <div className="mx-4 my-20 flex flex-row justify-center">
@@ -522,9 +418,14 @@ class DictApp extends React.Component {
             return null;
         }
 
-        return (<span className="mx-4">
-            ⇠&nbsp;{this.highlightDetectedForm(detectedForm)}
-        </span>);
+        return (
+            <div className="mx-4 flex flex-row">
+                <span>⇠</span>
+                <DictFormDetails
+                    detectedForm={detectedForm}
+                    lang={this.props.lang} />
+            </div>
+        );
     }
 
     renderTranslationRows(word, detectedForms) {
@@ -559,12 +460,16 @@ class DictApp extends React.Component {
                     <tr
                         className="border-t-2 text-base"
                         key={rows.length}>
-                        <td className="bg-gray-200 pl-4 py-2">
+                        <td className="bg-gray-200 pl-4 py-2 align-top">
                             {gloss}
                         </td>
                         <td className="border-l-2 bg-gray-100 pl-4 py-2">
-                            {base}
-                            {this.renderFormTransition(word, detectedForm)}
+                            <div className="flex flex-row">
+                                <div className="align-top">
+                                    {base}
+                                </div>
+                                {this.renderFormTransition(word, detectedForm)}
+                            </div>
                         </td>
                     </tr>
                 );
