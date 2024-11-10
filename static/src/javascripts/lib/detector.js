@@ -185,12 +185,23 @@ function unpackDetectResponseWithPos(responseWords) {
     return result;
 }
 
-function sortDetectedForms(detectedForms) {
+function sortDetectedForms(detectedForms, word) {
     detectedForms.sort(function(a, b) {
+        const aGlossCount = a.ruGlosses.length;
+        const bGlossCount = b.ruGlosses.length;
+        if (aGlossCount != bGlossCount) {
+            return aGlossCount > bGlossCount ? -1 : 1;
+        }
         if (a.pos != b.pos) {
             return a.pos < b.pos ? -1 : 1;
         }
         if (a.base != b.base) {
+            if (a.base == word) {
+                return -1;
+            }
+            if (b.base == word) {
+                return 1;
+            }
             return a.base < b.base ? -1 : 1;
         }
         if (a.excVerb != b.excVerb) {

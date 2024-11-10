@@ -86,11 +86,11 @@ class DictApp extends React.Component {
              * Some tenses are problematic, hence the filtering.
              */
             for (const candidate of candidates) {
-                if (candidate.tense != "presentContinuous" && candidate.ruGlosses.length > 0) {
+                if (candidate.tense != "presentContinuous") {
                     detectedForms.push(candidate);
                 }
             }
-            sortDetectedForms(detectedForms);
+            sortDetectedForms(detectedForms, word);
         }
         const loading = false;
         let suggestions = [];
@@ -455,7 +455,12 @@ class DictApp extends React.Component {
                     </tr>
                 );
             }
-            for (const gloss of detectedForm.ruGlosses) {
+            const glosses = (
+                detectedForm.ruGlosses.length > 0
+                ? detectedForm.ruGlosses
+                : ["‒"]
+            );
+            for (const gloss of glosses) {
                 rows.push(
                     <tr
                         className="border-t-2 text-base"

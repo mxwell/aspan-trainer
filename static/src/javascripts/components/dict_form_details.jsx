@@ -38,7 +38,7 @@ class DictFormDetails extends React.Component {
             return highlightPhrasal(phrasal, -1);
         } else {
             return [
-                <span>{detectedForm.base}</span>
+                <span key="base">{detectedForm.base}</span>
             ];
         }
     }
@@ -125,6 +125,7 @@ class DictFormDetails extends React.Component {
         } else {
             expandButton = (<span
                 className="cursor-pointer px-1 text-sm text-gray-600"
+                key="button"
                 onClick={this.onDetailsClick}>
                 [+]
             </span>);
