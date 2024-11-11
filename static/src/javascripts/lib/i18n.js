@@ -851,6 +851,11 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "Enter word",
         "Введите слово",
     );
+    setEnRuKz(map, "inviteToDeclension",
+        "Enter a Kazakh noun into the field to see its declension forms",
+        "Введите казахское существительное в поле, чтобы увидеть его формы склонения",
+        "Септелу үлгісін көру үшін қазақ зат есімін өріске енгізіңіз",
+    );
     setEnRu(map, "word_two_declensions_templ",
         (word) => `The word «${word}» can be declined in two ways`,
         (word) => `Слово «${word}» можно склонять двумя способами`,

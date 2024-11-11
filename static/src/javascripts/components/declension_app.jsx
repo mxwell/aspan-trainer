@@ -2,9 +2,8 @@ import React from 'react';
 import { buildDeclensionUrl, parseParams } from '../lib/url';
 import { i18n } from '../lib/i18n';
 import { declensionAlternativeInfo, generateDeclensionTables, generateDeclensionTablesOfBuilder } from '../lib/declension';
-import { PHRASAL_PART_TYPE } from '../lib/aspan';
 import { getRandomInt, pickRandom } from '../lib/random';
-import { PARTICIPLE_FUTURE, PARTICIPLE_PAST, PARTICIPLE_PRESENT, getParticipleBuilder } from '../lib/verb_forms';
+import { getParticipleBuilder } from '../lib/verb_forms';
 import { parseSentenceType } from '../lib/sentence';
 import { trimAndLowercase } from '../lib/input_validation';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
@@ -235,25 +234,35 @@ class DeclensionApp extends React.Component {
 
     renderForm() {
         return (
-            <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
-                <div className="flex">
-                    <input
-                        type="text"
-                        size="20"
-                        maxLength="100"
-                        value={this.state.lastEntered}
-                        onChange={this.onChange}
-                        placeholder={this.i18n("hint_enter_word")}
-                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                        autoFocus />
-                    <button
-                        type="submit"
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
-                        →
-                    </button>
-                </div>
-                {this.renderExampleForms()}
-            </form>
+            <div className="flex flex-row justify-center">
+                <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
+                    <div className="flex">
+                        <input
+                            type="text"
+                            size="20"
+                            maxLength="100"
+                            value={this.state.lastEntered}
+                            onChange={this.onChange}
+                            placeholder={this.i18n("hint_enter_word")}
+                            className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            autoFocus />
+                        <button
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                            →
+                        </button>
+                    </div>
+                    {this.renderExampleForms()}
+                </form>
+            </div>
+        );
+    }
+
+    renderInvite() {
+        return (
+            <div className="m-4 text-center text-3xl lg:text-lg text-gray-600">
+                <p className="">{this.i18n("inviteToDeclension")}</p>
+            </div>
         );
     }
 
@@ -325,7 +334,9 @@ class DeclensionApp extends React.Component {
     renderDeclTables() {
         const declTables = this.state.declTables;
         if (declTables.length == 0) {
-            // TODO picture
+            if (this.state.subject.length == 0) {
+                return this.renderInvite();
+            }
             return null;
         }
         let groupedTables = {};
@@ -382,6 +393,11 @@ class DeclensionApp extends React.Component {
     render() {
         return (
             <div>
+                <h1 className="text-center text-4xl italic text-gray-600">
+                    <a href={buildDeclensionUrl(null, false, this.props.lang)}>
+                        {this.i18n("titleDeclension")}
+                    </a>
+                </h1>
                 {this.renderForm()}
                 {this.renderSwitcher()}
                 {this.renderDeclTables()}

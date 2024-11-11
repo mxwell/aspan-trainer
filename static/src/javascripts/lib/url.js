@@ -26,13 +26,16 @@ function buildUrl(path, params) {
 }
 
 function buildDeclensionUrl(subject, forceAlternative, lang) {
+    const path = `/declension_${lang}.html`;
+    if (subject == null || subject.length == 0) {
+        return path;
+    }
     let params = [
         `subject=${encodeURI(subject)}`,
     ];
     if (forceAlternative) {
         params.push("alternative=true");
     }
-    const path = `/declension_${lang}.html`;
     return buildUrl(path, params);
 }
 
