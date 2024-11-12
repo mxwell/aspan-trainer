@@ -10,8 +10,15 @@ import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { DictFormDetails } from "./dict_form_details";
 
+const DEFAULT_TITLE = "Kazakh Verb";
 const DEFAULT_SUGGESTIONS = [];
 const DEFAULT_SUGGESTION_POS = -1;
+
+function setPageTitle(word) {
+    let wordOk = (typeof word == "string") && 0 < word.length && word.length < 40;
+    let title = wordOk ? `${word.toUpperCase()} – ${DEFAULT_TITLE}` : DEFAULT_TITLE;
+    document.title = title;
+}
 
 /**
  * props:
@@ -65,6 +72,7 @@ class DictApp extends React.Component {
         if (word == null || word.length == 0) {
             return null;
         }
+        setPageTitle(word);
         return this.makeState(word);
     }
 
