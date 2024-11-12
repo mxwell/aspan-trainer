@@ -111,7 +111,7 @@ class DictFormDetails extends React.Component {
             return null;
         }
         return (
-            <ul className="text-sm">
+            <ul className="text-3xl lg:text-sm">
                 {featureHtmls}
             </ul>
         );
@@ -124,7 +124,7 @@ class DictFormDetails extends React.Component {
             formDetails = this.renderFormDetails();
         } else {
             expandButton = (<span
-                className="cursor-pointer px-1 text-sm text-gray-600"
+                className="cursor-pointer px-1 lg:text-sm text-gray-600"
                 key="button"
                 onClick={this.onDetailsClick}>
                 [+]
