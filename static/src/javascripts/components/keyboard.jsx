@@ -267,14 +267,14 @@ class Keyboard extends React.Component {
                 const label = shift ? buttonInfo.shLabel : buttonInfo.label
                 const activeClass = (
                     label != null
-                    ? "bg-white text-gray-700 cursor-pointer"
+                    ? "bg-white text-gray-700 cursor-pointer select-none"
                     : "bg-gray-100 text-gray-500 cursor-default"
                 );
                 const btnClass = `${buttonInfo.dims} ${activeClass} rounded text-center m-1 py-1 text-xl`
                 buttons.push(
                     <div
                         className={btnClass}
-                        onClick={(e) => { this.onBtnClick(e, buttonInfo) }}
+                        onMouseDown={(e) => { this.onBtnClick(e, buttonInfo) }}
                         key={buttons.length}>
                         {label}
                     </div>
