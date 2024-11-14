@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { buildDictUrl, buildGcLandingUrl, buildViewerUrl2, parseParams } from "../lib/url";
+import { buildDeclensionUrl, buildDictUrl, buildGcLandingUrl, buildViewerUrl2, parseParams } from "../lib/url";
 import { makeDetectRequest } from "../lib/requests";
 import { sortDetectedForms, unpackDetectResponseWithPos } from "../lib/detector";
 import { SENTENCE_TYPES } from "../lib/sentence";
@@ -9,6 +9,7 @@ import { trimAndLowercase } from "../lib/input_validation";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { DictFormDetails } from "./dict_form_details";
+import { generatePreviewDeclensionForms } from "../lib/declension";
 
 const DEFAULT_TITLE = "Kazakh Verb";
 const DEFAULT_SUGGESTIONS = [];
@@ -368,23 +369,7 @@ class DictApp extends React.Component {
         );
     }
 
-    renderConjugation(detectedForm) {
-        if (detectedForm.pos != "v") {
-            return null;
-        }
-        const forms = generatePreviewVerbForms(detectedForm.base, detectedForm.excVerb);
-        if (forms.length == 0) {
-            return null;
-        }
-        const url = buildViewerUrl2(
-            detectedForm.base,
-            /* sentenceType */ SENTENCE_TYPES[0],
-            detectedForm.excVerb,
-            /* abKey */ null,
-            this.props.lang,
-            /* auxVerb */ null,
-            /* auxNeg */ false
-        );
+    renderGeneratedForms(forms, url) {
         let htmlParts = [<span key="0">{forms[0]}</span>];
         for (let i = 1; i < forms.length; ++i) {
             htmlParts.push(
@@ -402,6 +387,47 @@ class DictApp extends React.Component {
                 {htmlParts}
             </span>
         );
+    }
+
+    renderConjugation(detectedForm) {
+        const forms = generatePreviewVerbForms(detectedForm.base, detectedForm.excVerb);
+        if (forms.length == 0) {
+            return null;
+        }
+        const url = buildViewerUrl2(
+            detectedForm.base,
+            /* sentenceType */ SENTENCE_TYPES[0],
+            detectedForm.excVerb,
+            /* abKey */ null,
+            this.props.lang,
+            /* auxVerb */ null,
+            /* auxNeg */ false
+        );
+        return this.renderGeneratedForms(forms, url);
+    }
+
+    renderDeclension(detectedForm) {
+        const forms = generatePreviewDeclensionForms(detectedForm.base);
+        if (forms.length == 0) {
+            return null;
+        }
+        const url = buildDeclensionUrl(
+            detectedForm.base,
+            false,
+            this.props.lang
+        );
+        return this.renderGeneratedForms(forms, url);
+    }
+
+    renderDerivedForms(detectedForm) {
+        const pos = detectedForm.pos;
+        if (pos == "v") {
+            return this.renderConjugation(detectedForm);
+        } else if (pos == "n") {
+            return this.renderDeclension(detectedForm);
+        } else {
+            return null;
+        }
     }
 
     renderContribInvite() {
@@ -456,9 +482,9 @@ class DictApp extends React.Component {
                         <td></td>
                         <td className="border-l-2 pl-4">
                             <span className="text-blue-500 pr-2">
-                                {this.i18n(`pos_${pos}`)}
+                                {this.i18n(`short_${pos}`)}
                             </span>
-                            {this.renderConjugation(detectedForm)}
+                            {this.renderDerivedForms(detectedForm)}
                         </td>
                     </tr>
                 );

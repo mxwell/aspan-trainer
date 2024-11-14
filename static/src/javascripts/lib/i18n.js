@@ -727,6 +727,50 @@ function prepareDictOnlyTranslations(map) {
         "Translation to Russian",
         "Перевод на русский",
     );
+    setEnRu(map, "short_n",
+        "noun",
+        "сущ.",
+    );
+    setEnRu(map, "short_v",
+        "verb",
+        "глагол",
+    );
+    setEnRu(map, "short_j",
+        "adj.",
+        "прил.",
+    );
+    setEnRu(map, "short_b",
+        "adverb",
+        "наречие",
+    );
+    setEnRu(map, "short_p",
+        "pron.",
+        "мест.",
+    );
+    setEnRu(map, "short_i",
+        "int.",
+        "межд.",
+    );
+    setEnRu(map, "short_o",
+        "onom.",
+        "оном.",
+    );
+    setEnRu(map, "short_l",
+        "num.",
+        "числ.",
+    );
+    setEnRu(map, "short_c",
+        "conj.",
+        "союз",
+    );
+    setEnRu(map, "short_e",
+        "prep.",
+        "предлог",
+    );
+    setEnRu(map, "short_t",
+        "part.",
+        "частица",
+    );
 }
 
 function prepareCommonQuizTranslations(map) {

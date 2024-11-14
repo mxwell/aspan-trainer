@@ -1,4 +1,10 @@
-import { GRAMMAR_PERSONS, NounBuilder, SEPTIKS, getDeclAltInfo } from "./aspan";
+import {
+    GRAMMAR_NUMBERS,
+    GRAMMAR_PERSONS,
+    NounBuilder,
+    SEPTIKS,
+    getDeclAltInfo
+} from "./aspan";
 
 export function declensionAlternativeInfo(subject) {
     return getDeclAltInfo(subject);
@@ -129,5 +135,18 @@ export function generatePromoDeclensionForms(subject) {
             break;
         }
     }
+    return forms;
+}
+
+export function generatePreviewDeclensionForms(subject) {
+    let nounBuilder = new NounBuilder(subject);
+    let forms = [];
+    let third = GRAMMAR_PERSONS[3];
+    let singular = GRAMMAR_NUMBERS[0];
+    let atau = SEPTIKS[0];
+    let poss3rd = nounBuilder.possessiveSeptikForm(third, singular, atau);
+    forms.push(poss3rd.raw);
+    let pluralAtau = nounBuilder.pluralize();
+    forms.push(pluralAtau.raw);
     return forms;
 }
