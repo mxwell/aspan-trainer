@@ -884,10 +884,6 @@ function prepareTopOnlyTranslations(map) {
         "Bold font is used for verbs that are used with one auxiliary verb in the majority of cases.",
         "Жирным шрифтом отмечены глаголы, которые преимущественно используются только с одним вспомогательным глаголом.",
     );
-    setEnRu(map, "feedback_invite",
-        "If you have any feedback, e.g. missing popular verb, you can find us in the Telegram group.",
-        "Если у вас есть обратная связь, например, отсутствует популярный глагол, вы можете найти нас в Telegram-группе.",
-    );
 }
 
 function prepareDeclensionAppOnlyTranslations(map) {

@@ -130,7 +130,6 @@ class TopApp extends React.Component {
                     <li className="text-red-600">- {this.i18n("verb_red_jur")}</li>
                 </ul>
                 <p className="text-xl">{this.i18n("verb_bold_majority")}</p>
-                <p className="text-xl">{this.i18n("feedback_invite")}</p>
             </div>
         );
     }
