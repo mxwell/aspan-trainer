@@ -845,12 +845,28 @@ function prepareTopOnlyTranslations(map) {
         "Топ глаголов по использованию настоящего времени",
     );
     setEnRu(map, "column_freq",
-        "Frequency",
+        "Freq",
         "Частота",
     );
-    setEnRu(map, "column_forms_link",
-        "All forms",
-        "Все формы",
+    setEnRu(map, "column_ru",
+        "Russian",
+        "Русский",
+    );
+    setEnRu(map, "column_en",
+        "English",
+        "Английский",
+    );
+    setEnRu(map, "titleAnkiDecks",
+        "Anki decks",
+        "Колоды Anki"
+    );
+    setEnRu(map, "ankiDeckKkRu",
+        "Anki deck for the Kazakh-Russian direction",
+        "Колода Anki для казахско-русского направления"
+    );
+    setEnRu(map, "ankiDeckKkEn",
+        "Anki deck for the Kazakh-English direction",
+        "Колода Anki для казахско-английского направления"
     );
     setEnRu(map, "legend",
         "Legend",

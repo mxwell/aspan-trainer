@@ -37,6 +37,8 @@ cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/
 cp static/src/images/{edit_square,keyboard,sound}.svg $OUTPUT_DIR/
 cp static/src/images/{delete,edit,restart,thumb_down,thumb_up}.svg $OUTPUT_DIR/
 
+cp static/src/data/present_top100_ru_en.colonsv $OUTPUT_DIR/
+
 mv "${OUTPUT_DIR}/viewer.html" "${OUTPUT_DIR}/index.html"
 mkdir -p ${EN_OUTPUT}
 mv "${OUTPUT_DIR}/viewer_en.html" "${EN_OUTPUT}/index.html"

@@ -82,7 +82,7 @@ function makeDetectRequest(lastEntered, suggest, onlyVerbs, successCallback, err
 }
 
 function loadTopList(successCallback, errorCallback) {
-    const url = `/present_top100.colonsv`;
+    const url = `/present_top100_ru_en.colonsv`;
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", false);
 }
 

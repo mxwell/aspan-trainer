@@ -2,7 +2,6 @@ import React from "react";
 import { i18n } from "../lib/i18n";
 import { loadTopList } from "../lib/requests";
 import { buildViewerUrl2 } from "../lib/url";
-import { SENTENCE_TYPES } from "../lib/sentence";
 
 const VERB_COLORS = [
     "text-blue-600",
@@ -11,14 +10,30 @@ const VERB_COLORS = [
     "text-red-600",
 ];
 
+function getGlossesHtml(glosses) {
+    let htmlParts = [];
+    for (const gloss of glosses) {
+        htmlParts.push(
+            <li className="list-disc list-inside">{gloss}</li>
+        )
+    }
+    return (
+        <ul>
+            {htmlParts}
+        </ul>
+    );
+}
+
 class TopItem {
-    constructor(rank, verb, exceptional, colorIndex, strong, stats) {
+    constructor(rank, verb, exceptional, colorIndex, strong, stats, ruGlosses, enGlosses) {
         this.rank = rank;
         this.verb = verb;
         this.exceptional = exceptional;
         this.colorIndex = colorIndex;
         this.strong = strong;
         this.stats = stats;
+        this.ruGlosses = ruGlosses;
+        this.enGlosses = enGlosses;
     }
     getVerbInnerHtml() {
         if (this.strong) {
@@ -28,11 +43,14 @@ class TopItem {
         }
         return this.verb;
     }
-    getVerbHtml() {
+    getVerbHtml(lang) {
         const color = VERB_COLORS[this.colorIndex];
         return (
             <td className={`p-2 border-2 ${color}`}>
                 {this.getVerbInnerHtml()}
+                <span className="px-2 text-base text-gray-500">
+                    [<a href={this.getViewerUrl(lang)}>↗</a>]
+                </span>
             </td>
         );
     }
@@ -58,7 +76,7 @@ function parseTopList(topListText) {
             continue;
         }
         let parts = line.split(":");
-        if (parts.length != 9) {
+        if (parts.length != 11) {
             console.log(`Invalid line in top list: ${line}`);
             continue;
         }
@@ -66,8 +84,21 @@ function parseTopList(topListText) {
         let exceptional = parts[1] == "1";
         let colorIndex = parts[2];
         let strong = parts[3] == "1";
-        let stats = parts.slice(4).map((x) => parseInt(x));
-        topList.push(new TopItem(rank, verb, exceptional, colorIndex, strong, stats));
+        let stats = parts.slice(4, 9).map((x) => parseInt(x));
+        let ruGlosses = parts[9].split(",");
+        let enGlosses = parts[10].split(",");
+        topList.push(
+            new TopItem(
+                rank,
+                verb,
+                exceptional,
+                colorIndex,
+                strong,
+                stats,
+                ruGlosses,
+                enGlosses
+            )
+        );
         rank++;
     }
     return topList;
@@ -117,6 +148,30 @@ class TopApp extends React.Component {
         console.log(`Got error on top list load: ${responseText}`);
     }
 
+    renderAnki() {
+        return (
+            <div className="m-4">
+                <h2 className="text-center text-3xl m-4">{this.i18n("titleAnkiDecks")}</h2>
+                <ul className="text-xl m-4">
+                    <li className="list-disc list-inside">
+                        <a
+                            className="underline text-red-400"
+                            href="https://storage.yandexcloud.net/kazakhverb/KazakhVerbRu.apkg">
+                            {this.i18n("ankiDeckKkRu")}
+                        </a>
+                    </li>
+                    <li className="list-disc list-inside">
+                        <a
+                            className="underline text-red-400"
+                            href="https://storage.yandexcloud.net/kazakhverb/KazakhVerbEn.apkg">
+                            {this.i18n("ankiDeckKkEn")}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        );
+    }
+
     renderLegend() {
         return (
             <div className="m-4">
@@ -151,26 +206,27 @@ class TopApp extends React.Component {
                             <th className="py-2 px-4 border-2">жүр</th>
                             <th className="p-2 border-2">отыр</th>
                             <th className="py-2 px-4 border-2">тұр</th>
-                            <th className="p-2 border-2">{this.i18n("column_forms_link")}</th>
+                            <th className="py-2 px-4 border-2">{this.i18n("column_ru")}</th>
+                            <th className="py-2 px-4 border-2">{this.i18n("column_en")}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {topList.map((item, index) => (
                             <tr key={index}>
                                 <td className="p-2 border-2">{item.rank}</td>
-                                {item.getVerbHtml()}
+                                {item.getVerbHtml(this.props.lang)}
                                 <td className="p-2 border-2">{item.stats[0]}</td>
                                 <td className="p-2 border-2">{item.stats[1]}</td>
                                 <td className="p-2 border-2">{item.stats[2]}</td>
                                 <td className="p-2 border-2">{item.stats[3]}</td>
                                 <td className="p-2 border-2">{item.stats[4]}</td>
-                                <td className="p-2 border-2">
-                                    <a href={item.getViewerUrl(this.props.lang)}>→</a>
-                                </td>
+                                <td className="p-2 border-2">{getGlossesHtml(item.ruGlosses)}</td>
+                                <td className="p-2 border-2">{getGlossesHtml(item.enGlosses)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+                {this.renderAnki()}
                 {this.renderLegend()}
             </div>
         );
@@ -179,7 +235,7 @@ class TopApp extends React.Component {
     render() {
         return (
             <div>
-                <h1 className="text-4xl m-4">{this.i18n("present_top_title")}</h1>
+                <h1 className="text-4xl m-4 text-center">{this.i18n("present_top_title")}</h1>
                 {this.renderTopList()}
             </div>
         );
