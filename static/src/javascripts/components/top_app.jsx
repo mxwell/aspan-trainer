@@ -85,8 +85,8 @@ function parseTopList(topListText) {
         let colorIndex = parts[2];
         let strong = parts[3] == "1";
         let stats = parts.slice(4, 9).map((x) => parseInt(x));
-        let ruGlosses = parts[9].split(",");
-        let enGlosses = parts[10].split(",");
+        let ruGlosses = parts[9].split(";");
+        let enGlosses = parts[10].split(";");
         topList.push(
             new TopItem(
                 rank,
