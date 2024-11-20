@@ -34,7 +34,7 @@ parcel build static/src/html/post_llm_vocab_en.pug
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
 cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/
-cp static/src/images/{edit_square,keyboard,sound}.svg $OUTPUT_DIR/
+cp static/src/images/{edit_square,keyboard,share,sound}.svg $OUTPUT_DIR/
 cp static/src/images/{delete,edit,restart,thumb_down,thumb_up}.svg $OUTPUT_DIR/
 
 cp static/src/data/present_top100_ru_en.colonsv $OUTPUT_DIR/

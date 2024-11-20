@@ -6,11 +6,7 @@ import { renderComment } from "./gc_common";
 import { buildGcLoginUrl, buildGcReviewsUrl, parseParams } from "../lib/url";
 import { COMMON_TRANS_DIRECTIONS, COMMON_TRANS_DIRECTION_BY_KEY } from "../lib/gc";
 import { InvalidAuthTokenException } from "../lib/requests";
-
-function copyToClipboard(text) {
-    console.log(`Copying ${text}`);
-    navigator.clipboard.writeText(text);
-}
+import { copyToClipboard } from "../lib/clipboard";
 
 const kPageSize = 20;
 

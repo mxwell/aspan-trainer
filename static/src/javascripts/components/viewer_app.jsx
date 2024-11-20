@@ -39,6 +39,7 @@ import { highlightDeclensionPhrasal } from '../lib/highlight';
 import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
 import { abIsLatin, ALPHABET_KEYS, parseAlphabetKey } from '../lib/ab';
 import { gcGetVerbFormExamples } from '../lib/gc_api';
+import { ShareButton } from './share_button';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -1227,9 +1228,22 @@ class ViewerApp extends React.Component {
             ? (<p className="px-6 py-2 text-3xl lg:text-base text-gray-600 lg:max-w-3xl">{this.i18n("conjTablesDescrTempl")(verb)}</p>)
             : null
         );
+        const urlPart = buildViewerUrl2(
+            this.state.verb,
+            this.state.sentenceType,
+            this.state.forceExceptional,
+            this.state.abKey,
+            this.props.lang,
+            this.state.auxVerb,
+            this.state.auxNeg,
+        );
+        const url = `${window.location.protocol}//${window.location.host}${urlPart}`;
         return (
             <div>
-                <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">{this.i18n("conjInAllTensesTempl")(verb)}</h2>
+                <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">
+                    <ShareButton url={url} />
+                    {this.i18n("conjInAllTensesTempl")(verb)}
+                </h2>
                 {descr}
                 {this.renderAbSelector()}
                 <audio preload="none" ref="audio"><source type="audio/mpeg" ref="audioSrc"/></audio>
