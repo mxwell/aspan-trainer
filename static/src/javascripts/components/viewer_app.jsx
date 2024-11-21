@@ -275,6 +275,7 @@ class ViewerApp extends React.Component {
             shown: shown,
             suggestions: DEFAULT_SUGGESTIONS,
             currentFocus: DEFAULT_SUGGESTION_POS,
+            emulateKb: true,
         };
     }
 
@@ -338,7 +339,7 @@ class ViewerApp extends React.Component {
         const auxVerb = parseAuxVerb(params.aux);
         const auxNeg = params.aux_neg == "true";
         const sentenceType = parseSentenceType(params.sentence_type);
-        const eg = params.eg == "true"
+        const eg = params.eg == "true";
         var tenses = [];
         var warning = null;
         if (hasMixedAlphabets(verb)) {
@@ -659,7 +660,40 @@ class ViewerApp extends React.Component {
         this.clearSuggestions();
     }
 
+    checkForEmulation(e) {
+        const code = e.nativeEvent.code;
+        const shift = e.shiftKey;
+        let replace = null;
+        if (code == "Digit2") {
+            replace = shift ? "Ә" : "ә";
+        } else if (code == "Digit3") {
+            replace = shift ? "І" : "і";
+        } else if (code == "Digit4") {
+            replace = shift ? "Ң" : "ң";
+        } else if (code == "Digit5") {
+            replace = shift ? "Ғ" : "ғ";
+        } else if (code == "Digit8") {
+            replace = shift ? "Ү" : "ү";
+        } else if (code == "Digit9") {
+            replace = shift ? "Ұ" : "ұ";
+        } else if (code == "Digit0") {
+            replace = shift ? "Қ" : "қ";
+        } else if (code == "Minus") {
+            replace = shift ? "Ө" : "ө";
+        } else if (code == "Equal") {
+            replace = shift ? "Һ" : "һ";
+        } else if (code == "Slash") {
+            replace = "-";
+        }
+        if (replace == null) {
+            return;
+        }
+        e.preventDefault();
+        this.onInsert(replace);
+    }
+
     onKeyDown(e) {
+        // TODO perhaps, it's better to use e.nativeEvent.code
         if (e.keyCode == 40) {  // arrow down
             this.moveActiveSuggestion(1);
         } else if (e.keyCode == 38) { // arrow up
@@ -674,6 +708,8 @@ class ViewerApp extends React.Component {
                 let lastEntered = suggestions[currentFocus].data.base;
                 this.activateSuggestion(lastEntered);
             }
+        } else if (this.state.emulateKb) {
+            this.checkForEmulation(e);
         }
     }
 

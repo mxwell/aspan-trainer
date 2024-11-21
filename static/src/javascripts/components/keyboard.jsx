@@ -70,7 +70,7 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("з"),
         makeSymbolButton("х"),
         makeSymbolButton("ъ"),
-        makeSymbolButton("-"),
+        makeEmptyButton(DIMS_MID),
     ],
     [
         makeSpecialButton(TITLE_CAPS, DIMS_WIDE),
@@ -98,6 +98,7 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("ь"),
         makeSymbolButton("б"),
         makeSymbolButton("ю"),
+        makeSymbolButton("-"),
         makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
     ],
     [
