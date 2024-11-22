@@ -10,6 +10,7 @@ import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { DictFormDetails } from "./dict_form_details";
 import { generatePreviewDeclensionForms } from "../lib/declension";
+import { checkForEmulation } from "../lib/layout";
 
 const DEFAULT_TITLE = "Kazakh Verb";
 const DEFAULT_SUGGESTIONS = [];
@@ -58,6 +59,7 @@ class DictApp extends React.Component {
             loading: false,
             error: false,
             detectedForms: [],
+            emulateKb: true,
         };
     }
 
@@ -203,6 +205,15 @@ class DictApp extends React.Component {
         this.changeInputText(lastEntered, /* suggest */ false);
     }
 
+    checkForEmulation(e) {
+        const replace = checkForEmulation(e);
+        if (replace == null) {
+            return;
+        }
+        e.preventDefault();
+        this.onInsert(replace);
+    }
+
     onKeyDown(e) {
         if (e.keyCode == 40) {  // arrow down
             this.moveActiveSuggestion(1);
@@ -218,6 +229,8 @@ class DictApp extends React.Component {
                 let lastEntered = suggestions[currentFocus].raw;
                 this.activateSuggestion(lastEntered);
             }
+        } else if (this.state.emulateKb) {
+            this.checkForEmulation(e);
         }
     }
 

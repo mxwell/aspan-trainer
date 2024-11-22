@@ -40,6 +40,7 @@ import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
 import { abIsLatin, ALPHABET_KEYS, parseAlphabetKey } from '../lib/ab';
 import { gcGetVerbFormExamples } from '../lib/gc_api';
 import { ShareButton } from './share_button';
+import { checkForEmulation } from '../lib/layout';
 
 const SENTENCE_TYPES = [
     "Statement",
@@ -661,30 +662,7 @@ class ViewerApp extends React.Component {
     }
 
     checkForEmulation(e) {
-        const code = e.nativeEvent.code;
-        const shift = e.shiftKey;
-        let replace = null;
-        if (code == "Digit2") {
-            replace = shift ? "Ә" : "ә";
-        } else if (code == "Digit3") {
-            replace = shift ? "І" : "і";
-        } else if (code == "Digit4") {
-            replace = shift ? "Ң" : "ң";
-        } else if (code == "Digit5") {
-            replace = shift ? "Ғ" : "ғ";
-        } else if (code == "Digit8") {
-            replace = shift ? "Ү" : "ү";
-        } else if (code == "Digit9") {
-            replace = shift ? "Ұ" : "ұ";
-        } else if (code == "Digit0") {
-            replace = shift ? "Қ" : "қ";
-        } else if (code == "Minus") {
-            replace = shift ? "Ө" : "ө";
-        } else if (code == "Equal") {
-            replace = shift ? "Һ" : "һ";
-        } else if (code == "Slash") {
-            replace = "-";
-        }
+        const replace = checkForEmulation(e);
         if (replace == null) {
             return;
         }
