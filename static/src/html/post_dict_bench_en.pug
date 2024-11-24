@@ -1,0 +1,49 @@
+include partials/viewer_page_en
++a_viewer_page_en("../javascripts/post_dict_bench.jsx")
+    div(class="m-4")
+        h1(class="m-2 text-4xl") Benchmarking Kazakh-Language Dictionary Coverage
+        p(class="m-2") There are quite a few dictionaries with translations for the Kazakh language. There is one with Russian translations that gets recommended a lot. But how do other dictionaries compare in terms of vocabulary coverage? We decided to find out.
+        p(class="m-2") Here we are presenting an initial benchmark comparing several major Kazakh dictionaries. Perhaps, it will evolve over time to cover additional resources.
+        h2(class="m-2 text-2xl") Dictionaries
+        p(class="m-2") We have chosen several dictionaries from those available to us. Most provide Russian translations, except for the Oxford dictionary, which offers English translations.
+        p(class="m-2")
+            span The most widely recommended dictionary is
+            strong &nbsp;sozdik.kz
+            span , established in 2000. It includes Russian translations, usage examples with translations, and audio recordings for words. The website has an extensive vocabulary and a user-friendly interface.
+        p(class="m-2")
+            span If you search for a translation using a web search engine, chances are you land on
+            strong &nbsp;acelinguo.com
+            span . The site was founded by a language translation company, presumably in 2019 based on its domain registration. While the word entries are less structured, the translations are divided into industry-specific categories. The website also provides usage examples with translations and appears to allow users to submit new translations.
+        p(class="m-2")
+            span If you own an Apple device, such as an iPhone, you can use the built-in
+            strong &nbsp;Oxford Dictionary&nbsp;
+            span to translate words. It provides English translations, along with usage examples and their translations. The dictionary supports a basic morphological search, allowing you to look up a translation for words in any form without needing to convert them to their base form.
+        p(class="m-2")
+            span Another notable resource is the Kazakh-English-Russian dictionary by Lene Schmidt, which is available at
+            strong &nbsp;leneshmidt.com
+            span .
+        p(class="m-2") Glosbe provides word translations for a lot of language pairs and also accepts contributions by volunteers. For this evaluation, we focused on its Kazakh-Russian translations, as this pair is likely the most developed on the platform.
+        p(class="m-2") Additionally, we considered the results from a Kazakh language learner (the author of this article) at approximately A1 level. This perspective helps to assess the difficulty of the task used to evaluate the dictionaries. It should be noted that the learner is proficient in Russian, which provides a great advantage in understanding Kazakh words borrowed from Russian.
+        h2(class="m-2 text-2xl") Method
+        p(class="m-2") The measurements were conducted in November 2024.
+        p(class="m-2") We created a dataset of around 70 Kazakh words and collected translations from all the sources mentioned above. The measurement process is straightforward. We consider a word covered by a source if it includes at least one correct translation. The final metric was calculated as the number of covered words divided by the total number of words in the dataset.
+        p(class="m-2")
+            span The words were prepared in the following way. We downloaded a lemma frequency list from
+            strong &nbsp;qazcorpus.kz
+            span , normalized the lemmas using technology developed by the Kazakh Verb project, and sorted them by aggregated frequency in descending order. From the sorted list, we sampled 100 words. After filtering out numbers and names, we finalized a list of around 70 words.
+        div(id="dict_vocab_chart")
+        h2(class="m-2 text-2xl") Conclusion
+        p(class="m-2") The results are shown in the chart above.
+        p(class="m-2")
+            span The analysis confirmed that
+            strong &nbsp;sozdik.kz&nbsp;
+            span is currently the best dictionary available. However,
+            strong &nbsp;acelinguo.com&nbsp;
+            span matches it in terms of vocabulary coverage. To reach its full potential,
+            strong &nbsp;acelinguo.com&nbsp;
+            span would benefit from improving its user interface and adding more structure to its articles.
+        p(class="m-2")
+            span The
+            strong &nbsp;Oxford Dictionary&nbsp;
+            span is not so far behind and can be a valuable resource, particularly for learners who do not know Russian but are proficient in English.
+    script(src="https://www.gstatic.com/charts/loader.js")

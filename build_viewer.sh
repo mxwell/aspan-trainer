@@ -30,6 +30,7 @@ parcel build static/src/html/login_{en,ru}.pug
 
 parcel build static/src/html/posts_en.pug
 parcel build static/src/html/post_llm_vocab_en.pug
+parcel build static/src/html/post_dict_bench_en.pug
 
 cp static/src/images/{copy,copy_pressed,expand_down,expand_up,toggle_off,toggle_on}.svg $OUTPUT_DIR/
 cp static/src/images/{one_to_one,one_to_many,many_to_one,many_to_many}.png $OUTPUT_DIR/
@@ -48,5 +49,6 @@ mv "${OUTPUT_DIR}/viewer_kk.html" "${KK_OUTPUT}/index.html"
 mkdir -p ${EN_POSTS}
 mv "${OUTPUT_DIR}/posts_en.html" "${EN_POSTS}/index.html"
 mv "${OUTPUT_DIR}/post_llm_vocab_en.html" "${EN_POSTS}/llm_vocab.html"
+mv "${OUTPUT_DIR}/post_dict_bench_en.html" "${EN_POSTS}/dict_bench.html"
 
 echo "Output files are put under ${OUTPUT_DIR}"
