@@ -17,6 +17,7 @@ module.exports = {
         "./static/src/html/login_ru.pug",
         "./static/src/html/posts_en.pug",
         "./static/src/html/post_llm_vocab_en.pug",
+        "./static/src/html/post_dict_bench_en.pug",
         "./static/src/html/viewer.pug",
         "./static/src/html/viewer_en.pug",
         "./static/src/html/viewer_kk.pug",
