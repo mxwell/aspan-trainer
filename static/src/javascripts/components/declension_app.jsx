@@ -7,6 +7,8 @@ import { getParticipleBuilder } from '../lib/verb_forms';
 import { parseSentenceType } from '../lib/sentence';
 import { trimAndLowercase } from '../lib/input_validation';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
+import { backspaceTextInput, insertIntoTextInput, Keyboard } from './keyboard';
+import { checkForEmulation } from '../lib/layout';
 
 const PRESET_NOUNS = [
     "алма",
@@ -58,6 +60,10 @@ class DeclensionApp extends React.Component {
         super(props);
 
         this.onChange = this.onChange.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.switchBetweenDeclensions = this.switchBetweenDeclensions.bind(this);
 
@@ -70,8 +76,10 @@ class DeclensionApp extends React.Component {
             declAltInfo: declAltInfo,
             forceAlternative: forceAlternative,
             lastEntered: lastEntered,
+            keyboard: false,
             examples: examples,
-            declTables: declTables
+            declTables: declTables,
+            emulateKb: true,
         };
     }
 
@@ -121,9 +129,54 @@ class DeclensionApp extends React.Component {
         this.setState({ lastEntered });
     }
 
+    onKeyboardClick(e) {
+        e.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
+    updateText(change) {
+        this.setState(
+            { lastEntered: change.newText },
+            () => {
+                const wi = this.refs.wordInput;
+                wi.selectionStart = change.newSelectionStart;
+                wi.selectionEnd = change.newSelectionStart;
+                wi.focus();
+            }
+        );
+    }
+
+    onInsert(fragment) {
+        const textInput = this.refs.wordInput;
+        const change = insertIntoTextInput(textInput, fragment);
+        this.updateText(change);
+    }
+
+    onBackspace() {
+        const textInput = this.refs.wordInput;
+        const change = backspaceTextInput(textInput);
+        this.updateText(change);
+    }
+
     onChange(event) {
         let lastEntered = event.target.value;
         this.changeInputText(lastEntered);
+    }
+
+    checkForEmulation(e) {
+        const replace = checkForEmulation(e);
+        if (replace == null) {
+            return;
+        }
+        e.preventDefault();
+        this.onInsert(replace);
+    }
+
+    onKeyDown(e) {
+        if (this.state.emulateKb) {
+            this.checkForEmulation(e);
+        }
     }
 
     reloadToState(subject, forceAlternative) {
@@ -135,13 +188,27 @@ class DeclensionApp extends React.Component {
         window.location.href = url;
     }
 
+    renderKeyboard() {
+        const keyboard = this.state.keyboard;
+        if (!keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace} />
+            </div>
+        );
+    }
+
     onSubmit(event) {
         event.preventDefault();
         this.reloadToState(this.state.lastEntered, false);
     }
 
     renderExampleForms() {
-        if (this.state.lastEntered.length > 0) {
+        if (this.state.keyboard || this.state.lastEntered.length > 0) {
             return null;
         }
         const examples = this.state.examples;
@@ -233,22 +300,35 @@ class DeclensionApp extends React.Component {
     }
 
     renderForm() {
+        const keyboardClass = (
+            this.state.keyboard
+            ? "px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none"
+            : "px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none"
+        );
         return (
             <div className="flex flex-row justify-center">
                 <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                     <div className="flex">
                         <input
+                            ref="wordInput"
                             type="text"
                             size="20"
                             maxLength="100"
                             value={this.state.lastEntered}
                             onChange={this.onChange}
+                            onKeyDown={this.onKeyDown}
                             placeholder={this.i18n("hint_enter_word")}
-                            className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none border rounded p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                             autoFocus />
                         <button
+                            type="button"
+                            onClick={this.onKeyboardClick}
+                            className={keyboardClass}>
+                            <img src="/keyboard.svg" alt="keyboard show or hide" className="h-12" />
+                        </button>
+                        <button
                             type="submit"
-                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                            className="mx-2 bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                             →
                         </button>
                     </div>
@@ -399,6 +479,7 @@ class DeclensionApp extends React.Component {
                     </a>
                 </h1>
                 {this.renderForm()}
+                {this.renderKeyboard()}
                 {this.renderSwitcher()}
                 {this.renderDeclTables()}
             </div>
