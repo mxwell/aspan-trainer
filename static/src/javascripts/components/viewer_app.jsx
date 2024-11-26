@@ -32,7 +32,7 @@ import {
 import { SideQuiz, initialSideQuizState } from './side_quiz';
 import { buildPersonNumberList } from '../lib/grammar_utils';
 import { cleanWhitespace, hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
-import { unpackDetectResponse } from '../lib/detector';
+import { unpackDetectResponseWithPos } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
 import { generatePromoDeclensionForms } from '../lib/declension';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
@@ -218,8 +218,6 @@ class ViewerApp extends React.Component {
         this.onSuggestionClick = this.onSuggestionClick.bind(this);
         this.handleSuggestResponse = this.handleSuggestResponse.bind(this);
         this.handleSuggestError = this.handleSuggestError.bind(this);
-        this.handleTranslateResponse = this.handleTranslateResponse.bind(this);
-        this.handleTranslateError = this.handleTranslateError.bind(this);
         this.handleDetectResponse = this.handleDetectResponse.bind(this);
         this.handleDetectError = this.handleDetectError.bind(this);
         this.handleGetVerbFormExamplesResponse = this.handleGetVerbFormExamplesResponse.bind(this);
@@ -267,7 +265,7 @@ class ViewerApp extends React.Component {
             warning: warning,
             meanings: meanings,
             sentenceType: sentenceType,
-            enableTranslation: ENABLE_TRANSLATIONS && this.props.lang != I18N_LANG_KK,
+            enableTranslation: ENABLE_TRANSLATIONS && this.props.lang == I18N_LANG_RU,
             translation: translation,
             tenses: tenses,
             tensesSentenceType: sentenceType,
@@ -349,7 +347,6 @@ class ViewerApp extends React.Component {
         let meanings = null;
         const verbL = trimAndLowercase(verb);
         const normalized = detectValidVerb(verbL);
-        let recognized = false;
         if (normalized != null) {
             try {
                 const lat = abIsLatin(abKey);
@@ -360,14 +357,9 @@ class ViewerApp extends React.Component {
                     const verbPart = getVerbMainPart(verbL);
                     warning = this.i18n("verbHasTwoMeaningsTempl")(verbPart);
                 }
-                recognized = true;
             } catch (err) {
                 console.log(`Error during form generation: ${err}`);
             }
-        }
-        if (!recognized) {
-            warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
-            this.startDetection(verb);
         }
         let translation = null;
         if (translationVariants != null) {
@@ -543,27 +535,28 @@ class ViewerApp extends React.Component {
         this.setState({ lastEntered });
     }
 
-    async handleTranslateResponse(context, responseJsonPromise) {
+    async handleDetectResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
         let params = context.params;
-        let verb = context.verb;
-        let known = response.length > 0;
+        let known = false;
         let lang = this.props.lang;
-        if (lang == I18N_LANG_KK) {
-            this.setState(
-                this.readUrlState(params, known, null)
-            );
-            return;
-        }
         let translationVariants = null;
-        for (let i = 0; i < response.length; ++i) {
-            let item = response[i].data;
-            if (item.base == verb) {
-                let itemTranslationVariants = this.extractTranslationVariants(item, lang);
-                if (itemTranslationVariants != null && itemTranslationVariants.length == 2) {
-                    translationVariants = itemTranslationVariants;
+        if (response.words) {
+            const candidates = unpackDetectResponseWithPos(response.words);
+            let regular = [];
+            let exceptional = [];
+            for (const candidate of candidates) {
+                if (candidate.tense == "infinitive" && candidate.pos == "v") {
+                    known = true;
+                    if (candidate.excVerb) {
+                        exceptional = exceptional.concat(candidate.ruGlosses);
+                    } else {
+                        regular = regular.concat(candidate.ruGlosses);
+                    }
                 }
-                break;
+            }
+            if (lang == I18N_LANG_RU && (regular.length > 0 || exceptional.length > 0)) {
+                translationVariants = [regular, exceptional];
             }
         }
         this.setState(
@@ -571,9 +564,9 @@ class ViewerApp extends React.Component {
         );
     }
 
-    async handleTranslateError(context, responseTextPromise) {
+    async handleDetectError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`Got error from suggest: ${responseText}, verb for translation was ${context.verb}.`);
+        console.log(`Got error from detect: ${responseText}`);
 
         let params = context.params;
         let known = false;
@@ -585,56 +578,15 @@ class ViewerApp extends React.Component {
 
     requestTranslation(params, verb) {
         if (verb.length > 0) {
-            makeSuggestRequest(
+            makeDetectRequest(
                 verb,
-                this.handleTranslateResponse,
-                this.handleTranslateError,
+                /* suggest */ false,
+                /* onlyVerbs */ false,
+                this.handleDetectResponse,
+                this.handleDetectError,
                 { params, verb }
             );
         }
-    }
-
-    async handleDetectResponse(context, responseJsonPromise) {
-        let response = await responseJsonPromise;
-        let verb = this.state.verb;
-        // TODO Use "form" from the response, instead of the context
-        if (verb == context.detectRawForm) {
-            if (response.words) {
-                const detected = unpackDetectResponse(response.words);
-                this.setState({ detected });
-            } else {
-                console.log("No words in detect response.");
-            }
-        } else {
-            console.log(`Detections are too old, verb is ${verb}.`);
-        }
-    }
-
-    async handleDetectError(context, responseTextPromise) {
-        let responseText = await responseTextPromise;
-        console.log(`Got error from detect: ${responseText}, detectRawForm was ${context.detectRawForm}.`);
-        const detected = null;
-        this.setState({ detected });
-    }
-
-    startDetection(rawForm) {
-        const form = trimAndLowercase(rawForm);
-
-        if (form.length == 0) {
-            return;
-        }
-
-        const suggest = false;
-        makeDetectRequest(
-            form,
-            suggest,
-            /* onlyVerbs */ true,
-            this.handleDetectResponse,
-            this.handleDetectError,
-            {
-                detectRawForm: rawForm,
-            }
-        );
     }
 
     moveActiveSuggestion(posChange) {
