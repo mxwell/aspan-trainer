@@ -245,7 +245,7 @@ class ViewerApp extends React.Component {
         }
     }
 
-    makeState(loading, verb, normalized, forceExceptional, abKey, eg, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, meanings) {
+    makeState(loading, verb, normalized, forceExceptional, abKey, eg, known, auxVerb, auxNeg, lastEntered, sentenceType, translation, tenses, warning, detected, meanings) {
         let collapse = checkForCollapse();
         let shown = getInitiallyShown(collapse, tenses);
         return {
@@ -261,8 +261,8 @@ class ViewerApp extends React.Component {
             auxNeg: auxNeg,  // negation via the auxiliary verb change as opposed to the main verb change
             lastEntered: lastEntered,
             keyboard: false,
-            detected: null,
             warning: warning,
+            detected: detected,
             meanings: meanings,
             sentenceType: sentenceType,
             enableTranslation: ENABLE_TRANSLATIONS && this.props.lang == I18N_LANG_RU,
@@ -294,6 +294,7 @@ class ViewerApp extends React.Component {
             /* translation */ null,
             /* tenses */ [],
             /* warning */ null,
+            /* detected */ null,
             /* meanings */ null,
         );
     }
@@ -314,21 +315,19 @@ class ViewerApp extends React.Component {
         const params = parseParams();
         /* If we don't need translation, then we have everything and can render the page right away */
         if (!ENABLE_TRANSLATIONS) {
-            return this.readUrlState(params, false, null);
+            return this.readUrlState(params, false, null, null);
         }
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
             return null;
         }
-        const normalized = detectValidVerb(trimAndLowercase(verb));
-        if (normalized == null) {
-            return this.readUrlState(params, false, null);
-        }
+        const lowered = trimAndLowercase(verb);
+        const normalized = detectValidVerb(lowered) || lowered;
         this.requestTranslation(params, normalized);
         return this.loadingState();
     }
 
-    readUrlState(params, known, translationVariants) {
+    readUrlState(params, known, translationVariants, recognizedVerbs) {
         const verb = params.verb;
         if (verb == null || verb.length <= 0) {
             return null;
@@ -361,6 +360,13 @@ class ViewerApp extends React.Component {
                 console.log(`Error during form generation: ${err}`);
             }
         }
+        let detected = null;
+        if (tenses.length == 0) {
+            warning = `${this.i18n("failed_recognize_verb")}: ${verb}`;
+            if (recognizedVerbs != null && recognizedVerbs.length > 0) {
+                detected = recognizedVerbs;
+            }
+        }
         let translation = null;
         if (translationVariants != null) {
             const index = forceExceptional ? 1 : 0;
@@ -383,6 +389,7 @@ class ViewerApp extends React.Component {
             translation,
             tenses,
             warning,
+            detected,
             meanings,
         );
     }
@@ -541,17 +548,31 @@ class ViewerApp extends React.Component {
         let known = false;
         let lang = this.props.lang;
         let translationVariants = null;
+        let recognizedVerbs = [];
         if (response.words) {
             const candidates = unpackDetectResponseWithPos(response.words);
             let regular = [];
             let exceptional = [];
             for (const candidate of candidates) {
-                if (candidate.tense == "infinitive" && candidate.pos == "v") {
-                    known = true;
-                    if (candidate.excVerb) {
-                        exceptional = exceptional.concat(candidate.ruGlosses);
+                if (candidate.pos == "v") {
+                    if (candidate.tense == "infinitive") {
+                        known = true;
+                        if (candidate.excVerb) {
+                            exceptional = exceptional.concat(candidate.ruGlosses);
+                        } else {
+                            regular = regular.concat(candidate.ruGlosses);
+                        }
                     } else {
-                        regular = regular.concat(candidate.ruGlosses);
+                        let found = false;
+                        for (const prev of recognizedVerbs) {
+                            if (prev.base == candidate.base && prev.excVerb == candidate.excVerb) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            recognizedVerbs.push(candidate);
+                        }
                     }
                 }
             }
@@ -560,7 +581,7 @@ class ViewerApp extends React.Component {
             }
         }
         this.setState(
-            this.readUrlState(params, known, translationVariants)
+            this.readUrlState(params, known, translationVariants, recognizedVerbs)
         );
     }
 
@@ -572,7 +593,7 @@ class ViewerApp extends React.Component {
         let known = false;
         let translationVariants = null;
         this.setState(
-            this.readUrlState(params, known, translationVariants)
+            this.readUrlState(params, known, translationVariants, null)
         );
     }
 
@@ -999,14 +1020,23 @@ class ViewerApp extends React.Component {
         if (detected == null) {
             return null;
         }
-        const sentenceType = detected.sentenceType || SENTENCE_TYPES[0];
-        const forceExceptional = detected.isExceptional == true;
-        const url = buildViewerUrl2(detected.verb, sentenceType, forceExceptional, this.state.abKey, this.props.lang, null, false);
+        let htmlParts = [];
+        for (const detectedForm of detected) {
+            const verb = detectedForm.base;
+            const sentenceType = detectedForm.sentenceType;
+            const forceExceptional = detectedForm.excVerb;
+            const url = buildViewerUrl2(verb, sentenceType, forceExceptional, this.state.abKey, this.props.lang, null, false);
+            htmlParts.push(
+                <p key={htmlParts.length}>
+                    {this.i18n("entered_is_form")(verb)}.&nbsp;
+                    <a className="underline text-orange-600" href={url}>{this.i18n("show_detected")(verb)}</a>
+                </p>
+            );
+        }
         return (
-            <p className="my-4">
-                {this.i18n("entered_is_form")(detected.verb)}.&nbsp;
-                <a className="underline text-orange-600" href={url}>{this.i18n("show_detected")(detected.verb)}</a>
-            </p>
+            <div className="my-4">
+                {htmlParts}
+            </div>
         );
     }
 
