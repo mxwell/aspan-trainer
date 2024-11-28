@@ -60,7 +60,7 @@ export function highlightPhrasal(phrasal, shownParts = -1) {
             <span
                 className={partClasses.join(" ")}
                 key={`part${htmlParts.length}`}>
-                {part.content}
+                {part.content.replace(/ /g, '\u00a0')}
             </span>
         );
     }
