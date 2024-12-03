@@ -1,6 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { gcGetDownloads, gcGetStats } from "../lib/gc_api";
+import { gcGetDownloads, gcGetRankings, gcGetStats } from "../lib/gc_api";
+import { ellipsize } from "../lib/gc";
 
 /**
  * props:
@@ -12,11 +13,14 @@ class GcStatsApp extends React.Component {
 
         this.handleGetStatsResponse = this.handleGetStatsResponse.bind(this);
         this.handleGetStatsError = this.handleGetStatsError.bind(this);
+        this.handleGetRankingsResponse = this.handleGetRankingsResponse.bind(this);
+        this.handleGetRankingsError = this.handleGetRankingsError.bind(this);
         this.handleGetDownloadsResponse = this.handleGetDownloadsResponse.bind(this);
         this.handleGetDownloadsError = this.handleGetDownloadsError.bind(this);
 
         this.state = this.defaultState();
         this.startGetStats();
+        this.startGetRankings();
         this.startGetDownloads();
     }
 
@@ -25,6 +29,10 @@ class GcStatsApp extends React.Component {
             loading: true,
             error: false,
             stats: null,
+            contribLoading: true,
+            contribError: false,
+            alltime: null,
+            week: null,
             downloadsLoading: true,
             downloadsError: false,
             downloads: null,
@@ -79,6 +87,47 @@ class GcStatsApp extends React.Component {
         );
     }
 
+    putToContribErrorState() {
+        this.setState({
+            contribLoading: false,
+            contribError: true,
+        });
+    }
+
+    async handleGetRankingsResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const message = response.message;
+        if (message != "ok") {
+            console.log(`handleGetRankingsResponse: error message: ${message}`);
+            this.putToContribErrorState();
+            return;
+        }
+        const alltime = response.alltime;
+        const week = response.week;
+        if (alltime == null || week == null) {
+            console.log("handleGetRankingsResponse: data missing");
+            this.putToContribErrorState();
+            return;
+        }
+        console.log(`Loaded contribs: alltime ${alltime.length}, week ${week.length}`);
+        const contribLoading = false;
+        this.setState({ contribLoading, alltime, week });
+    }
+
+    async handleGetRankingsError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`handleGetRankingsError: ${responseText}`);
+        this.putToContribErrorState();
+    }
+
+    startGetRankings() {
+        gcGetRankings(
+            this.handleGetRankingsResponse,
+            this.handleGetRankingsError,
+            {},
+        );
+    }
+
     putToDownloadsErrorState() {
         this.setState({
             downloadsLoading: false,
@@ -119,11 +168,15 @@ class GcStatsApp extends React.Component {
         );
     }
 
+    renderError() {
+        return (
+            <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
+        );
+    }
+
     renderStats() {
         if (this.state.error) {
-            return (
-                <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
-            );
+            return this.renderError();
         }
         if (this.state.loading) {
             return (
@@ -152,11 +205,74 @@ class GcStatsApp extends React.Component {
         );
     }
 
+    renderContribTable(titleKey, contributors) {
+        if (contributors.length == 0) {
+            return null;
+        }
+        let rows = [];
+        for (const i in contributors) {
+            const c = contributors[i];
+            rows.push(
+                <tr key={rows.length}>
+                    <td className="p-2 border-2">{Number(i) + 1}</td>
+                    <td className="p-2 border-2">{ellipsize(c.name, 16)}</td>
+                    <td className="p-2 border-2">{c.contribs}</td>
+                    <td className="p-2 border-2">{c.translations}</td>
+                    <td className="p-2 border-2">{c.approves}</td>
+                    <td className="p-2 border-2">{c.disapproves}</td>
+                </tr>
+            );
+        }
+        return (
+            <div>
+                <h3 className="my-2 text-center text-2xl italic text-gray-600">
+                    {this.i18n(titleKey)}
+                </h3>
+                <table className="text-center m-4">
+                    <thead>
+                        <tr className="bg-blue-500 text-white">
+                            <th className="p-2 border-2">#</th>
+                            <th className="p-2 border-2">{this.i18n("columnName")}</th>
+                            <th className="p-2 border-2">{this.i18n("columnContrib")}↓</th>
+                            <th className="p-2 border-2">
+                                <img className="gc_menu_icon" src="/create.svg" alt="translations"/>
+                            </th>
+                            <th className="p-2 border-2">
+                                <img className="gc_menu_icon" src="/thumb_up.svg" alt="approves"/>
+                            </th>
+                            <th className="p-2 border-2">
+                                <img className="gc_menu_icon" src="/thumb_down.svg" alt="disapproves"/>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    renderTopContributors() {
+        if (this.state.contribError) {
+            return this.renderError();
+        }
+        if (this.state.contribLoading) {
+            return (
+                <p className="text-center">{this.i18n("loadingTopContributors")}</p>
+            );
+        }
+        return (
+            <div>
+                {this.renderContribTable("titleAlltime", this.state.alltime)}
+                {this.renderContribTable("titleWeek", this.state.week)}
+            </div>
+        );
+    }
+
     renderDownloads() {
         if (this.state.downloadsError) {
-            return (
-                <p className="text-red-600 text-center">{this.i18n("service_error")}</p>
-            );
+            return this.renderError();
         }
         if (this.state.downloadsLoading) {
             return (
@@ -202,6 +318,14 @@ class GcStatsApp extends React.Component {
                 <div className="flex flex-row justify-center">
                     <div>
                         {this.renderStats()}
+                    </div>
+                </div>
+                <h2 className="mt-10 text-center text-3xl text-gray-500">
+                    {this.i18n("titleTopContributors")}
+                </h2>
+                <div className="flex flex-row justify-center">
+                    <div>
+                        {this.renderTopContributors()}
                     </div>
                 </div>
                 <h2 className="mt-10 text-center text-3xl text-gray-500">

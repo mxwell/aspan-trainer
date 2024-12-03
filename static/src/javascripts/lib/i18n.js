@@ -1408,6 +1408,30 @@ function prepareGcOnlyTranslations(map) {
         "No stats data",
         "Нет данных статистики",
     );
+    setEnRu(map, "titleTopContributors",
+        "Top contributors",
+        "Участники с наибольшим вкладом",
+    );
+    setEnRu(map, "titleAlltime",
+        "All time",
+        "За всё время",
+    );
+    setEnRu(map, "titleWeek",
+        "Week",
+        "Неделя",
+    );
+    setEnRu(map, "loadingTopContributors",
+        "Loading top contributors…",
+        "Загрузка участников с наибольшим вкладом…",
+    );
+    setEnRu(map, "columnName",
+        "Name",
+        "Имя",
+    );
+    setEnRu(map, "columnContrib",
+        "Contribution",
+        "Вклад",
+    );
     setEnRu(map, "titleDownloads",
         "Downloads",
         "Загрузки",

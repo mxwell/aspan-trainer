@@ -151,6 +151,11 @@ function gcGetStats(successCallback, errorCallback, context) {
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetRankings(successCallback, errorCallback, context) {
+    const url = "/gcapi/v1/get_rankings";
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function gcGetDownloads(successCallback, errorCallback, context) {
     const url = "/gcapi/v1/get_downloads";
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
@@ -273,6 +278,7 @@ export {
     gcRetractReviewVote,
     gcDiscardReview,
     gcGetStats,
+    gcGetRankings,
     gcGetDownloads,
     gcGetUntranslated,
     gcGetLlmTranslations,
