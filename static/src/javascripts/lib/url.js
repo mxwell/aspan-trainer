@@ -168,7 +168,7 @@ function buildGcLoginUrl(lang, returnPath) {
         return path;
     }
     const params = [
-        `returnPath=${encodeURI(returnPath)}`,
+        `returnPath=${encodeURIComponent(returnPath)}`,
     ];
     return buildUrl(path, params);
 }
