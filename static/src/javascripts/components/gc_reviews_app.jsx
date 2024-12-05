@@ -80,7 +80,8 @@ class GcReviewsApp extends React.Component {
     }
 
     redirToLogin() {
-        const url = buildGcLoginUrl(this.props.lang);
+        const returnPath = window.location.pathname + window.location.search;
+        const url = buildGcLoginUrl(this.props.lang, returnPath);
         window.location.href = url;
     }
 

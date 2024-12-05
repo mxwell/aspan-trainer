@@ -162,8 +162,15 @@ function buildGcLandingUrl(lang) {
     return `/gc_landing_${fixedLang}.html`;
 }
 
-function buildGcLoginUrl(lang) {
-    return `/login_${lang}.html`;
+function buildGcLoginUrl(lang, returnPath) {
+    const path = `/login_${lang}.html`;
+    if (returnPath == null || !returnPath.startsWith("/")) {
+        return path;
+    }
+    const params = [
+        `returnPath=${encodeURI(returnPath)}`,
+    ];
+    return buildUrl(path, params);
 }
 
 function buildGcSearchUrl(word, src, dst, lang) {
