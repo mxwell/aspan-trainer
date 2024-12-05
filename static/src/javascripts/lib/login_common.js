@@ -21,7 +21,11 @@ function displayError(message, lang) {
 
 function proceed(lang, returnPath) {
     console.log(`proceed: returnPath ${returnPath}`);
-    window.location.href = returnPath || buildGcCreateUrl(lang);
+    if (returnPath) {
+        window.location.href = decodeURIComponent(returnPath);
+    } else {
+        window.location.href = buildGcCreateUrl(lang);
+    }
 }
 
 function storeTokenAndProceed(gcToken, lang, returnPath) {
