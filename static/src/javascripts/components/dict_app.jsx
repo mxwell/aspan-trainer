@@ -141,10 +141,20 @@ class DictApp extends React.Component {
 
     changeInputText(lastEntered, suggest) {
         const word = trimAndLowercase(lastEntered);
+
         if (word.length > 0) {
             this.lookup(word, suggest);
+            this.setState({ word, lastEntered });
+        } else {
+            const suggestions = [];
+            const currentFocus = DEFAULT_SUGGESTION_POS;
+            this.setState({
+                word,
+                lastEntered,
+                suggestions,
+                currentFocus,
+            });
         }
-        this.setState({ word, lastEntered });
     }
 
     onKeyboardClick(e) {
@@ -154,15 +164,30 @@ class DictApp extends React.Component {
     }
 
     updateText(change) {
-        this.setState(
-            { lastEntered: change.newText },
-            () => {
-                const wi = this.refs.wordInput;
-                wi.selectionStart = change.newSelectionStart;
-                wi.selectionEnd = change.newSelectionStart;
-                wi.focus();
-            }
-        );
+        const lastEntered = change.newText;
+        const word = trimAndLowercase(lastEntered);
+        const handler = () => {
+            const wi = this.refs.wordInput;
+            wi.selectionStart = change.newSelectionStart;
+            wi.selectionEnd = change.newSelectionStart;
+            wi.focus();
+        };
+
+        if (word.length > 0) {
+            this.lookup(word, /* suggest */ true);
+            this.setState({ word, lastEntered }, handler)
+        } else {
+            const suggestions = [];
+            const currentFocus = DEFAULT_SUGGESTION_POS;
+            this.setState({
+                    word,
+                    lastEntered,
+                    suggestions,
+                    currentFocus
+                },
+                handler
+            );
+        }
     }
 
     onInsert(fragment) {
