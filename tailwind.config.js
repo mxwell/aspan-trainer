@@ -30,6 +30,7 @@ module.exports = {
         "./static/src/javascripts/components/dict_form_details.jsx",
         "./static/src/javascripts/components/edit_button.jsx",
         "./static/src/javascripts/components/explanation_app.jsx",
+        "./static/src/javascripts/components/gc_contrib_top.jsx",
         "./static/src/javascripts/components/gc_create_app.jsx",
         "./static/src/javascripts/components/gc_reviews_app.jsx",
         "./static/src/javascripts/components/gc_search_app.jsx",

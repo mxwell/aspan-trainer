@@ -1414,7 +1414,7 @@ function prepareGcOnlyTranslations(map) {
     );
     setEnRu(map, "titleAlltime",
         "All time",
-        "За всё время",
+        "Всё время",
     );
     setEnRu(map, "titleWeek",
         "Week",
