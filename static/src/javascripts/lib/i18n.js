@@ -1392,6 +1392,10 @@ function prepareGcOnlyTranslations(map) {
         "added a review",
         "добавил(а) ревью",
     );
+    setEnRu(map, "existingTranslationsForWord",
+        "Translations already present in the dictionary for words spelled",
+        "Уже присутствующие в словаре переводы слов с написанием",
+    );
     setEnRu(map, "titleData",
         "Data",
         "Данные",

@@ -463,6 +463,43 @@ class GcReviewsApp extends React.Component {
         }
     }
 
+    renderExistingTranslations(entry) {
+        const words = entry.tr_words;
+        if (words == null || words.length == 0) {
+            return;
+        }
+        const pos = entry.tr_pos;
+        const comments = entry.tr_comment;
+
+        let listItems = [];
+        for (let wordIndex = 0; wordIndex < words.length; ++wordIndex) {
+            let comment = (
+                wordIndex < comments.length
+                ? renderComment(comments[wordIndex], "text-gray-700 italic", 128)
+                : null
+            );
+            listItems.push(<li key={listItems.length} className="list-disc list-inside">
+                <span className="text-2xl text-indigo-800">
+                    {words[wordIndex]}
+                </span>
+                {this.renderPos(pos[wordIndex], /* excVerb */ 0)}
+                {comment}
+            </li>);
+        }
+        return (
+            <div className="mt-10 p-6 flex flex-row border-2 rounded">
+                <img className="mx-8 h-12" src="/warning.svg" />
+                <div>
+                    <h3 className="text-gray-600">
+                        {this.i18n("existingTranslationsForWord")}&nbsp;
+                        <span className="text-indigo-800">{entry.src_word}</span>
+                    </h3>
+                    <ul>{listItems}</ul>
+                </div>
+            </div>
+        );
+    }
+
     renderReviews() {
         if (this.state.error) {
             return (
@@ -537,6 +574,7 @@ class GcReviewsApp extends React.Component {
                         </div>
                         {this.renderReviewControls(entryIndex, entry)}
                     </div>
+                    {this.renderExistingTranslations(entry)}
                 </li>
             );
         }
