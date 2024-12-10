@@ -475,7 +475,7 @@ class GcReviewsApp extends React.Component {
         for (let wordIndex = 0; wordIndex < words.length; ++wordIndex) {
             let comment = (
                 wordIndex < comments.length
-                ? renderComment(comments[wordIndex], "text-gray-700 italic", 128)
+                ? renderComment(comments[wordIndex], "px-2 text-gray-700 italic", 128)
                 : null
             );
             listItems.push(<li key={listItems.length} className="list-disc list-inside">
