@@ -11,6 +11,7 @@ import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { DictFormDetails } from "./dict_form_details";
 import { generatePreviewDeclensionForms } from "../lib/declension";
 import { checkForEmulation } from "../lib/layout";
+import { copyToClipboard } from "../lib/clipboard";
 
 const DEFAULT_TITLE = "Kazakh Verb";
 const DEFAULT_SUGGESTIONS = [];
@@ -538,12 +539,20 @@ class DictApp extends React.Component {
                         className="border-t-2 text-base"
                         key={rows.length}>
                         <td className="bg-gray-200 pl-4 py-2 align-top text-4xl lg:text-base">
-                            {gloss}
+                                <span
+                                    className="cursor-pointer"
+                                    onClick={(e) => { copyToClipboard(gloss); }}>
+                                    {gloss}
+                                </span>
                         </td>
                         <td className="border-l-2 bg-gray-100 pl-4 py-2 text-4xl lg:text-base">
                             <div className="flex flex-row">
                                 <div className="align-top">
-                                    {base}
+                                    <span
+                                        className="cursor-pointer"
+                                        onClick={(e) => { copyToClipboard(base); }}>
+                                        {base}
+                                    </span>
                                 </div>
                                 {this.renderFormTransition(word, detectedForm)}
                             </div>
