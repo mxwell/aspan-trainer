@@ -6,13 +6,13 @@ include partials/gc_page_en
             a(class="px-1 text-green-600 underline", href="https://kazakhverb.khairulin.com/gc_landing_en.html") https://kazakhverb.khairulin.com/gc_landing_en.html.
 
         h2(class="my-2 text-3xl text-gray-600") Motivation
-        p During the development of the Kazakh Verb website, challenges arose due to the inaccessibility of open lexical data. This project aims to address this issue in order to facilitate the development of Kazakh language services and applications in the future.
+        p Easily available dictionary data will decrease barriers to build new services and applications for the Kazakh language.
 
         h2(class="my-2 text-3xl text-gray-600") Goal
-        p For this, a dataset is needed that includes many Kazakh words with annotations and translations into other languages. The dataset should be publicly accessible, free to use, and have a mechanism for adding and correcting data. It should be easy to use for both regular users and researchers and developers.
+        p The project goal is to create a dataset, covering all words of the Kazakh language with Russian and English translations. The words can have additional annotations, e.g. part of speech tagging. The dataset dataset should be publicly accessible, free to use, and have a mechanism for adding and correcting data.
 
         h2(class="my-2 text-3xl text-gray-600") Implementation
-        p The Kazakh Verb Dictionary service allows users to register and participate in adding and correcting data. The data includes Kazakh words and their translations into Russian and English.
+        p The Kazakh Verb Dictionary service allows users to register and participate in adding and correcting data.
 
         h3(class="my-2 text-2xl text-gray-700") Data model
         h4(class="my-2 italic text-xl") Word
@@ -28,13 +28,15 @@ include partials/gc_page_en
         p An entity that stores data for user registration and login. The words and translations retain the reference to the user record as the author.
 
         h3(class="my-2 text-2xl text-gray-700") Review
-        p To maintain the quality of the annotations, each added translation must undergo review, meaning verification by other users. A translation is considered verified if at least a specified number of other users have confirmed its correctness. Additionally, a translation may be rejected. The process for handling rejected translations still needs to be worked out in more detail.
+        p To maintain the quality of the annotations, each added translation must undergo review, meaning verification by other users. A translation is considered verified if at least the specified number of other users have confirmed its correctness. At the moment, confirmations from at least 2 people are required. Additionally, a translation may be rejected. The process for handling rejected translations still needs to be worked out in more detail.
+
+        img(src="../images/review_stages_en.png")
 
         h4(class="my-2 italic text-xl") Review queue
         p The added translations go into a general review queue that is displayed on the service's website. Users can select translations and either approve or reject them. To limit the growth of the queue, once it reaches its maximum size, adding new translations is prohibited until the review queue decreases.
 
         h3(class="my-2 text-2xl text-gray-700") Gamification
-        p For participating in the addition and review of translations, users earn points. The total amount of points is displayed in the user's profile. Additionally, the website features a leaderboard showing the total points for all time and for a recent period of several days.
+        p Based on users' participation in the addition and review of translations, their contribution is calculated. The website features a leaderboard showing users with most contributions for all time and for a week.
 
         h3(class="my-2 text-2xl text-gray-700") Export
         p Approximately once a month, a snapshot of the database with verified translations is published in JSON Lines format. The export data license is CC-BY-4.0. When using the data, a reference to the Kazakh Verb Dictionary project is recommended but not required.
