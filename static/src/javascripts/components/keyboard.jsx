@@ -22,6 +22,17 @@ const TITLE_SHIFT = "shift";
 const TITLE_LATIN = "latin";
 const TITLE_CYRILLIC = "cyrillic";
 
+const MOBILE_DIMS_BASE = "h-16 w-16";
+const MOBILE_DIMS_BS = "h-16 w-32";
+const MOBILE_DIMS_SPACE = "h-16 w-7/12";
+const MOBILE_TITLE_BS = "⟵";
+
+const SPEC_KEY_BS = "bs";
+const SPEC_KEY_CAPS = "caps";
+const SPEC_KEY_SHIFT = "shift";
+const SPEC_KEY_LATIN = "lat";
+const SPEC_KEY_CYRILLIC = "cyr";
+
 function makeEmptyButton(dims) {
     return new ButtonInfo(null, null, null, null, null, dims);
 }
@@ -35,13 +46,18 @@ function makeSymbolButton(symbol) {
     return makeCustomSymbolButton(symbol, upper, DIMS_BASE);
 }
 
-function makeSpecialButton(special, dims) {
-    return new ButtonInfo(special, special, null, null, special, dims);
+function makeMobileSymbolButton(symbol) {
+    const upper = symbol.toUpperCase();
+    return makeCustomSymbolButton(symbol, upper, MOBILE_DIMS_BASE);
+}
+
+function makeSpecialButton(label, dims, special) {
+    return new ButtonInfo(label, label, null, null, special, dims);
 }
 
 const CYR_BUTTON_ROWS = [
     [
-        makeSpecialButton(TITLE_LATIN, DIMS_WIDE),
+        makeSpecialButton(TITLE_LATIN, DIMS_WIDE, SPEC_KEY_LATIN),
         makeSymbolButton("!"),
         makeSymbolButton("ә"),
         makeSymbolButton("і"),
@@ -54,7 +70,7 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("қ"),
         makeSymbolButton("ө"),
         makeSymbolButton("һ"),
-        makeSpecialButton(TITLE_BS, DIMS_BS),
+        makeSpecialButton(TITLE_BS, DIMS_BS, SPEC_KEY_BS),
     ],
     [
         makeEmptyButton(DIMS_MID),
@@ -73,7 +89,7 @@ const CYR_BUTTON_ROWS = [
         makeEmptyButton(DIMS_MID),
     ],
     [
-        makeSpecialButton(TITLE_CAPS, DIMS_WIDE),
+        makeSpecialButton(TITLE_CAPS, DIMS_WIDE, SPEC_KEY_CAPS),
         makeSymbolButton("ф"),
         makeSymbolButton("ы"),
         makeSymbolButton("в"),
@@ -88,7 +104,7 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("ё"),
     ],
     [
-        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
         makeSymbolButton("я"),
         makeSymbolButton("ч"),
         makeSymbolButton("с"),
@@ -99,16 +115,74 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("б"),
         makeSymbolButton("ю"),
         makeSymbolButton("-"),
-        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
     ],
     [
         makeCustomSymbolButton(" ", " ", DIMS_SPACE),
     ],
 ];
 
+const MOBILE_CYR_BUTTON_ROWS = [
+    [
+        makeMobileSymbolButton("ә"),
+        makeMobileSymbolButton("і"),
+        makeMobileSymbolButton("ң"),
+        makeMobileSymbolButton("ғ"),
+        makeMobileSymbolButton("ү"),
+        makeMobileSymbolButton("ұ"),
+        makeMobileSymbolButton("қ"),
+        makeMobileSymbolButton("ө"),
+        makeMobileSymbolButton("һ"),
+        makeSpecialButton(MOBILE_TITLE_BS, MOBILE_DIMS_BS, SPEC_KEY_BS),
+    ],
+    [
+        makeMobileSymbolButton("й"),
+        makeMobileSymbolButton("ц"),
+        makeMobileSymbolButton("у"),
+        makeMobileSymbolButton("к"),
+        makeMobileSymbolButton("е"),
+        makeMobileSymbolButton("н"),
+        makeMobileSymbolButton("г"),
+        makeMobileSymbolButton("ш"),
+        makeMobileSymbolButton("щ"),
+        makeMobileSymbolButton("з"),
+        makeMobileSymbolButton("х"),
+        makeMobileSymbolButton("ъ"),
+    ],
+    [
+        makeMobileSymbolButton("ф"),
+        makeMobileSymbolButton("ы"),
+        makeMobileSymbolButton("в"),
+        makeMobileSymbolButton("а"),
+        makeMobileSymbolButton("п"),
+        makeMobileSymbolButton("р"),
+        makeMobileSymbolButton("о"),
+        makeMobileSymbolButton("л"),
+        makeMobileSymbolButton("д"),
+        makeMobileSymbolButton("ж"),
+        makeMobileSymbolButton("э"),
+        makeMobileSymbolButton("ё"),
+    ],
+    [
+        makeMobileSymbolButton("я"),
+        makeMobileSymbolButton("ч"),
+        makeMobileSymbolButton("с"),
+        makeMobileSymbolButton("м"),
+        makeMobileSymbolButton("и"),
+        makeMobileSymbolButton("т"),
+        makeMobileSymbolButton("ь"),
+        makeMobileSymbolButton("б"),
+        makeMobileSymbolButton("ю"),
+        makeMobileSymbolButton("-"),
+    ],
+    [
+        makeCustomSymbolButton(" ", " ", MOBILE_DIMS_SPACE),
+    ],
+];
+
 const LAT_BUTTON_ROWS = [
     [
-        makeSpecialButton(TITLE_CYRILLIC, DIMS_WIDE),
+        makeSpecialButton(TITLE_CYRILLIC, DIMS_WIDE, SPEC_KEY_CYRILLIC),
         makeSymbolButton("!"),
         makeSymbolButton("ä"),
         makeSymbolButton("ı"),
@@ -120,7 +194,7 @@ const LAT_BUTTON_ROWS = [
         makeSymbolButton("ū"),
         makeSymbolButton("ö"),
         makeSymbolButton("-"),
-        makeSpecialButton(TITLE_BS, DIMS_BS),
+        makeSpecialButton(TITLE_BS, DIMS_BS, SPEC_KEY_BS),
     ],
     [
         makeEmptyButton(DIMS_MID),
@@ -138,7 +212,7 @@ const LAT_BUTTON_ROWS = [
         makeEmptyButton(DIMS_MID),
     ],
     [
-        makeSpecialButton(TITLE_CAPS, DIMS_WIDE),
+        makeSpecialButton(TITLE_CAPS, DIMS_WIDE, SPEC_KEY_CAPS),
         makeSymbolButton("a"),
         makeSymbolButton("s"),
         makeSymbolButton("d"),
@@ -152,7 +226,7 @@ const LAT_BUTTON_ROWS = [
         makeEmptyButton(DIMS_MID),
     ],
     [
-        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
         makeSymbolButton("z"),
         makeSymbolButton("x"),
         makeSymbolButton("c"),
@@ -161,7 +235,7 @@ const LAT_BUTTON_ROWS = [
         makeSymbolButton("n"),
         makeSymbolButton("m"),
         makeEmptyButton(DIMS_BASE),
-        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE),
+        makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
     ],
     [
         makeCustomSymbolButton(" ", " ", DIMS_SPACE),
@@ -221,6 +295,10 @@ function backspaceTextInput(textInput) {
 
 }
 
+function isMobile() {
+    return window.matchMedia('screen and (max-width: 1024px)').matches;
+}
+
 /**
  * props:
  * - insertCallback - function(string), which might trigger a `insertIntoTextInput(...)` call
@@ -231,7 +309,12 @@ class Keyboard extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { caps: false, shift: false, lat: (this.props.lat == true) };
+        this.state = {
+            mobile: isMobile(),
+            caps: false,
+            shift: false,
+            lat: (this.props.lat == true),
+        };
     }
 
     onBtnClick(e, buttonInfo) {
@@ -242,16 +325,16 @@ class Keyboard extends React.Component {
         if (ch != null) {
             this.props.insertCallback(ch);
             this.setState({ shift: false });
-        } else if (buttonInfo.special == TITLE_BS) {
+        } else if (buttonInfo.special == SPEC_KEY_BS) {
             this.props.backspaceCallback();
             this.setState({ shift: false });
-        } else if (buttonInfo.special == TITLE_CAPS) {
+        } else if (buttonInfo.special == SPEC_KEY_CAPS) {
             this.setState({ caps: !this.state.caps, shift: false });
-        } else if (buttonInfo.special == TITLE_SHIFT) {
+        } else if (buttonInfo.special == SPEC_KEY_SHIFT) {
             this.setState({ caps: false, shift: !this.state.shift });
-        } else if (buttonInfo.special == TITLE_LATIN) {
+        } else if (buttonInfo.special == SPEC_KEY_LATIN) {
             this.setState({ lat: true });
-        } else if (buttonInfo.special == TITLE_CYRILLIC) {
+        } else if (buttonInfo.special == SPEC_KEY_CYRILLIC) {
             this.setState({ lat: false });
         } else {
             console.log(`unsupported button`);
@@ -259,7 +342,7 @@ class Keyboard extends React.Component {
         }
     }
 
-    renderRows(buttonRows) {
+    renderRows(buttonRows, textClass) {
         const resultRows = [];
         const shift = this.state.caps || this.state.shift;
         for (const buttonRow of buttonRows) {
@@ -271,7 +354,7 @@ class Keyboard extends React.Component {
                     ? "bg-white text-gray-700 cursor-pointer select-none"
                     : "bg-gray-100 text-gray-500 cursor-default"
                 );
-                const btnClass = `${buttonInfo.dims} ${activeClass} rounded text-center m-1 py-1 text-xl`
+                const btnClass = `${buttonInfo.dims} ${activeClass} ${textClass} rounded text-center m-1`
                 buttons.push(
                     <div
                         className={btnClass}
@@ -291,10 +374,19 @@ class Keyboard extends React.Component {
     }
 
     render() {
-        const buttonRows = (this.state.lat == true) ? LAT_BUTTON_ROWS : CYR_BUTTON_ROWS;
+        let buttonRows = null;
+        let textClass = "text-xl py-1";
+        if (this.state.mobile) {
+            buttonRows = MOBILE_CYR_BUTTON_ROWS;
+            textClass = "text-3xl py-2";
+        } else if (this.state.lat == true) {
+            buttonRows = LAT_BUTTON_ROWS;
+        } else {
+            buttonRows = CYR_BUTTON_ROWS;
+        }
         return (
             <div className="my-2 flex flex-col w-full">
-                {this.renderRows(buttonRows)}
+                {this.renderRows(buttonRows, textClass)}
             </div>
         );
     }
