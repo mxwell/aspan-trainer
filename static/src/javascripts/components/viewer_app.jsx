@@ -1091,7 +1091,21 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0) {
             this.setState({ sentenceType });
         } else {
-            this.reloadToState(this.state.verb, sentenceType, this.state.forceExceptional, this.state.abKey, this.state.auxVerb, this.state.auxNeg);
+            const lat = abIsLatin(this.state.abKey);
+            const tenses = generateVerbForms(
+                this.state.verb,
+                this.state.auxVerb,
+                this.state.auxNeg,
+                this.state.forceExceptional,
+                sentenceType,
+                lat
+            );
+            const tensesSentenceType = sentenceType;
+            this.setState({
+                sentenceType,
+                tenses,
+                tensesSentenceType,
+            })
         }
     }
 
