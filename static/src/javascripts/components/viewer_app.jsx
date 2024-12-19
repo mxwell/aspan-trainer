@@ -696,6 +696,36 @@ class ViewerApp extends React.Component {
         window.location.href = url;
     }
 
+    transitionWithoutReload(auxVerb, auxNeg, sentenceType) {
+        const lat = abIsLatin(this.state.abKey);
+        const tenses = generateVerbForms(
+            this.state.verb,
+            auxVerb,
+            auxNeg,
+            this.state.forceExceptional,
+            sentenceType,
+            lat
+        );
+        const tensesSentenceType = sentenceType;
+        this.setState({
+            auxVerb,
+            auxNeg,
+            sentenceType,
+            tenses,
+            tensesSentenceType,
+        })
+        const newUrl = buildViewerUrl2(
+            this.state.verb,
+            sentenceType,
+            this.state.forceExceptional,
+            this.state.abKey,
+            this.props.lang,
+            auxVerb,
+            auxNeg
+        );
+        window.history.pushState(null, "", newUrl);
+    }
+
     onSubmit(e) {
         e.preventDefault();
         const forceExceptional = this.state.forceExceptional && (this.state.verb == this.state.lastEntered);
@@ -944,8 +974,7 @@ class ViewerApp extends React.Component {
 
     onAuxNegToggle(e) {
         const auxNeg = !this.state.auxNeg;
-        console.log(`Aux negation changed to ${auxNeg}.`)
-        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.abKey, this.state.auxVerb, auxNeg);
+        this.transitionWithoutReload(this.state.auxVerb, auxNeg, this.state.sentenceType);
     }
 
     renderAuxVerbSelector(tenseNameKey) {
@@ -965,8 +994,7 @@ class ViewerApp extends React.Component {
 
     onAuxVerbSelect(e) {
         const auxVerb = e.target.value;
-        console.log(`Aux verb changed to ${auxVerb}.`)
-        this.reloadToState(this.state.verb, this.state.sentenceType, this.state.forceExceptional, this.state.abKey, auxVerb, this.state.auxNeg);
+        this.transitionWithoutReload(auxVerb, this.state.auxNeg, this.state.sentenceType);
     }
 
     renderSwitcher() {
@@ -1091,21 +1119,11 @@ class ViewerApp extends React.Component {
         if (this.state.tenses.length == 0) {
             this.setState({ sentenceType });
         } else {
-            const lat = abIsLatin(this.state.abKey);
-            const tenses = generateVerbForms(
-                this.state.verb,
+            this.transitionWithoutReload(
                 this.state.auxVerb,
                 this.state.auxNeg,
-                this.state.forceExceptional,
                 sentenceType,
-                lat
             );
-            const tensesSentenceType = sentenceType;
-            this.setState({
-                sentenceType,
-                tenses,
-                tensesSentenceType,
-            })
         }
     }
 
