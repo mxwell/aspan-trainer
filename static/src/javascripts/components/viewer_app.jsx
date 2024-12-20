@@ -1136,6 +1136,7 @@ class ViewerApp extends React.Component {
                 <Keyboard
                     insertCallback={this.onInsert}
                     backspaceCallback={this.onBackspace}
+                    enterCallback={this.onSubmit}
                     lat={lat} />
             </div>
         );

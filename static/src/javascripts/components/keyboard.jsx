@@ -19,17 +19,20 @@ const DIMS_SPACE = "h-10 w-64";
 const TITLE_BS = "backspace";
 const TITLE_CAPS = "caps";
 const TITLE_SHIFT = "shift";
+const TITLE_ENTER = "enter";
 const TITLE_LATIN = "latin";
 const TITLE_CYRILLIC = "cyrillic";
 
 const MOBILE_DIMS_BASE = "h-16 w-16";
-const MOBILE_DIMS_BS = "h-16 w-32";
+const MOBILE_DIMS_WIDE = "h-16 w-32";
 const MOBILE_DIMS_SPACE = "h-16 w-7/12";
 const MOBILE_TITLE_BS = "⟵";
+const MOBILE_TITLE_ENTER = "↵";
 
 const SPEC_KEY_BS = "bs";
 const SPEC_KEY_CAPS = "caps";
 const SPEC_KEY_SHIFT = "shift";
+const SPEC_KEY_ENTER = "enter";
 const SPEC_KEY_LATIN = "lat";
 const SPEC_KEY_CYRILLIC = "cyr";
 
@@ -102,6 +105,7 @@ const CYR_BUTTON_ROWS = [
         makeSymbolButton("ж"),
         makeSymbolButton("э"),
         makeSymbolButton("ё"),
+        makeSpecialButton(TITLE_ENTER, DIMS_WIDE, SPEC_KEY_ENTER),
     ],
     [
         makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
@@ -133,7 +137,7 @@ const MOBILE_CYR_BUTTON_ROWS = [
         makeMobileSymbolButton("қ"),
         makeMobileSymbolButton("ө"),
         makeMobileSymbolButton("һ"),
-        makeSpecialButton(MOBILE_TITLE_BS, MOBILE_DIMS_BS, SPEC_KEY_BS),
+        makeSpecialButton(MOBILE_TITLE_BS, MOBILE_DIMS_WIDE, SPEC_KEY_BS),
     ],
     [
         makeMobileSymbolButton("й"),
@@ -177,6 +181,7 @@ const MOBILE_CYR_BUTTON_ROWS = [
     ],
     [
         makeCustomSymbolButton(" ", " ", MOBILE_DIMS_SPACE),
+        makeSpecialButton(MOBILE_TITLE_ENTER, MOBILE_DIMS_WIDE, SPEC_KEY_ENTER),
     ],
 ];
 
@@ -223,7 +228,7 @@ const LAT_BUTTON_ROWS = [
         makeSymbolButton("k"),
         makeSymbolButton("l"),
         makeSymbolButton("ş"),
-        makeEmptyButton(DIMS_MID),
+        makeSpecialButton(TITLE_ENTER, DIMS_WIDE, SPEC_KEY_ENTER),
     ],
     [
         makeSpecialButton(TITLE_SHIFT, DIMS_WIDE, SPEC_KEY_SHIFT),
@@ -303,6 +308,7 @@ function isMobile() {
  * props:
  * - insertCallback - function(string), which might trigger a `insertIntoTextInput(...)` call
  * - backspaceCallback - function(), which might trigger a `backspaceTextInput(...)` call
+ * - enterCallback - function(event)
  * - lat - true = latin 2021.01.28 layout, false or undefined = cyrillic layout,
  */
 class Keyboard extends React.Component {
@@ -332,6 +338,8 @@ class Keyboard extends React.Component {
             this.setState({ caps: !this.state.caps, shift: false });
         } else if (buttonInfo.special == SPEC_KEY_SHIFT) {
             this.setState({ caps: false, shift: !this.state.shift });
+        } else if (buttonInfo.special == SPEC_KEY_ENTER) {
+            this.props.enterCallback(e);
         } else if (buttonInfo.special == SPEC_KEY_LATIN) {
             this.setState({ lat: true });
         } else if (buttonInfo.special == SPEC_KEY_CYRILLIC) {

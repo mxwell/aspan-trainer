@@ -321,7 +321,9 @@ class DictApp extends React.Component {
             <div className="mx-6 py-2 bg-gray-200">
                 <Keyboard
                     insertCallback={this.onInsert}
-                    backspaceCallback={this.onBackspace} />
+                    backspaceCallback={this.onBackspace}
+                    enterCallback={this.onSubmit}
+                />
             </div>
         );
     }

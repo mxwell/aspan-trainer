@@ -94,7 +94,9 @@ class KeyboardInput extends React.Component {
                 </div>
                 <Keyboard
                     insertCallback={this.onInsert}
-                    backspaceCallback={this.onBackspace} />
+                    backspaceCallback={this.onBackspace}
+                    enterCallback={this.props.submitCallback}
+                />
             </form>
         );
     }
