@@ -1,4 +1,5 @@
 import { NounBuilder, VerbBuilder } from "./aspan";
+import { unpackDetectResponseWithPos } from "./detector";
 import { PersonNumber } from "./grammar_utils";
 import { createFormByParams } from "./verb_forms";
 
@@ -42,6 +43,19 @@ class AnalyzedPart {
         this.token = token;
         this.detectedForms = detectedForms;
     }
+}
+
+/**
+ * @returns array of AnalyzedPart
+ */
+function parseAnalyzeResponse(responseJson) {
+    const parts = responseJson.parts;
+    let result = [];
+    for (const part of parts) {
+        let detectedForms = unpackDetectResponseWithPos(part.forms);
+        result.push(new AnalyzedPart(part.text, detectedForms));
+    }
+    return result;
 }
 
 function reproduceNoun(dw) {
@@ -89,6 +103,7 @@ function reproduceVerb(dw) {
 export {
     tokenize,
     AnalyzedPart,
+    parseAnalyzeResponse,
     reproduceNoun,
     reproduceVerb,
 };

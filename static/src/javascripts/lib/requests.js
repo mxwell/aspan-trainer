@@ -81,6 +81,12 @@ function makeDetectRequest(lastEntered, suggest, onlyVerbs, successCallback, err
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function makeAnalyzeRequest(lastEntered, successCallback, errorCallback, context) {
+    const query = encodeQueryData({q: lastEntered});
+    const url = `/analyze?${query}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function loadTopList(successCallback, errorCallback) {
     const url = `/present_top100_ru_en.colonsv`;
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", false);
@@ -93,5 +99,6 @@ export {
     encodeQueryData,
     makeSuggestRequest,
     makeDetectRequest,
+    makeAnalyzeRequest,
     loadTopList,
 };

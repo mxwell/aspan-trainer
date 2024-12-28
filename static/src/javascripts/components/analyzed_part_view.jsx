@@ -82,7 +82,7 @@ class AnalyzedPartView extends React.Component {
             return highlightPhrasal(phrasal, -1);
         } else {
             return [
-                <span>{detectedForm.base}</span>
+                <span key="only">{detectedForm.base}</span>
             ];
         }
     }
@@ -187,7 +187,7 @@ class AnalyzedPartView extends React.Component {
         const detectedForms = analyzedPart.detectedForms;
         const total = detectedForms.length;
         if (index >= total) {
-            return this.renderWithoutAnalysis(analyzedPart.token.content);
+            return this.renderWithoutAnalysis(analyzedPart.token);
         }
         return this.renderWithAnalysis(detectedForms[index], index, total);
     }

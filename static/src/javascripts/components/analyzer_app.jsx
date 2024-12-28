@@ -1,8 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { makeDetectRequest } from "../lib/requests";
-import { AnalyzedPart, tokenize } from "../lib/analyzer";
-import { unpackDetectResponseWithPos } from "../lib/detector";
+import { makeAnalyzeRequest } from "../lib/requests";
+import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
 import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
@@ -33,8 +32,8 @@ class AnalyzerApp extends React.Component {
     constructor(props) {
         super(props);
 
-        this.handleDetectResponse = this.handleDetectResponse.bind(this);
-        this.handleDetectError = this.handleDetectError.bind(this);
+        this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
+        this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDemo = this.onDemo.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -42,19 +41,18 @@ class AnalyzerApp extends React.Component {
         const urlState = this.readUrlState();
         if (urlState != null) {
             this.state = urlState;
-            this.analyze(urlState.text);
+            this.startAnalysis(urlState.text);
         } else {
             this.state = this.defaultState();
         }
     }
 
-    makeState(text) {
+    makeState(text, analyzing) {
         return {
             text: text,
             lastEntered: text,
-            analyzing: false,
+            analyzing: analyzing,
             error: false,
-            tokenCount: 0,
             breakdown: [],
         };
     }
@@ -62,6 +60,7 @@ class AnalyzerApp extends React.Component {
     defaultState() {
         return this.makeState(
             /* text */ "",
+            /* analyzing */ false,
         );
     }
 
@@ -71,108 +70,52 @@ class AnalyzerApp extends React.Component {
         if (text == null || text.length == 0) {
             return null;
         }
-        return this.makeState(text);
+        return this.makeState(text, /* analyzing */ true);
     }
 
     i18n(key) {
         return i18n(key, this.props.lang);
     }
 
-    async handleDetectResponse(context, responseJsonPromise) {
+    async handleAnalyzeResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
-        const tokens = context.tokens;
-        const pos = context.pos;
-        const token = tokens[pos];
-        let detectedForms = [];
-        if (response.words) {
-            const candidates = unpackDetectResponseWithPos(response.words);
-            /**
-             * Some tenses are problematic, hence the filtering.
-             */
-            for (const candidate of candidates) {
+        let analyzedParts = parseAnalyzeResponse(response);
+        let filteredParts = [];
+        for (const part of analyzedParts) {
+            let filteredForms = [];
+            for (const candidate of part.detectedForms) {
                 if (candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
-                    detectedForms.push(candidate);
+                    filteredForms.push(candidate);
                 }
             }
+            filteredParts.push(new AnalyzedPart(part.token, filteredForms));
         }
-        this.pushAnalyzedToken(pos, token, detectedForms);
-        this.processToken(tokens, pos + 1);
+        this.setState({ analyzing: false, error: false, breakdown: filteredParts });
     }
 
-    async handleDetectError(context, responseTextPromise) {
+    async handleAnalyzeError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`Got error from detect: ${responseText}, pos was ${context.pos}.`);
+        console.log(`Got error from /analyze: ${responseText}, text was ${context.text}.`);
         this.setState({ analyzing: false, error: true });
     }
 
-    pushAnalyzedToken(pos, token, detectedForms) {
-        let part = new AnalyzedPart(token, detectedForms);
-        let breakdown = this.state.breakdown;
-        if (pos == 0 || breakdown == null) {
-            breakdown = [part];
-        } else {
-            breakdown.push(part);
+    startAnalysis(text) {
+        if (text.length == 0) {
+            return;
         }
-        this.setState({ breakdown });
-    }
-
-    detect(tokens, pos, token) {
-        makeDetectRequest(
-            token,
-            /* suggest */ false,
-            /* onlyVerbs */ false,
-            this.handleDetectResponse,
-            this.handleDetectError,
+        makeAnalyzeRequest(
+            text,
+            this.handleAnalyzeResponse,
+            this.handleAnalyzeError,
             {
-                tokens: tokens,
-                pos: pos,
+                text: text,
             }
         );
-    }
-
-    processToken(tokens, start) {
-        if (start >= tokens.length) {
-            console.log("all tokens are processed");
-            this.setState({ analyzing: false });
-            return;
-        }
-        for (let pos = start; pos < tokens.length; ++pos) {
-            console.log(`processing token #${pos}`);
-            const token = tokens[pos];
-            if (token.isWord) {
-                this.detect(tokens, pos, token.content.toLowerCase());
-                return;
-            } else {
-                this.pushAnalyzedToken(pos, token, []);
-            }
-        }
-        console.log("all tokens are processed");
-        this.setState({ analyzing: false });
-    }
-
-    startDetection(lastEntered) {
-        const tokens = tokenize(lastEntered);
-        if (tokens.length == 0) {
-            console.log("got no tokens");
-            this.setState({ analyzing: false, error: true });
-            return;
-        }
-        this.setState({ tokenCount: tokens.length });
-        this.processToken(tokens, 0);
     }
 
     onChange(event) {
         let lastEntered = event.target.value;
         this.setState({ lastEntered });
-    }
-
-    analyze(text) {
-        if (this.state.analyzing) {
-            console.log("already analyzing");
-            return;
-        }
-        this.setState({ analyzing: true });
-        this.startDetection(text);
     }
 
     onDemo(event) {
@@ -185,10 +128,11 @@ class AnalyzerApp extends React.Component {
 
         const text = pickDemoSentence(this.state.lastEntered);
         const lastEntered = text;
-        this.setState({ text, lastEntered });
+        const analyzing = true;
+        this.setState({ text, lastEntered, analyzing });
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
-        this.analyze(text);
+        this.startAnalysis(text);
     }
 
     onSubmit(event) {
@@ -198,9 +142,16 @@ class AnalyzerApp extends React.Component {
             console.log("empty input");
             return;
         }
+        if (this.state.analyzing) {
+            console.log("already analyzing");
+            return;
+        }
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
-        this.analyze(lastEntered);
+
+        const analyzing = true;
+        this.setState({ analyzing });
+        this.startAnalysis(lastEntered);
     }
 
     renderSubmitButton() {
