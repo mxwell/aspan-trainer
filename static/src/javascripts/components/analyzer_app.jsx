@@ -232,7 +232,7 @@ class AnalyzerApp extends React.Component {
         } else if (this.state.analyzing) {
             return (
                 <p className="text-center text-2xl text-gray-600">
-                    {this.i18n("analyzing")} {this.state.breakdown.length}&nbsp;/&nbsp;{this.state.tokenCount}
+                    {this.i18n("analyzing")}
                 </p>
             );
         } else {
