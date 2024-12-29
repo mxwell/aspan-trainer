@@ -88,7 +88,20 @@ class AnalyzerApp extends React.Component {
                     filteredForms.push(candidate);
                 }
             }
-            filteredParts.push(new AnalyzedPart(part.token, filteredForms));
+            if (filteredForms.length > 0) {
+                filteredParts.push(new AnalyzedPart(part.token, filteredForms));
+            } else {
+                /*
+                 * Split unrecognized content into lines and insert parts with "\n" in-between,
+                 * so that we can split the breakdown into flex-rows during rendering.
+                 */
+                const lines = part.token.split("\n");
+                filteredParts.push(new AnalyzedPart(lines[0], []));
+                for (let i = 1; i < lines.length; ++i) {
+                    filteredParts.push(new AnalyzedPart("\n", []));
+                    filteredParts.push(new AnalyzedPart(lines[i], []));
+                }
+            }
         }
         this.setState({ analyzing: false, error: false, breakdown: filteredParts });
     }
@@ -241,19 +254,37 @@ class AnalyzerApp extends React.Component {
     }
 
     renderBreakdown() {
-        const htmlParts = [];
+        let rows = [];
+        let row = [];
+
+        const flushRow = function() {
+            if (row.length > 0) {
+                rows.push(
+                    <div key={rows.length} className="flex flex-row flex-wrap">
+                        {row}
+                    </div>
+                );
+                row = [];
+            }
+        }
+
         for (const part of this.state.breakdown) {
-            htmlParts.push(
+            if (part.detectedForms.length == 0 && part.token == "\n") {
+                flushRow();
+                continue;
+            }
+            row.push(
                 <AnalyzedPartView
-                    key={htmlParts.length}
+                    key={row.length}
                     analyzedPart={part}
                     lang={this.props.lang}
                 />
             );
         }
+        flushRow();
         return (
-            <div className="m-4 flex flex-row flex-wrap">
-                {htmlParts}
+            <div className="m-4 flex flex-col">
+                {rows}
             </div>
         );
     }
