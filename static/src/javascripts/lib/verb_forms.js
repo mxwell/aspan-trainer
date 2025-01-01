@@ -267,6 +267,7 @@ const CASE_KEYS = [
     "conditionalMood",
     "imperativeMood",
     "optativeMood",
+    "optMoodPresTrans",
 ];
 
 function createFormById(verbBuider, person, number, sentenceType, id) {
@@ -292,7 +293,9 @@ function createFormById(verbBuider, person, number, sentenceType, id) {
         case 9:
             return verbBuider.imperativeMood(person, number, sentenceType);
         case 10:
-            return verbBuider.wantClause(person, number, sentenceType);
+            return verbBuider.optativeMoodNoAux(person, number);
+        case 11:
+            return verbBuider.wantClause(person, number, sentenceType, "PresentTransitive");
         default:
             return null;
     }

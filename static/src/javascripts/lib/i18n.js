@@ -646,6 +646,7 @@ function prepareAnalyzerOnlyTranslations(map) {
     setEnRu(map, "analyzerTense_conditionalMood", "conditional mood", "условное наклонение");
     setEnRu(map, "analyzerTense_imperativeMood", "imperative mood", "повелительное наклонение");
     setEnRu(map, "analyzerTense_optativeMood", "optative mood", "желательное наклонение");
+    setEnRu(map, "analyzerTense_optMoodPresTrans", "optative mood in present indefinite", "желательное наклонение в переходном");
     setEnRu(map, "analyzerTense_pastParticiple", "past participle", "причастие прошедшего времени");
     setEnRu(map, "analyzerTense_presentParticiple", "present participle", "причастие настоящего времени")
     setEnRu(map, "analyzerTense_futureParticiple", "future participle", "причастие будущего времени");
