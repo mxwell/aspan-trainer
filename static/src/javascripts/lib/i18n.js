@@ -604,27 +604,27 @@ function prepareAnalyzerOnlyTranslations(map) {
         "postposition",
         "послелог",
     );
-    setEnRu(map, "analyzerSeptik_1",
+    setEnRu(map, "analyzerSeptik_Ilik",
         "genitive case",
         "родительный падеж",
     );
-    setEnRu(map, "analyzerSeptik_2",
+    setEnRu(map, "analyzerSeptik_Barys",
         "dative case",
         "дательный падеж",
     );
-    setEnRu(map, "analyzerSeptik_3",
+    setEnRu(map, "analyzerSeptik_Tabys",
         "accusative case",
         "винительный падеж",
     );
-    setEnRu(map, "analyzerSeptik_4",
+    setEnRu(map, "analyzerSeptik_Jatys",
         "local case",
         "местный падеж",
     );
-    setEnRu(map, "analyzerSeptik_5",
+    setEnRu(map, "analyzerSeptik_Shygys",
         "original case",
         "исходный падеж",
     );
-    setEnRu(map, "analyzerSeptik_6",
+    setEnRu(map, "analyzerSeptik_Komektes",
         "instrumental case",
         "творительный падеж",
     );
@@ -658,21 +658,37 @@ function prepareAnalyzerOnlyTranslations(map) {
         "negation",
         "отрицание",
     );
-    setEnRu(map, "analyzerPoss_First",
+    setEnRu(map, "analyzerPoss_First_Singular",
         "1p possessive",
         "притяжательное 1л",
     );
-    setEnRu(map, "analyzerPoss_Second",
+    setEnRu(map, "analyzerPoss_First_Plural",
+        "1p plural possessive",
+        "притяжательное 1л множ.",
+    );
+    setEnRu(map, "analyzerPoss_Second_Singular",
         "2p possessive",
         "притяжательное 2л",
     );
-    setEnRu(map, "analyzerPoss_SecondPolite",
+    setEnRu(map, "analyzerPoss_Second_Plural",
+        "2p plural possessive",
+        "притяжательное 2л множ.",
+    );
+    setEnRu(map, "analyzerPoss_SecondPolite_Singular",
         "2p (polite) possessive",
         "притяжательное 2л (вежливо)",
     );
-    setEnRu(map, "analyzerPoss_Third",
+    setEnRu(map, "analyzerPoss_SecondPolite_Plural",
+        "2p plural (polite) possessive",
+        "притяжательное 2л множ. (вежливо)",
+    );
+    setEnRu(map, "analyzerPoss_Third_Singular",
         "3p possessive",
         "притяжательное 3л",
+    );
+    setEnRu(map, "analyzerPoss_Third_Plural",
+        "3p plural possessive",
+        "притяжательное 3л множ.",
     );
     setEnRu(map, "analyzer_First",
         "1p",
@@ -693,6 +709,10 @@ function prepareAnalyzerOnlyTranslations(map) {
     setEnRu(map, "analyzer_Plural",
         "plural",
         "множественное число",
+    );
+    setEnRu(map, "analyzerWordgen_dagy",
+        "related adjective",
+        "относительное прилагательное",
     );
 }
 

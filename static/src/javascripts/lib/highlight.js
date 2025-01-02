@@ -74,7 +74,7 @@ export function highlightDeclensionPhrasal(phrasal) {
         let part = parts[i];
         let pt = part.partType;
         let partClasses = "";
-        if (pt == PHRASAL_PART_TYPE.NounBase) {
+        if (pt == PHRASAL_PART_TYPE.NounBase || pt == PHRASAL_PART_TYPE.PronounBase) {
             partClasses = "text-teal-600 font-bold";
         } else if (pt == PHRASAL_PART_TYPE.PluralAffix) {
             partClasses = "text-pink-600 font-bold";

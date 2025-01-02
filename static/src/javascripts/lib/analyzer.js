@@ -1,4 +1,4 @@
-import { NounBuilder, VerbBuilder } from "./aspan";
+import { NounBuilder, PronounBuilder, VerbBuilder } from "./aspan";
 import { unpackDetectResponseWithPos } from "./detector";
 import { PersonNumber } from "./grammar_utils";
 import { createFormByParams } from "./verb_forms";
@@ -60,17 +60,28 @@ function parseAnalyzeResponse(responseJson) {
 
 function reproduceNoun(dw) {
     let nb = new NounBuilder(dw.base);
-    if (dw.grammarPerson) {
-        return nb.possessiveSeptikForm(
-            dw.grammarPerson,
-            dw.grammarNumber,
-            dw.septik
-        );
+    if (dw.possPerson != null && dw.possNumber != null) {
+        if (dw.grammarNumber == "Plural") {
+            return nb.pluralPossessiveSeptikForm(dw.possPerson, dw.possNumber, dw.septik);
+        } else {
+            return nb.possessiveSeptikForm(dw.possPerson, dw.possNumber, dw.septik);
+        }
     }
     if (dw.grammarNumber == "Plural") {
         return nb.pluralSeptikForm(dw.septik);
     }
+    if (dw.wordgen == "dagy") {
+        return nb.relatedAdj();
+    }
     return nb.septikForm(dw.septik);
+}
+
+function reproducePronoun(dw) {
+    if (dw.septik != null) {
+        let pb = new PronounBuilder(dw.grammarPerson, dw.grammarNumber);
+        return pb.septikForm(dw.septik);
+    }
+    return null;
 }
 
 function reproduceVerb(dw) {
@@ -105,5 +116,6 @@ export {
     AnalyzedPart,
     parseAnalyzeResponse,
     reproduceNoun,
+    reproducePronoun,
     reproduceVerb,
 };
