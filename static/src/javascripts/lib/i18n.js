@@ -636,6 +636,7 @@ function prepareAnalyzerOnlyTranslations(map) {
 
     setEnRu(map, "analyzerTense_infinitive", "infinitive", "инфинитив");
     setEnRu(map, "analyzerTense_presentTransitive", "present indefinite", "переходное время");
+    setEnRu(map, "analyzerTense_presentContinuous", "present continuous", "настоящее время");
     setEnRu(map, "analyzerTense_presentColloquial", "colloquial present continuous", "разговорное настоящее время (разговорное)");
     setEnRu(map, "analyzerTense_remotePast", "remote past", "давнопрошедшее очевидное время");
     setEnRu(map, "analyzerTense_pastUncertain", "past uncertain", "давнопрошедшее неочевидное время");

@@ -118,10 +118,11 @@ function unpackDetectResponse(responseWords) {
 }
 
 class DetectedForm {
-    constructor(pos, base, sentenceType, excVerb, tense, grammarPerson, grammarNumber, septik, possPerson, possNumber, wordgen, ruGlosses) {
+    constructor(pos, base, sentenceType, auxNeg, excVerb, tense, grammarPerson, grammarNumber, septik, possPerson, possNumber, wordgen, ruGlosses) {
         this.pos = pos;
         this.base = base;
         this.sentenceType = sentenceType;
+        this.auxNeg = auxNeg;
         this.excVerb = excVerb;
         this.tense = tense;
         this.grammarPerson = grammarPerson;
@@ -149,7 +150,18 @@ function unpackResponseWordWithPos(word) {
         excVerb = true;
     }
     const parts = word.transition.split(":");
-    const sentenceType = getSentenceTypeByIndex(parts[0]);
+    let sentenceType = SENTENCE_TYPES[0];
+    let auxNeg = true;
+    if (parts[0] == "0") {
+        sentenceType = SENTENCE_TYPES[0];
+    } else if (parts[0] == "1") {
+        sentenceType = SENTENCE_TYPES[1];
+    } else if (parts[0] == "2") {
+        sentenceType = SENTENCE_TYPES[2];
+    } else if (parts[0] == "4") {
+        sentenceType = SENTENCE_TYPES[1];
+        auxNeg = false;
+    }
     const tense = parts[1];
     const grammarPerson = getGrammarPerson(parts[2]);
     const grammarNumber = getGrammarNumber(parts[3]);
@@ -167,6 +179,7 @@ function unpackResponseWordWithPos(word) {
         pos,
         base,
         sentenceType,
+        auxNeg,
         excVerb,
         tense,
         grammarPerson,

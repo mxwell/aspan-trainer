@@ -178,6 +178,7 @@ class ExplanationApp extends React.Component {
             verbL,
             forceExceptional,
             sentenceType,
+            true,
             tense,
             personNumber,
         );
@@ -225,6 +226,7 @@ class ExplanationApp extends React.Component {
             verbL,
             this.state.forceExceptional,
             sentenceType,
+            true,
             tense,
             personNumber,
         );

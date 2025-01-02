@@ -84,7 +84,7 @@ class AnalyzerApp extends React.Component {
         for (const part of analyzedParts) {
             let filteredForms = [];
             for (const candidate of part.detectedForms) {
-                if (candidate.tense != "presentContinuous" && candidate.tense != "infinitive") {
+                if (candidate.tense != "infinitive") {
                     filteredForms.push(candidate);
                 }
             }

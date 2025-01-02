@@ -106,6 +106,7 @@ function reproduceVerb(dw) {
         dw.base,
         dw.excVerb,
         st,
+        dw.auxNeg,
         dw.tense,
         personNumber
     );

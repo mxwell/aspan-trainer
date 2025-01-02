@@ -270,16 +270,16 @@ const CASE_KEYS = [
     "optMoodPresTrans",
 ];
 
-function createFormById(verbBuider, person, number, sentenceType, id) {
+function createFormById(verbBuider, person, number, sentenceType, auxNeg, id) {
     switch (id) {
         case 0:
             return verbBuider.presentTransitiveForm(person, number, sentenceType);
         case 1:
-            return verbBuider.presentContinuousForm(person, number, sentenceType, new VerbBuilder("жату"));
+            return verbBuider.presentContinuousForm(person, number, sentenceType, new VerbBuilder("жату"), auxNeg);
         case 2:
             return verbBuider.pastForm(person, number, sentenceType);
         case 3:
-            return verbBuider.remotePastTense(person, number, sentenceType);
+            return verbBuider.remotePastTense(person, number, sentenceType, auxNeg);
         case 4:
             return verbBuider.pastUncertainTense(person, number, sentenceType);
         case 5:
@@ -334,7 +334,7 @@ export function createSideQuizTask(verb, forceExceptional, sentenceType) {
     let person = pickRandom(GRAMMAR_PERSONS);
     let number = pickRandom(GRAMMAR_NUMBERS);
     let correct = getRandomInt(caseIds.length);
-    let phrasal = createFormById(verbBuilder, person, number, sentenceType, caseIds[correct]);
+    let phrasal = createFormById(verbBuilder, person, number, sentenceType, true, caseIds[correct]);
     return new SideQuizTask(
         phrasal,
         caseKeys,
@@ -346,7 +346,7 @@ export function getOptionalExceptionalVerbMeanings(verb) {
     return getOptExceptVerbMeanings(verb);
 }
 
-export function createFormByParams(verb, forceExceptional, sentenceType, tense, personNumber) {
+export function createFormByParams(verb, forceExceptional, sentenceType, auxNeg, tense, personNumber) {
     const meanings = getOptionalExceptionalVerbMeanings(verb);
     if (meanings == null && forceExceptional) {
         console.log(`Unnecessary forceExceptional flag for the selected verb: ${verb}`);
@@ -371,6 +371,7 @@ export function createFormByParams(verb, forceExceptional, sentenceType, tense, 
         personNumber.person,
         personNumber.number,
         sentenceType,
+        auxNeg,
         tenseId,
     );
     return phrasal;
