@@ -989,37 +989,37 @@ function prepareDeclensionAppOnlyTranslations(map) {
         "Множественное число",
     );
 
-    setEnRuKz(map, "septik_0",
+    setEnRuKz(map, "septik_Atau",
         "nominative",
         "именительный",
         "атау",
     );
-    setEnRuKz(map, "septik_1",
+    setEnRuKz(map, "septik_Ilik",
         "genitive",
         "родительный",
         "ілік",
     );
-    setEnRuKz(map, "septik_2",
+    setEnRuKz(map, "septik_Barys",
         "dative",
         "дательный",
         "барыс",
     );
-    setEnRuKz(map, "septik_3",
+    setEnRuKz(map, "septik_Tabys",
         "accusative",
         "винительный",
         "табыс",
     );
-    setEnRuKz(map, "septik_4",
+    setEnRuKz(map, "septik_Jatys",
         "local",
         "местный",
         "жатыс",
     );
-    setEnRuKz(map, "septik_5",
+    setEnRuKz(map, "septik_Shygys",
         "original",
         "исходный",
         "шығыс",
     );
-    setEnRuKz(map, "septik_6",
+    setEnRuKz(map, "septik_Komektes",
         "instrumental",
         "творительный",
         "көмектес",

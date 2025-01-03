@@ -38,7 +38,7 @@ function extractPhrasal(phrasal, forceAlternative) {
 
 function createForms(tableNameKey, groupNameKey, icons, forceAlternative, septikFn) {
     let forms = [];
-    for (const septik in SEPTIKS) {
+    for (const septik of SEPTIKS) {
         const origPhrasal = septikFn(septik);
         const phrasal = extractPhrasal(origPhrasal, forceAlternative);
         forms.push(new DeclensionForm(septik, phrasal));
@@ -128,7 +128,7 @@ export function generatePromoDeclensionForms(subject) {
     let nounBuilder = new NounBuilder(subject);
     let forms = [];
     let itemsToShow = 4;
-    for (const septik in SEPTIKS) {
+    for (const septik of SEPTIKS) {
         const phrasal = nounBuilder.septikForm(septik);
         forms.push(new DeclensionForm(septik, phrasal));
         if (--itemsToShow <= 0) {
