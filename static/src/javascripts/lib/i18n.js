@@ -43,6 +43,7 @@ function prepareCommonTranslations(map) {
     setEnRuKz(map, "conditionalMood", "Conditional Mood", "Условное наклонение", "Шартты рай");
     setEnRuKz(map, "imperativeMood", "Imperative Mood", "Повелительное наклонение", "Бұйрық рай");
     setEnRuKz(map, "optativeMood", "Optative Mood", "Желательное наклонение", "Қалау рай");
+    setEnRuKz(map, "optMoodPresTrans", "Optative Mood in Present Indefinite", "Желательное наклонение в переходном", "Қалау рай");
     setEnRuKz(map, "canClause", "Can clause", "Глагол алу в смысле \"мочь\"", "Алу");
     setEnRuKz(map, "participle", "Participle", "Причастие", "Есімше");
     setEnRuKz(map, "gerund", "Gerund", "Деепричастие", "Көсемше");
