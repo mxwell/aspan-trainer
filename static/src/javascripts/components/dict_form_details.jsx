@@ -61,17 +61,17 @@ class DictFormDetails extends React.Component {
                     </li>
                 );
             }
-            if (detectedForm.grammarPerson) {
-                featureHtmls.push(
-                    <li className="list-disc ml-4" key={featureHtmls.length}>
-                        {this.i18n(`analyzerPoss_${detectedForm.grammarPerson}`)}
-                    </li>
-                );
-            }
-            if (septik != null && septik != 0) {
+            if (septik != null && septik != "Atau") {
                 featureHtmls.push(
                     <li className="list-disc ml-4" key={featureHtmls.length}>
                         {this.i18n(`analyzerSeptik_${septik}`)}
+                    </li>
+                );
+            }
+            if (detectedForm.possPerson != null && detectedForm.possNumber != null) {
+                featureHtmls.push(
+                    <li className="list-disc ml-4" key={featureHtmls.length}>
+                        {this.i18n(`analyzerPoss_${detectedForm.possPerson}_${detectedForm.possNumber}`)}
                     </li>
                 );
             }
