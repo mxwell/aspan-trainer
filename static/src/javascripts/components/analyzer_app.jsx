@@ -51,6 +51,7 @@ class AnalyzerApp extends React.Component {
         return {
             text: text,
             lastEntered: text,
+            enableDemo: text.length == 0 && !analyzing,
             analyzing: analyzing,
             error: false,
             breakdown: [],
@@ -128,7 +129,8 @@ class AnalyzerApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
-        this.setState({ lastEntered });
+        const enableDemo = false;
+        this.setState({ lastEntered, enableDemo });
     }
 
     onDemo(event) {
@@ -146,6 +148,19 @@ class AnalyzerApp extends React.Component {
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
         this.startAnalysis(text);
+    }
+
+    renderDemoButton() {
+        if (this.state.enableDemo) {
+            return (
+                <button
+                    onClick={this.onDemo}
+                    className="bg-indigo-500 hover:bg-indigo-700 text-white text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    DEMO
+                </button>
+            );
+        }
+        return (<div></div>);
     }
 
     onSubmit(event) {
@@ -203,11 +218,7 @@ class AnalyzerApp extends React.Component {
                     placeholder={this.i18n("hintEnterTextForAnalysis")}
                     />
                 <div className="p-2 flex flex-row justify-between">
-                    <button
-                        onClick={this.onDemo}
-                        className="bg-indigo-500 hover:bg-indigo-700 text-white text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline">
-                        DEMO
-                    </button>
+                    {this.renderDemoButton()}
                     {this.renderSubmitButton()}
                 </div>
             </form>
