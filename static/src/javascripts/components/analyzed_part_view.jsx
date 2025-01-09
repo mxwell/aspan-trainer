@@ -1,8 +1,8 @@
 import React from "react";
 import { SENTENCE_TYPES } from "../lib/sentence";
 import { i18n } from "../lib/i18n";
-import { reproduceNoun, reproducePronoun, reproduceVerb } from "../lib/analyzer";
-import { highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
+import { reproduceAdj, reproduceNoun, reproducePronoun, reproduceVerb } from "../lib/analyzer";
+import { highlightAdjPhrasal, highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 
 function copyToClipboard(text) {
     console.log(`Copying ${text}`);
@@ -80,6 +80,9 @@ class AnalyzedPartView extends React.Component {
         } else if (pos == "p" && detectedForm.septik != null) {
             const phrasal = reproducePronoun(detectedForm);
             return highlightDeclensionPhrasal(phrasal);
+        } else if (pos == "j" && detectedForm.wordgen != null && detectedForm.wordgen.length > 0) {
+            const phrasal = reproduceAdj(detectedForm);
+            return highlightAdjPhrasal(phrasal);
         } else if (pos == "v") {
             const phrasal = reproduceVerb(detectedForm);
             return highlightPhrasal(phrasal, -1);

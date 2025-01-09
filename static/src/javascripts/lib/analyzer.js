@@ -1,4 +1,4 @@
-import { NounBuilder, PronounBuilder, VerbBuilder } from "./aspan";
+import { AdjBuilder, NounBuilder, PronounBuilder, VerbBuilder } from "./aspan";
 import { unpackDetectResponseWithPos } from "./detector";
 import { PersonNumber } from "./grammar_utils";
 import { createFormByParams } from "./verb_forms";
@@ -84,6 +84,16 @@ function reproducePronoun(dw) {
     return null;
 }
 
+function reproduceAdj(dw) {
+    let ab = new AdjBuilder(dw.base);
+    if (dw.wordgen == "rak") {
+        return ab.rakForm();
+    } else if (dw.wordgen == "dau") {
+        return ab.dauForm();
+    }
+    return null;
+}
+
 function reproduceVerb(dw) {
     let vb = new VerbBuilder(dw.base, dw.excVerb);
     const st = dw.sentenceType;
@@ -118,5 +128,6 @@ export {
     parseAnalyzeResponse,
     reproduceNoun,
     reproducePronoun,
+    reproduceAdj,
     reproduceVerb,
 };

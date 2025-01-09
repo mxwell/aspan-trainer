@@ -99,3 +99,27 @@ export function highlightDeclensionPhrasal(phrasal) {
     }
     return htmlParts;
 }
+
+export function highlightAdjPhrasal(phrasal) {
+    let htmlParts = [];
+    let parts = phrasal.parts;
+    for (let i = 0; i < parts.length; ++i) {
+        let part = parts[i];
+        let pt = part.partType;
+        let partClasses = "";
+        if (pt == PHRASAL_PART_TYPE.AdjBase) {
+            partClasses = "text-teal-600 font-bold";
+        } else if (pt == PHRASAL_PART_TYPE.AdjCompAffix) {
+            partClasses = "text-orange-600 font-bold";
+        }
+        htmlParts.push(
+            <span
+                className={partClasses}
+                key={htmlParts.length}>
+                {part.content}
+            </span>
+        );
+    }
+    return htmlParts;
+
+}

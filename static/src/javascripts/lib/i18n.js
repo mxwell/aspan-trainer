@@ -716,6 +716,14 @@ function prepareAnalyzerOnlyTranslations(map) {
         "related adjective",
         "относительное прилагательное",
     );
+    setEnRu(map, "analyzerWordgen_rak",
+        "comparative degree",
+        "сравнительная степень",
+    );
+    setEnRu(map, "analyzerWordgen_dau",
+        "comparative degree",
+        "сравнительная степень",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {
