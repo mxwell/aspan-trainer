@@ -36,6 +36,8 @@ class AnalyzerApp extends React.Component {
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDemo = this.onDemo.bind(this);
+        this.onGrammarToggle = this.onGrammarToggle.bind(this);
+        this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
 
         const urlState = this.readUrlState();
@@ -52,6 +54,8 @@ class AnalyzerApp extends React.Component {
             text: text,
             lastEntered: text,
             enableDemo: text.length == 0 && !analyzing,
+            grammar: true,
+            translations: false,
             analyzing: analyzing,
             error: false,
             breakdown: [],
@@ -182,6 +186,40 @@ class AnalyzerApp extends React.Component {
         this.startAnalysis(lastEntered);
     }
 
+    onGrammarToggle(event) {
+        const grammar = !this.state.grammar;
+        this.setState({ grammar });
+    }
+
+    onTranslationsToggle(event) {
+        const translations = !this.state.translations;
+        this.setState({ translations });
+    }
+
+    renderToggler(on, handler, labelKey) {
+        return (
+            <div
+                className="mx-4 rounded flex flex-row cursor-pointer select-none"
+                onClick={handler}>
+                <img
+                    className="mx-2 h-8"
+                    src={on ? "/toggle_on.svg" : "/toggle_off.svg"}
+                />
+                <span className="text-xl">{this.i18n(labelKey)}</span>
+            </div>
+        );
+    }
+
+    renderControls() {
+        return (
+            <div className="flex flex-row">
+                {this.renderToggler(this.state.grammar, this.onGrammarToggle, "toggleGrammar")}
+                {this.renderToggler(this.state.translations, this.onTranslationsToggle, "toggleTranslations")}
+                {this.renderSubmitButton()}
+            </div>
+        );
+    }
+
     renderSubmitButton() {
         if (this.state.analyzing) {
             return (
@@ -219,7 +257,7 @@ class AnalyzerApp extends React.Component {
                     />
                 <div className="p-2 flex flex-row justify-between">
                     {this.renderDemoButton()}
-                    {this.renderSubmitButton()}
+                    {this.renderControls()}
                 </div>
             </form>
         );
@@ -279,6 +317,9 @@ class AnalyzerApp extends React.Component {
             }
         }
 
+        const grammar = this.state.grammar;
+        const translations = this.state.translations;
+
         for (const part of this.state.breakdown) {
             if (part.detectedForms.length == 0 && part.token == "\n") {
                 flushRow();
@@ -288,6 +329,8 @@ class AnalyzerApp extends React.Component {
                 <AnalyzedPartView
                     key={row.length}
                     analyzedPart={part}
+                    grammar={grammar}
+                    translations={translations}
                     lang={this.props.lang}
                 />
             );

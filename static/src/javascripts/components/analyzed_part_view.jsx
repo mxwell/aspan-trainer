@@ -1,6 +1,6 @@
 import React from "react";
 import { SENTENCE_TYPES } from "../lib/sentence";
-import { i18n } from "../lib/i18n";
+import { i18n, I18N_LANG_RU } from "../lib/i18n";
 import { reproduceAdj, reproduceNoun, reproducePronoun, reproduceVerb } from "../lib/analyzer";
 import { highlightAdjPhrasal, highlightDeclensionPhrasal, highlightPhrasal } from "../lib/highlight";
 
@@ -12,6 +12,8 @@ function copyToClipboard(text) {
 /**
  * props:
  * - analyzedPart: AnalyzedPart
+ * - grammar: bool
+ * - translations: bool
  * - lang
  */
 class AnalyzedPartView extends React.Component {
@@ -128,7 +130,28 @@ class AnalyzedPartView extends React.Component {
         );
     }
 
+    renderTranslations(detectedForm) {
+        if (!this.props.translations) return null;
+
+        const glosses = this.props.lang == I18N_LANG_RU ? detectedForm.ruGlosses : [];
+        if (glosses.length == 0) return null;
+
+        let htmlItems = [];
+        for (const gloss of glosses) {
+            htmlItems.push(
+                <li key={htmlItems.length} className="list-disc list-inside">{gloss}</li>
+            );
+        }
+        return (
+            <ul className="mt-4 text-gray-600">
+                {htmlItems}
+            </ul>
+        );
+    }
+
     renderDetails(detectedForm, index, total) {
+        if (!this.props.grammar) return null;
+
         const base = this.renderBaseWithChevrons(detectedForm.base, index, total);
         const pos = detectedForm.pos;
         const posName = this.i18n(`pos_${pos}`);
@@ -179,6 +202,7 @@ class AnalyzedPartView extends React.Component {
                 {grammarNumber}
                 {wordgen}
                 {poss}
+                {this.renderTranslations(detectedForm)}
             </div>
         );
     }

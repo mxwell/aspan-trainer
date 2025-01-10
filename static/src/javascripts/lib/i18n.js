@@ -545,6 +545,14 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Enter text for analysis",
         "Введите текст для анализа",
     );
+    setEnRu(map, "toggleGrammar",
+        "Grammar",
+        "Грамматика"
+    );
+    setEnRu(map, "toggleTranslations",
+        "Translations",
+        "Переводы"
+    );
     setEnRu(map, "analyzing",
         "Analyzing text…",
         "Анализ текста…",
