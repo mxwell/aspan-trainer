@@ -1,10 +1,11 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { makeAnalyzeRequest } from "../lib/requests";
+import { makeAnalyzeRequest, makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
 import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
+import { catCompletion } from "../lib/suggest";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -32,6 +33,8 @@ class AnalyzerApp extends React.Component {
     constructor(props) {
         super(props);
 
+        this.handleSuggestResponse = this.handleSuggestResponse.bind(this);
+        this.handleSuggestError = this.handleSuggestError.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
         this.onChange = this.onChange.bind(this);
@@ -54,6 +57,7 @@ class AnalyzerApp extends React.Component {
             text: text,
             lastEntered: text,
             enableDemo: text.length == 0 && !analyzing,
+            suggestions: [],
             grammar: true,
             translations: false,
             analyzing: analyzing,
@@ -80,6 +84,65 @@ class AnalyzerApp extends React.Component {
 
     i18n(key) {
         return i18n(key, this.props.lang);
+    }
+
+    async handleSuggestResponse(context, responseJsonPromise) {
+        let response = await responseJsonPromise;
+        const fragment = context.fragment;
+        if (!this.state.lastEntered.endsWith(fragment)) {
+            console.log(`suggest results for ${fragment} are late`);
+            return;
+        }
+        let suggestions = [];
+        const inSuggestions = response.suggestions;
+        if (inSuggestions && inSuggestions.length > 0) {
+            for (let i = 0; i < inSuggestions.length; ++i) {
+                const raw = catCompletion(inSuggestions[i]);
+                if (raw.length == fragment.length) {
+                    continue;
+                }
+                suggestions.push({
+                    completion: inSuggestions[i].completion,
+                    raw: raw,
+                });
+            }
+        }
+        this.setState({ suggestions });
+    }
+
+    async handleSuggestError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from suggest: ${responseText}, fragment ${context.fragment}`);
+    }
+
+    startSuggest(fragment) {
+        makeDetectRequest(
+            fragment,
+            /* suggest */ true,
+            /* onlyVerbs */ false,
+            this.handleSuggestResponse,
+            this.handleSuggestError,
+            { fragment }
+        );
+    }
+
+    suggest(lastEntered) {
+        const limit = 32;
+        const start = Math.max(lastEntered.length - limit, 0);
+        // find the last whitespace symbol to request suggestions using the fragment that goes after
+        for (let i = lastEntered.length - 1; i >= start; --i) {
+            if (/\s/.test(lastEntered[i])) {
+                if (i == lastEntered.length - 1) {
+                    return;
+                }
+                const fragment = lastEntered.substr(i + 1);
+                this.startSuggest(fragment);
+                return;
+            }
+        }
+        if (lastEntered.length <= limit) {
+            this.startSuggest(lastEntered);
+        }
     }
 
     async handleAnalyzeResponse(context, responseJsonPromise) {
@@ -133,8 +196,59 @@ class AnalyzerApp extends React.Component {
 
     onChange(event) {
         let lastEntered = event.target.value;
+        const diff = lastEntered.length - this.state.lastEntered.length;
         const enableDemo = false;
         this.setState({ lastEntered, enableDemo });
+        if (lastEntered.length > 0 && (diff == -1 || diff == 1)) {
+            this.suggest(lastEntered);
+        }
+    }
+
+    completeWith(completion) {
+        let lastEntered = this.state.lastEntered;
+        for (let j = 0; j < completion.length; ++j) {
+            if (!completion[j].hl) {
+                lastEntered += completion[j].text;
+            }
+        }
+        const suggestions = [];
+        this.setState({ lastEntered, suggestions });
+    }
+
+    renderSuggestions() {
+        const suggestions = this.state.suggestions;
+        let htmlParts = [];
+        let keyCounter = 0;
+        for (let i = 0; i < 5 && i < suggestions.length; ++i) {
+            const completion = suggestions[i].completion;
+            let completionParts = [];
+            for (let j = 0; j < completion.length; ++j) {
+                const spanClass = completion[j].hl ? "text-blue-500" : "text-blue-300";
+                completionParts.push(
+                    <span key={keyCounter} className={spanClass}>
+                        {completion[j].text}
+                    </span>
+                );
+                keyCounter += 1;
+            }
+            htmlParts.push(
+                <div key={keyCounter}
+                    className="mx-2 cursor-pointer"
+                    onClick={(e) => this.completeWith(completion)}>
+                    {completionParts}
+                </div>
+            );
+            keyCounter += 1;
+        }
+        if (htmlParts.length == 0) {
+            htmlParts.push(<span key={keyCounter} className="invisible">placeholder</span>);
+            keyCounter += 1;
+        }
+        return (
+            <div className="mx-2 text-3xl flex flex-row justify-evenly bg-gray-100">
+                {htmlParts}
+            </div>
+        );
     }
 
     onDemo(event) {
@@ -148,7 +262,8 @@ class AnalyzerApp extends React.Component {
         const text = pickDemoSentence(this.state.lastEntered);
         const lastEntered = text;
         const analyzing = true;
-        this.setState({ text, lastEntered, analyzing });
+        const suggestions = [];
+        this.setState({ text, lastEntered, suggestions, analyzing });
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
         this.startAnalysis(text);
@@ -181,8 +296,9 @@ class AnalyzerApp extends React.Component {
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
 
+        const suggestions = [];
         const analyzing = true;
-        this.setState({ analyzing });
+        this.setState({ suggestions, analyzing });
         this.startAnalysis(lastEntered);
     }
 
@@ -255,6 +371,7 @@ class AnalyzerApp extends React.Component {
                     className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
                     placeholder={this.i18n("hintEnterTextForAnalysis")}
                     />
+                {this.renderSuggestions()}
                 <div className="p-2 flex flex-row justify-between">
                     {this.renderDemoButton()}
                     {this.renderControls()}
