@@ -6,6 +6,8 @@ import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
 import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
+import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
+import { checkForEmulation } from "../lib/layout";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -37,6 +39,10 @@ class AnalyzerApp extends React.Component {
         this.handleSuggestError = this.handleSuggestError.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDemo = this.onDemo.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
@@ -60,6 +66,7 @@ class AnalyzerApp extends React.Component {
             suggestions: [],
             grammar: true,
             translations: false,
+            keyboard: false,
             analyzing: analyzing,
             error: false,
             breakdown: [],
@@ -145,6 +152,13 @@ class AnalyzerApp extends React.Component {
         }
     }
 
+    checkToSuggest(lastEntered) {
+        const diff = lastEntered.length - this.state.lastEntered.length;
+        if (lastEntered.length > 0 && (diff == -1 || diff == 1)) {
+            this.suggest(lastEntered);
+        }
+    }
+
     async handleAnalyzeResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
         let analyzedParts = parseAnalyzeResponse(response);
@@ -194,14 +208,45 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    updateText(change) {
+        this.setState(
+            { lastEntered: change.newText, enableDemo: false },
+            () => {
+                const wi = this.refs.textInput;
+                wi.selectionStart = change.newSelectionStart;
+                wi.selectionEnd = change.newSelectionStart;
+                wi.focus();
+            }
+        );
+        this.checkToSuggest(change.newText);
+    }
+
+    onInsert(fragment) {
+        const textInput = this.refs.textInput;
+        const change = insertIntoTextInput(textInput, fragment);
+        this.updateText(change);
+    }
+
+    onBackspace() {
+        const textInput = this.refs.textInput;
+        const change = backspaceTextInput(textInput);
+        this.updateText(change);
+    }
+
     onChange(event) {
         let lastEntered = event.target.value;
-        const diff = lastEntered.length - this.state.lastEntered.length;
         const enableDemo = false;
         this.setState({ lastEntered, enableDemo });
-        if (lastEntered.length > 0 && (diff == -1 || diff == 1)) {
-            this.suggest(lastEntered);
+        this.checkToSuggest(lastEntered);
+    }
+
+    onKeyDown(e) {
+        const replace = checkForEmulation(e);
+        if (replace == null) {
+            return;
         }
+        e.preventDefault();
+        this.onInsert(replace);
     }
 
     completeWith(completion) {
@@ -326,11 +371,28 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    onKeyboardClick(e) {
+        e.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
     renderControls() {
+        const keyboardClass = (
+            this.state.keyboard
+            ? "mx-2 px-2 bg-blue-600 hover:bg-blue-700 focus:outline-none rounded"
+            : "mx-2 px-2 bg-gray-400 hover:bg-gray-600 focus:outline-none rounded"
+        );
         return (
             <div className="flex flex-row">
                 {this.renderToggler(this.state.grammar, this.onGrammarToggle, "toggleGrammar")}
                 {this.renderToggler(this.state.translations, this.onTranslationsToggle, "toggleTranslations")}
+                <button
+                    type="button"
+                    onClick={this.onKeyboardClick}
+                    className={keyboardClass}>
+                    <img src="/keyboard.svg" alt="keyboard show or hide" className="h-12" />
+                </button>
                 {this.renderSubmitButton()}
             </div>
         );
@@ -361,10 +423,12 @@ class AnalyzerApp extends React.Component {
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                 <textarea
+                    ref="textInput"
                     rows="3"
                     cols="32"
                     autoFocus
                     onChange={this.onChange}
+                    onKeyDown={this.onKeyDown}
                     value={this.state.lastEntered}
                     maxLength="2048"
                     required
@@ -377,6 +441,22 @@ class AnalyzerApp extends React.Component {
                     {this.renderControls()}
                 </div>
             </form>
+        );
+    }
+
+    renderKeyboard() {
+        const keyboard = this.state.keyboard;
+        if (!keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace}
+                    enterCallback={this.onSubmit}
+                />
+            </div>
         );
     }
 
@@ -469,6 +549,7 @@ class AnalyzerApp extends React.Component {
                     </a>
                 </h1>
                 {this.renderForm()}
+                {this.renderKeyboard()}
                 {this.renderBreakdown()}
                 {this.renderAnalysisStatus()}
                 {this.renderIntro()}
