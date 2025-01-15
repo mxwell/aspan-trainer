@@ -533,6 +533,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Press the DEMO button to run the analyzer with a random sentence.",
         "Нажмите кнопку DEMO, чтобы запустить анализатор со случайным предложением.",
     );
+    setEnRu(map, "ctrEnterHint",
+        "Press Ctrl+Enter to submit your input",
+        "Нажмите Ctrl+Enter, чтобы отправить ваш ввод",
+    );
     setEnRu(map, "clipboardHint",
         "Click an initial word form to copy to the clipboard",
         "Кликните начальную форму слова, чтобы скопировать в буфер обмена",

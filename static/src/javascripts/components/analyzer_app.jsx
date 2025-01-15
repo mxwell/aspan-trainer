@@ -241,6 +241,10 @@ class AnalyzerApp extends React.Component {
     }
 
     onKeyDown(e) {
+        if (e.key === "Enter" && e.ctrlKey) {
+            this.onSubmit(e);
+            return;
+        }
         const replace = checkForEmulation(e);
         if (replace == null) {
             return;
@@ -468,7 +472,7 @@ class AnalyzerApp extends React.Component {
         let msg2 = null;
         if (this.state.breakdown.length == 0) {
             msg1 = "analyzerIntro";
-            msg2 = "demoHint";
+            msg2 = (Math.random() < 0.5) ? "demoHint" : "ctrEnterHint";
         } else {
             msg1 = "clipboardHint";
             msg2 = "clearHint";
