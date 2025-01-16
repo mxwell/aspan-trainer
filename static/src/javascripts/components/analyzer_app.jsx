@@ -8,6 +8,7 @@ import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
+import { copyToClipboard } from "../lib/clipboard";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -318,17 +319,28 @@ class AnalyzerApp extends React.Component {
         this.startAnalysis(text);
     }
 
-    renderDemoButton() {
+    renderLeftControls() {
+        let htmlParts = [];
         if (this.state.enableDemo) {
-            return (
+            htmlParts.push(
                 <button
+                    key="demo"
                     onClick={this.onDemo}
                     className="bg-indigo-500 hover:bg-indigo-700 text-white text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                     DEMO
                 </button>
             );
         }
-        return (<div></div>);
+        htmlParts.push(
+            <img
+                key="copy"
+                className="mx-2 h-12 w-12"
+                onClick={(e) => { copyToClipboard(this.state.lastEntered); }}
+                src={"/copy.svg"} />
+        );
+        return (<div className="flex flex-row">
+            {htmlParts}
+        </div>);
     }
 
     onSubmit(event) {
@@ -441,7 +453,7 @@ class AnalyzerApp extends React.Component {
                     />
                 {this.renderSuggestions()}
                 <div className="p-2 flex flex-row justify-between">
-                    {this.renderDemoButton()}
+                    {this.renderLeftControls()}
                     {this.renderControls()}
                 </div>
             </form>
