@@ -1270,7 +1270,7 @@ class ViewerApp extends React.Component {
         return (
             <div>
                 <h2 className="px-6 py-4 text-3xl lg:text-4xl italic lg:max-w-3xl">
-                    <ShareButton url={url} />
+                    <ShareButton url={url} imgSize="h-8" />
                     {this.i18n("conjInAllTensesTempl")(verb)}
                 </h2>
                 {descr}

@@ -9,6 +9,7 @@ import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
 import { copyToClipboard } from "../lib/clipboard";
+import { ShareButton } from "./share_button";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -331,13 +332,20 @@ class AnalyzerApp extends React.Component {
                 </button>
             );
         }
-        htmlParts.push(
-            <img
-                key="copy"
-                className="mx-2 h-12 w-12"
-                onClick={(e) => { copyToClipboard(this.state.lastEntered); }}
-                src={"/copy.svg"} />
-        );
+        if (this.state.lastEntered.length > 0) {
+            const urlPart = buildTextAnalyzerUrl(this.state.lastEntered, this.props.lang);
+            const url = `${window.location.protocol}//${window.location.host}${urlPart}`;
+            htmlParts.push(
+                <img
+                    key="copy"
+                    className="mx-2 h-12 w-12"
+                    onClick={(e) => { copyToClipboard(this.state.lastEntered); }}
+                    src={"/copy.svg"} />
+            );
+            htmlParts.push(
+                <ShareButton key="share" url={url} imgSize="h-12" />
+            );
+        }
         return (<div className="flex flex-row">
             {htmlParts}
         </div>);

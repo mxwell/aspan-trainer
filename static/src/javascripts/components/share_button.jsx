@@ -4,6 +4,7 @@ import { copyToClipboard } from "../lib/clipboard";
 /**
  * props:
  * - url
+ * - imgSize
  */
 class ShareButton extends React.Component {
     constructor(props) {
@@ -38,7 +39,7 @@ class ShareButton extends React.Component {
                 <button
                     className="px-2"
                     onClick={this.onClick}>
-                    <img className="h-8" src="/share.svg" />
+                    <img className={this.props.imgSize} src="/share.svg" />
                 </button>
                 <div className={divClass}>
                     <input
