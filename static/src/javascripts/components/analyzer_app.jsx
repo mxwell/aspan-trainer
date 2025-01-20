@@ -98,10 +98,21 @@ class AnalyzerApp extends React.Component {
     async handleSuggestResponse(context, responseJsonPromise) {
         let response = await responseJsonPromise;
         const fragment = context.fragment;
-        if (!this.state.lastEntered.endsWith(fragment)) {
-            console.log(`suggest results for ${fragment} are late`);
+
+        const textArea = this.refs.textInput;
+        const selectionStart = textArea.selectionStart;
+
+        if (selectionStart < fragment.length) {
+            console.log("handleSuggestResponse: expected fragment doesn't fit");
             return;
         }
+
+        const actual = this.state.lastEntered.substr(selectionStart - fragment.length, fragment.length);
+        if (actual != fragment) {
+            console.log(`handleSuggestResponse: actual text [${actual}] doesn't match expected [${fragment}]`);
+            return;
+        }
+
         let suggestions = [];
         const inSuggestions = response.suggestions;
         if (inSuggestions && inSuggestions.length > 0) {
@@ -137,20 +148,25 @@ class AnalyzerApp extends React.Component {
 
     suggest(lastEntered) {
         const limit = 32;
-        const start = Math.max(lastEntered.length - limit, 0);
-        // find the last whitespace symbol to request suggestions using the fragment that goes after
-        for (let i = lastEntered.length - 1; i >= start; --i) {
+        const textArea = this.refs.textInput;
+        const selectionStart = textArea.selectionStart;
+        const position = selectionStart < lastEntered.length ? selectionStart : lastEntered.length;
+
+        const start = Math.max(position - limit, 0);
+        // find the last preceding whitespace symbol to request suggestions using the fragment that goes after
+        for (let i = position - 1; i >= start; --i) {
             if (/\s/.test(lastEntered[i])) {
-                if (i == lastEntered.length - 1) {
+                if (i == position - 1) {
                     return;
                 }
-                const fragment = lastEntered.substr(i + 1);
+                const fragment = lastEntered.substr(i + 1, position - i - 1);
                 this.startSuggest(fragment);
                 return;
             }
         }
-        if (lastEntered.length <= limit) {
-            this.startSuggest(lastEntered);
+        if (position <= limit) {
+            const fragment = lastEntered.substr(0, position);
+            this.startSuggest(fragment);
         }
     }
 
@@ -257,13 +273,50 @@ class AnalyzerApp extends React.Component {
 
     completeWith(completion) {
         let lastEntered = this.state.lastEntered;
+        const textArea = this.refs.textInput;
+        const selectionStart = textArea.selectionStart;
+        const selectionEnd = textArea.selectionEnd;
+        let matches = false;
+        let newPosition = -1;
         for (let j = 0; j < completion.length; ++j) {
             if (!completion[j].hl) {
-                lastEntered += completion[j].text;
+                if (matches) {
+                    const prefix = lastEntered.substr(0, selectionStart);
+                    const insertion = completion[j].text;
+                    const suffix = lastEntered.substr(selectionEnd);
+                    lastEntered = `${prefix}${insertion}${suffix}`;
+                    newPosition = prefix.length + insertion.length;
+                } else {
+                    console.log("completeWith: no match with expected part");
+                    break;
+                }
+                break;
+            } else {
+                const text = completion[j].text;
+                if (selectionStart < text.length) {
+                    console.log("completeWith: expected text is too long to fit");
+                    break;
+                }
+                const actual = lastEntered.substr(selectionStart - text.length, text.length);
+                if (actual != text) {
+                    console.log(`completeWith: actual text [${actual}] doesn't match expected [${text}]`);
+                    break;
+                }
+                matches = true;
             }
         }
         const suggestions = [];
-        this.setState({ lastEntered, suggestions });
+        this.setState(
+            { lastEntered, suggestions },
+            () => {
+                if (newPosition >= 0) {
+                    const wi = this.refs.textInput;
+                    wi.selectionStart = newPosition;
+                    wi.selectionEnd = newPosition;
+                    wi.focus();
+                }
+            }
+        );
     }
 
     renderSuggestions() {
