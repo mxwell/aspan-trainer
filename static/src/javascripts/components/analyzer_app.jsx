@@ -107,7 +107,8 @@ class AnalyzerApp extends React.Component {
             return;
         }
 
-        const actual = this.state.lastEntered.substr(selectionStart - fragment.length, fragment.length);
+        const lastEntered = this.state.lastEntered;
+        const actual = lastEntered.substr(selectionStart - fragment.length, fragment.length).toLowerCase();
         if (actual != fragment) {
             console.log(`handleSuggestResponse: actual text [${actual}] doesn't match expected [${fragment}]`);
             return;
@@ -135,7 +136,8 @@ class AnalyzerApp extends React.Component {
         console.log(`Got error from suggest: ${responseText}, fragment ${context.fragment}`);
     }
 
-    startSuggest(fragment) {
+    startSuggest(fragmentRaw) {
+        const fragment = fragmentRaw.toLowerCase();
         makeDetectRequest(
             fragment,
             /* suggest */ true,
@@ -297,7 +299,7 @@ class AnalyzerApp extends React.Component {
                     console.log("completeWith: expected text is too long to fit");
                     break;
                 }
-                const actual = lastEntered.substr(selectionStart - text.length, text.length);
+                const actual = lastEntered.substr(selectionStart - text.length, text.length).toLowerCase();
                 if (actual != text) {
                     console.log(`completeWith: actual text [${actual}] doesn't match expected [${text}]`);
                     break;
