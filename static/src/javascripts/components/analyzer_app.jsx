@@ -66,6 +66,7 @@ class AnalyzerApp extends React.Component {
             lastEntered: text,
             enableDemo: text.length == 0 && !analyzing,
             suggestions: [],
+            tab: false,
             grammar: true,
             translations: false,
             keyboard: false,
@@ -166,7 +167,7 @@ class AnalyzerApp extends React.Component {
                 return;
             }
         }
-        if (position <= limit) {
+        if (0 < position && position <= limit) {
             const fragment = lastEntered.substr(0, position);
             this.startSuggest(fragment);
         }
@@ -260,9 +261,44 @@ class AnalyzerApp extends React.Component {
         this.checkToSuggest(lastEntered);
     }
 
+    /**
+     * If TAB press is followed by a digit I press,
+     * it indicates that I-th suggestion should be applied
+     */
+    checkToComplete(e) {
+        const code = e.nativeEvent.code;
+        if (!code.startsWith("Digit")) {
+            return false;
+        }
+        const digit = Number(code.substr(5));
+        if (!digit) {
+            return false;
+        }
+        const suggestion = this.state.suggestions[digit - 1];
+        if (!suggestion) {
+            return false;
+        }
+        const completion = suggestion.completion;
+        this.completeWith(completion);
+        return true;
+    }
+
     onKeyDown(e) {
         if (e.key === "Enter" && e.ctrlKey) {
             this.onSubmit(e);
+            return;
+        }
+        const tab = this.state.tab;
+        if (e.key === "Tab") {
+            if (tab) {
+                this.setState({ tab: false });
+            } else {
+                e.preventDefault();
+                this.setState({ tab: true });
+                return;
+            }
+        } else if (tab && this.checkToComplete(e)) {
+            e.preventDefault();
             return;
         }
         const replace = checkForEmulation(e);
@@ -307,9 +343,10 @@ class AnalyzerApp extends React.Component {
                 matches = true;
             }
         }
+        const tab = false;
         const suggestions = [];
         this.setState(
-            { lastEntered, suggestions },
+            { lastEntered, tab, suggestions },
             () => {
                 if (newPosition >= 0) {
                     const wi = this.refs.textInput;
@@ -339,9 +376,15 @@ class AnalyzerApp extends React.Component {
             }
             htmlParts.push(
                 <div key={keyCounter}
-                    className="mx-2 cursor-pointer"
+                    className="mx-2 cursor-pointer flex flex-col"
                     onClick={(e) => this.completeWith(completion)}>
-                    {completionParts}
+                    <div>
+                        {completionParts}
+                    </div>
+                    <div className="my-2 flex flex-row justify-center text-gray-600 text-xs">
+                        <span className="border-2 border-gray-600 px-2">Tab</span>
+                        <span className="border-2 border-gray-600 px-2 mx-2">{i + 1}</span>
+                    </div>
                 </div>
             );
             keyCounter += 1;
@@ -351,7 +394,7 @@ class AnalyzerApp extends React.Component {
             keyCounter += 1;
         }
         return (
-            <div className="mx-2 text-3xl flex flex-row justify-evenly bg-gray-100">
+            <div className="mx-2 text-3xl flex flex-row flex-wrap justify-evenly bg-gray-100">
                 {htmlParts}
             </div>
         );
