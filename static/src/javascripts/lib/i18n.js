@@ -736,6 +736,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "comparative degree",
         "сравнительная степень",
     );
+    setEnRu(map, "grammarTip",
+        "Grammar tip",
+        "Подсказка по грамматике",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {

@@ -73,6 +73,7 @@ class AnalyzerApp extends React.Component {
             analyzing: analyzing,
             error: false,
             breakdown: [],
+            popupCue: null,
         };
     }
 
@@ -621,14 +622,43 @@ class AnalyzerApp extends React.Component {
         }
     }
 
+    closePopup() {
+        const popupCue = null;
+        this.setState({ popupCue });
+    }
+
+    renderPopup(popupCue) {
+        if (popupCue == null) {
+            return null;
+        }
+        return (
+            <div className="absolute z-60 w-full flex flex-row justify-center">
+                <div className="bg-blue-100 w-1/3 border-2 rounded-2xl">
+                    <div className="flex flex-row justify-between border-b-2 text-gray-500">
+                        <h3 className="p-2 text-sm">{this.i18n("grammarTip")}</h3>
+                        <span
+                            className="p-2 text-sm border-l-2 cursor-pointer"
+                            onClick={(e) => this.closePopup()}>X</span>
+                    </div>
+                    <h4 className="text-3xl text-gray-600 text-center">{this.i18n(popupCue)}</h4>
+                    <p className="p-2 text-xl text-gray-600">This is my message</p>
+                </div>
+            </div>
+        );
+    }
+
     renderBreakdown() {
         let rows = [];
         let row = [];
 
+        const popupCue = this.state.popupCue;
+        const rowVisibility = popupCue != null ? "invisible" : "";
+        const rowClass = `flex flex-row flex-wrap ${rowVisibility}`;
+
         const flushRow = function() {
             if (row.length > 0) {
                 rows.push(
-                    <div key={rows.length} className="flex flex-row flex-wrap">
+                    <div key={rows.length} className={rowClass}>
                         {row}
                     </div>
                 );
@@ -658,6 +688,7 @@ class AnalyzerApp extends React.Component {
         return (
             <div className="m-4 flex flex-col">
                 {rows}
+                {this.renderPopup(popupCue)}
             </div>
         );
     }
