@@ -14,6 +14,7 @@ function copyToClipboard(text) {
  * - analyzedPart: AnalyzedPart
  * - grammar: bool
  * - translations: bool
+ * - hintCallback: function(cue: string)
  * - lang
  */
 class AnalyzedPartView extends React.Component {
@@ -59,16 +60,16 @@ class AnalyzedPartView extends React.Component {
         this.setState({ index });
     }
 
-    getFormName(pos, detectedForm) {
+    getFormNameKey(pos, detectedForm) {
         if (pos == "n" || pos == "p") {
             const septik = detectedForm.septik;
             if (septik != null && septik != "Atau") {
-                return this.i18n(`analyzerSeptik_${septik}`);
+                return `analyzerSeptik_${septik}`;
             }
         } else if (pos == "v") {
             const tense = detectedForm.tense;
             if (tense != null) {
-                return this.i18n(`analyzerTense_${tense}`);
+                return `analyzerTense_${tense}`;
             }
         }
         return null;
@@ -160,10 +161,16 @@ class AnalyzedPartView extends React.Component {
             ? (<p className="italic">{this.i18n("exceptionVerb")}</p>)
             : null
         );
-        const formName = this.getFormName(pos, detectedForm);
+        const formNameKey = this.getFormNameKey(pos, detectedForm);
         const formElement = (
-            formName != null
-            ? (<p className="italic">{formName}</p>)
+            formNameKey != null
+            ? (<div className="italic flex flex-row">
+                <span>{this.i18n(formNameKey)}</span>
+                <img
+                    src="/info.svg"
+                    onClick={(e) => this.props.hintCallback(formNameKey)}
+                    className="cursor-pointer px-2" />
+            </div>)
             : null
         );
         const negation = (

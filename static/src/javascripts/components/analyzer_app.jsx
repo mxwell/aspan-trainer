@@ -50,6 +50,7 @@ class AnalyzerApp extends React.Component {
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onHintClick = this.onHintClick.bind(this);
 
         const urlState = this.readUrlState();
         if (urlState != null) {
@@ -647,6 +648,10 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    onHintClick(popupCue) {
+        this.setState({ popupCue });
+    }
+
     renderBreakdown() {
         let rows = [];
         let row = [];
@@ -680,6 +685,7 @@ class AnalyzerApp extends React.Component {
                     analyzedPart={part}
                     grammar={grammar}
                     translations={translations}
+                    hintCallback={this.onHintClick}
                     lang={this.props.lang}
                 />
             );
