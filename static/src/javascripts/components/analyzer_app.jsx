@@ -10,6 +10,7 @@ import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
 import { copyToClipboard } from "../lib/clipboard";
 import { ShareButton } from "./share_button";
+import { grammarHelp } from "../lib/grammar_help";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -632,6 +633,15 @@ class AnalyzerApp extends React.Component {
         if (popupCue == null) {
             return null;
         }
+
+        let help = grammarHelp(popupCue, this.props.lang);
+        let shortDescription = null;
+        if (help != null && help[0].length > 0) {
+            shortDescription = (
+                <p className="p-2 text-xl text-gray-600">{help[0]}</p>
+            );
+        }
+
         return (
             <div className="absolute z-60 w-full flex flex-row justify-center">
                 <div className="bg-blue-100 w-1/3 border-2 rounded-2xl">
@@ -642,7 +652,7 @@ class AnalyzerApp extends React.Component {
                             onClick={(e) => this.closePopup()}>X</span>
                     </div>
                     <h4 className="text-3xl text-gray-600 text-center">{this.i18n(popupCue)}</h4>
-                    <p className="p-2 text-xl text-gray-600">This is my message</p>
+                    {shortDescription}
                 </div>
             </div>
         );
