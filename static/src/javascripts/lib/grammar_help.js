@@ -23,10 +23,58 @@ function prepareGrammarHelp() {
         ["https://www.kaz-tili.kz/glag2.htm"]
     );
     setEnRu(map, "analyzerTense_presentContinuous",
-        "Action occurring at the current moment",
+        "Action occurring at the current moment.",
         [],
-        "Действие, происходящее в данный момент",
+        "Действие, происходящее в данный момент.",
         ["https://www.kaz-tili.kz/glag1.htm"],
+    );
+    setEnRu(map, "analyzerTense_remotePast",
+        "Action in distant past, witnessed by the speaker.",
+        [],
+        "Действие в далеком прошлом, очевидцем которого был говорящий.",
+        ["https://www.kaz-tili.kz/glag9.htm"],
+    );
+    setEnRu(map, "analyzerTense_pastUncertain",
+        "Action in distant past, not witnessed by the speaker.",
+        [],
+        "Действие в далеком прошлом, которому говорящий не был свидетелем.",
+        ["https://www.kaz-tili.kz/glag10.htm"],
+    );
+    setEnRu(map, "analyzerTense_pastTransitive",
+        "Prolonged, repetitive, or habitual action in the past.",
+        [],
+        "Длительное, повторяющееся или привычное действие в прошлом.",
+        ["https://www.kaz-tili.kz/glag11.htm"],
+    );
+    setEnRu(map, "analyzerTense_past",
+        "Past action without specifying exact time.",
+        [],
+        "Действие в прошлом без уточнения времени.",
+        [],
+    );
+    setEnRu(map, "analyzerTense_possibleFuture",
+        "Probable future action.",
+        [],
+        "Вероятное будущее действие.",
+        ["https://www.kaz-tili.kz/glag7.htm"],
+    );
+    setEnRu(map, "analyzerTense_intentionFuture",
+        "Future action expressing intention to do something.",
+        [],
+        "Действие в будущем, выражающее намерение что-либо сделать.",
+        ["https://www.kaz-tili.kz/glag8.htm"],
+    );
+    setEnRu(map, "analyzerTense_imperativeMood",
+        "Urging to action in the form of command, request, advice.",
+        [],
+        "Побуждение к действию в виде приказа, просьбы, совета.",
+        [],
+    );
+    setEnRu(map, "analyzerTense_optativeMood",
+        "Вesire or intention of the speaker or others.",
+        [],
+        "Желание или намерение говорящего или другого лица.",
+        [],
     );
 
     return map;
