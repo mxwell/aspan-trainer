@@ -636,11 +636,32 @@ class AnalyzerApp extends React.Component {
 
         let help = grammarHelp(popupCue, this.props.lang);
         let shortDescription = null;
-        if (help != null && help[0].length > 0) {
-            shortDescription = (
-                <p className="p-2 text-xl text-gray-600">{help[0]}</p>
-            );
+        let references = null;
+        if (help != null) {
+            if (help[0].length > 0) {
+                shortDescription = (
+                    <p className="p-2 text-xl text-gray-600">{help[0]}</p>
+                );
+            }
+            if (help[1].length > 0) {
+                let htmlParts = [];
+                for (const reference of help[1]) {
+                    const title = reference[0];
+                    const href = reference[1];
+                    htmlParts.push(
+                        <li className="" key={htmlParts.length}>
+                            <a className="text-blue-500" href={href}>{title}</a>
+                        </li>
+                    );
+                }
+                references = (
+                    <ol className="p-2 list-decimal list-inside text-gray-600 text-xl">
+                        {htmlParts}
+                    </ol>
+                );
+            }
         }
+
 
         return (
             <div className="absolute z-60 w-full flex flex-row justify-center">
@@ -653,6 +674,7 @@ class AnalyzerApp extends React.Component {
                     </div>
                     <h4 className="text-3xl text-gray-600 text-center">{this.i18n(popupCue)}</h4>
                     {shortDescription}
+                    {references}
                 </div>
             </div>
         );

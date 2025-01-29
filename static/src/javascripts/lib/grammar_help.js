@@ -20,49 +20,65 @@ function prepareGrammarHelp() {
         "Habitual actions or certain future. Time determined by context.",
         [],
         "Обычные действия или уверенное будущее. Время определяется контекстом.",
-        ["https://www.kaz-tili.kz/glag2.htm"]
+        [
+            ["[kaz-tili.kz] Переходное время глагола", "https://www.kaz-tili.kz/glag2.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_presentContinuous",
         "Action occurring at the current moment.",
         [],
         "Действие, происходящее в данный момент.",
-        ["https://www.kaz-tili.kz/glag1.htm"],
+        [
+            ["[kaz-tili.kz] Настоящее время глагола", "https://www.kaz-tili.kz/glag1.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_remotePast",
         "Action in distant past, witnessed by the speaker.",
         [],
         "Действие в далеком прошлом, очевидцем которого был говорящий.",
-        ["https://www.kaz-tili.kz/glag9.htm"],
+        [
+            ["[kaz-tili.kz] Давнопрошедшее очевидное время глагола", "https://www.kaz-tili.kz/glag9.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_pastUncertain",
         "Action in distant past, not witnessed by the speaker.",
         [],
         "Действие в далеком прошлом, которому говорящий не был свидетелем.",
-        ["https://www.kaz-tili.kz/glag10.htm"],
+        [
+            ["[kaz-tili.kz] Давнопрошедшее неочевидное время глагола", "https://www.kaz-tili.kz/glag10.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_pastTransitive",
         "Prolonged, repetitive, or habitual action in the past.",
         [],
         "Длительное, повторяющееся или привычное действие в прошлом.",
-        ["https://www.kaz-tili.kz/glag11.htm"],
+        [
+            ["[kaz-tili.kz] Переходное прошедшее время глагола", "https://www.kaz-tili.kz/glag11.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_past",
         "Past action without specifying exact time.",
         [],
         "Действие в прошлом без уточнения времени.",
-        [],
+        [
+            ["[kaz-tili.kz] Прошедшее время глагола", "https://www.kaz-tili.kz/glag3.htm"],
+        ],
     );
     setEnRu(map, "analyzerTense_possibleFuture",
         "Probable future action.",
         [],
         "Вероятное будущее действие.",
-        ["https://www.kaz-tili.kz/glag7.htm"],
+        [
+            ["[kaz-tili.kz] Будущее предположительное время глагола", "https://www.kaz-tili.kz/glag7.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_intentionFuture",
         "Future action expressing intention to do something.",
         [],
         "Действие в будущем, выражающее намерение что-либо сделать.",
-        ["https://www.kaz-tili.kz/glag8.htm"],
+        [
+            ["[kaz-tili.kz] Будущее время намерения", "https://www.kaz-tili.kz/glag8.htm"],
+        ]
     );
     setEnRu(map, "analyzerTense_imperativeMood",
         "Urging to action in the form of command, request, advice.",
@@ -71,7 +87,7 @@ function prepareGrammarHelp() {
         [],
     );
     setEnRu(map, "analyzerTense_optativeMood",
-        "Вesire or intention of the speaker or others.",
+        "Desire or intention of the speaker or others.",
         [],
         "Желание или намерение говорящего или другого лица.",
         [],
