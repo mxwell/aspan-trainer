@@ -13,9 +13,15 @@ function setEnRu(map, key, en, enLinks, ru, ruLinks) {
     ]));
 }
 
-function prepareGrammarHelp() {
-    const map = new Map();
-
+function prepareVerbHelp(map) {
+    setEnRu(map, "analyzerTense_infinitive",
+        "Verbs in the infinitive form denote an action, process, or state.",
+        [],
+        "Глаголы в неопределённой форме обозначают действие, процесс или состояние.",
+        [
+            ["[kaz-tili.kz] Неопределённая форма глагола", "https://www.kaz-tili.kz/gl03.htm"],
+        ]
+    );
     setEnRu(map, "analyzerTense_presentTransitive",
         "Habitual actions or certain future. Time determined by context.",
         [],
@@ -92,6 +98,112 @@ function prepareGrammarHelp() {
         "Желание или намерение говорящего или другого лица.",
         [],
     );
+    setEnRu(map, "analyzerTense_pastParticiple",
+        "The past participle is formed from a verb and denotes an action that has already been completed",
+        [],
+        "Причастие прошедшего времени образуется из глагола и обозначает уже выполненное действие",
+        [
+            ["[kaz-tili.kz] Причастия прошедшего времени", "https://www.kaz-tili.kz/prichast1.htm"],
+        ]
+    );
+    setEnRu(map, "analyzerTense_presentParticiple",
+        "The participle is formed from a verb and can indicate an action in the past, present, or future",
+        [],
+        "Причастие образуется из глагола и может указывать на действие в прошлом, настоящем и будущем",
+        [
+            ["[kaz-tili.kz] Причастия настоящего времени", "https://www.kaz-tili.kz/prichast2.htm"],
+        ]
+    );
+    setEnRu(map, "analyzerTense_futureParticiple",
+        "The participle is formed from a verb and can indicate an action in the future",
+        [],
+        "Причастие образуется из глагола и указывает на действие в будущем",
+        [
+            ["[kaz-tili.kz] Причастия будущего времени", "https://www.kaz-tili.kz/prichast3.htm"],
+        ]
+    );
+    setEnRu(map, "analyzerTense_perfectGerund",
+        "The gerund (or adverbial participle) denotes the completeness of an action",
+        [],
+        "Деепричастие обозначает завершённость действия",
+        [
+            ["[kaz-tili.kz] Деепричастия", "https://www.kaz-tili.kz/deeprich.htm"],
+        ]
+    );
+    setEnRu(map, "analyzerTense_continuousGerund",
+        "The gerund (or adverbial participle) denotes the duration of an action",
+        [],
+        "Деепричастие обозначает длительность действия",
+        [
+            ["[kaz-tili.kz] Деепричастия", "https://www.kaz-tili.kz/deeprich.htm"],
+        ]
+    );
+    setEnRu(map, "analyzerTense_intentionGerund",
+        "The gerund (or adverbial participle) has the meaning of purpose",
+        [],
+        "Деепричастие имеет значение цели",
+        [
+            ["[kaz-tili.kz] Деепричастия", "https://www.kaz-tili.kz/deeprich.htm"],
+        ]
+    );
+}
+
+function prepareSeptikHelp(map) {
+    setEnRu(map, "analyzerSeptik_Ilik",
+        "Nouns in the genitive case answer the questions: Kімнің? = Whose? and Ненің? = Of what?",
+        [],
+        "Существительные в родительном падеже отвечают на вопросы: Кімнің? = Кого? (в смысле Чей? Чья? Чьё?) и Ненің? = Чего?",
+        [
+            ["[kaz-tili.kz] Родительный падеж", "https://www.kaz-tili.kz/su_rod1.htm"]
+        ],
+    );
+    setEnRu(map, "analyzerSeptik_Barys",
+        "Nouns in the dative case answer the questions: Кімге? = To whom?, Неге? = To what?, Қайда? Қай жерге? = Where to?",
+        [],
+        "Существительные в дательном (или дательно-направительном) падеже отвечают на вопросы: Кімге? = Кому?, Неге? = Чему?, Қайда? Қай жерге? = Куда?",
+        [
+            ["[kaz-tili.kz] Дательно-направительный падеж", "https://www.kaz-tili.kz/su_mesto3.htm"]
+        ],
+    );
+    setEnRu(map, "analyzerSeptik_Tabys",
+        "Nouns in the accusative case answer the questions: Кімді? = Whom? and Нені? = What?",
+        [],
+        "Существительные в винительном падеже отвечают на вопросы: Кімді? = Кого? и Нені? = Что?",
+        [
+            ["[kaz-tili.kz] Винительный падеж", "https://www.kaz-tili.kz/su_rod2.htm"]
+        ],
+    );
+    setEnRu(map, "analyzerSeptik_Jatys",
+        "Nouns in the local case answer the questions: Кімде? = At whose place?, Неде? = In what?, Қайда? Қай жерде? = Where?, Қашан? = When?",
+        [],
+        "Существительные в местном падеже отвечают на вопросы: Кімде? = У кого?, Неде? = У чего? В чём?, Қайда? Қай жерде? = Где?, Қашан? = Когда?",
+        [
+            ["[kaz-tili.kz] Местный падеж", "https://www.kaz-tili.kz/su_mesto2.htm"]
+        ],
+    );
+    setEnRu(map, "analyzerSeptik_Shygys",
+        "Nouns in the original case answer the questions: Кімнен? = From whom?, Неден? = From what?, Қайдан? Қай жерден? = From where?",
+        [],
+        "Существительные в исходном падеже отвечают на вопросы: Кімнен? = От кого?, Неден? = От чего?, Қайдан? Қай жерден? = Откуда?",
+        [
+            ["[kaz-tili.kz] Исходный падеж", "https://www.kaz-tili.kz/su_mesto1.htm"]
+        ],
+    );
+    setEnRu(map, "analyzerSeptik_Komektes",
+        "Nouns in the instrumental case answer the questions: Кіммен? = With whom?, Немен? = With what? / By what?",
+        [],
+        "Существительные в творительном (или совместном падеже) отвечают на вопросы: Кіммен? = Кем? С кем?, Немен? – Чем? С чем?",
+        [
+            ["[kaz-tili.kz] Творительный падеж", "https://www.kaz-tili.kz/su_tvorit.htm"]
+        ],
+    );
+}
+
+function prepareGrammarHelp() {
+    const map = new Map();
+
+    prepareVerbHelp(map);
+    prepareSeptikHelp(map);
 
     return map;
 }
