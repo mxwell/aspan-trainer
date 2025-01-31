@@ -188,9 +188,20 @@ class AnalyzedPartView extends React.Component {
             ? (<p className="italic">{this.i18n("analyzer_Plural")}</p>)
             : null
         );
-        const wordgen = (
+        const wordgenNameKey = (
             (detectedForm.wordgen != null && detectedForm.wordgen.length > 0)
-            ? (<p className="italic">{this.i18n(`analyzerWordgen_${detectedForm.wordgen}`)}</p>)
+            ? `analyzerWordgen_${detectedForm.wordgen}`
+            : null
+        )
+        const wordgen = (
+            (wordgenNameKey != null)
+            ? (<div className="italic flex flex-row">
+                <span>{this.i18n(wordgenNameKey)}</span>
+                <img
+                    src="/info.svg"
+                    onClick={(e) => this.props.hintCallback(wordgenNameKey)}
+                    className="cursor-pointer px-2" />
+            </div>)
             : null
         );
         const poss = (

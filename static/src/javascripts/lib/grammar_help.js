@@ -199,11 +199,39 @@ function prepareSeptikHelp(map) {
     );
 }
 
+function prepareWordgenHelp(map) {
+    setEnRu(map, "analyzerWordgen_dagy",
+        "Relative adjectives in the Kazakh language are formed by adding the endings of the local case and temporal suffixes to nouns. Such adjectives answer the questions: Қайдағы? = Located where? Which one (that is) where?",
+        [],
+        "Относительные прилагательные образуются через добавление к существительным окончаний местного падежа и временных суффиксов. Такие прилагательные отвечают на вопросы: Қайдағы? = Находящийся где? Который где?",
+        [
+            ["[kaz-tili.kz] Относительные прилагательные", "https://www.kaz-tili.kz/prilag3.htm"]
+        ]
+    );
+    setEnRu(map, "analyzerWordgen_rak",
+        "The comparative degree of adjectives with the meaning of «more»",
+        [],
+        "Сравнительная степень прилагательных со значением «более»",
+        [
+            ["[kaz-tili.kz] Степени сравнения прилагательных", "https://www.kaz-tili.kz/prilag2.htm"]
+        ]
+    );
+    setEnRu(map, "analyzerWordgen_dau",
+        "The comparative degree of adjectives with the meaning of «slightly» or «a little»",
+        [],
+        "Сравнительная степень прилагательных со значением «немного» или «чуть-чуть»",
+        [
+            ["[kaz-tili.kz] Степени сравнения прилагательных", "https://www.kaz-tili.kz/prilag2.htm"]
+        ]
+    );
+}
+
 function prepareGrammarHelp() {
     const map = new Map();
 
     prepareVerbHelp(map);
     prepareSeptikHelp(map);
+    prepareWordgenHelp(map);
 
     return map;
 }
