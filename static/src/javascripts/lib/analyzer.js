@@ -60,6 +60,12 @@ function parseAnalyzeResponse(responseJson) {
 
 function reproduceNoun(dw) {
     let nb = new NounBuilder(dw.base);
+    if (dw.wordgen == "dagy") {
+        if (dw.possPerson != null && dw.possNumber != null) {
+            return nb.possessiveRelatedAdj(dw.possPerson, dw.possNumber);
+        }
+        return nb.relatedAdj();
+    }
     if (dw.possPerson != null && dw.possNumber != null) {
         if (dw.grammarNumber == "Plural") {
             return nb.pluralPossessiveSeptikForm(dw.possPerson, dw.possNumber, dw.septik);
@@ -69,9 +75,6 @@ function reproduceNoun(dw) {
     }
     if (dw.grammarNumber == "Plural") {
         return nb.pluralSeptikForm(dw.septik);
-    }
-    if (dw.wordgen == "dagy") {
-        return nb.relatedAdj();
     }
     return nb.septikForm(dw.septik);
 }
