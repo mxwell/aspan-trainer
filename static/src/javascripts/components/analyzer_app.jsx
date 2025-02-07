@@ -176,8 +176,8 @@ class AnalyzerApp extends React.Component {
         }
     }
 
-    checkToSuggest(lastEntered) {
-        const diff = lastEntered.length - this.state.lastEntered.length;
+    checkToSuggest(lastEntered, prevEntered) {
+        const diff = lastEntered.length - prevEntered.length;
         if (lastEntered.length > 0 && (diff == -1 || diff == 1)) {
             this.suggest(lastEntered);
         }
@@ -233,6 +233,7 @@ class AnalyzerApp extends React.Component {
     }
 
     updateText(change) {
+        const prevEntered = this.state.lastEntered;
         this.setState(
             { lastEntered: change.newText, enableDemo: false },
             () => {
@@ -240,9 +241,10 @@ class AnalyzerApp extends React.Component {
                 wi.selectionStart = change.newSelectionStart;
                 wi.selectionEnd = change.newSelectionStart;
                 wi.focus();
+
+                this.checkToSuggest(change.newText, prevEntered);
             }
         );
-        this.checkToSuggest(change.newText);
     }
 
     onInsert(fragment) {
@@ -261,7 +263,7 @@ class AnalyzerApp extends React.Component {
         let lastEntered = event.target.value;
         const enableDemo = false;
         this.setState({ lastEntered, enableDemo });
-        this.checkToSuggest(lastEntered);
+        this.checkToSuggest(lastEntered, this.state.lastEntered);
     }
 
     /**
@@ -293,7 +295,11 @@ class AnalyzerApp extends React.Component {
         }
         const tab = this.state.tab;
         if (e.key === "Tab") {
-            if (tab) {
+            if (this.state.suggestions.length == 1) {
+                e.preventDefault();
+                this.completeWith(this.state.suggestions[0].completion);
+                return;
+            } else if (tab) {
                 this.setState({ tab: false });
             } else {
                 e.preventDefault();
@@ -377,6 +383,11 @@ class AnalyzerApp extends React.Component {
                 );
                 keyCounter += 1;
             }
+            const tabDigit = (
+                (suggestions.length > 1)
+                ? (<span className="border-2 border-gray-600 px-2 mx-2">{i + 1}</span>)
+                : null
+            );
             htmlParts.push(
                 <div key={keyCounter}
                     className="mx-2 cursor-pointer flex flex-col"
@@ -386,7 +397,7 @@ class AnalyzerApp extends React.Component {
                     </div>
                     <div className="my-2 flex flex-row justify-center text-gray-600 text-xs">
                         <span className="border-2 border-gray-600 px-2">Tab</span>
-                        <span className="border-2 border-gray-600 px-2 mx-2">{i + 1}</span>
+                        {tabDigit}
                     </div>
                 </div>
             );
