@@ -134,7 +134,11 @@ class AnalyzedPartView extends React.Component {
     renderTranslations(detectedForm) {
         if (!this.props.translations) return null;
 
-        const glosses = this.props.lang == I18N_LANG_RU ? detectedForm.ruGlosses : [];
+        const glosses = (
+            this.props.lang == I18N_LANG_RU
+            ? detectedForm.ruGlosses
+            : detectedForm.enGlosses
+        );
         if (glosses.length == 0) return null;
 
         let htmlItems = [];
