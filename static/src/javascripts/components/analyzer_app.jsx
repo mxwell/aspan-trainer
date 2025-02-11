@@ -597,7 +597,7 @@ class AnalyzerApp extends React.Component {
     }
 
     renderIntro() {
-        if (this.state.error || this.state.analyzing) {
+        if (this.state.error || this.state.analyzing || this.state.popupCue != null) {
             return null;
         }
         let msg1 = null;
