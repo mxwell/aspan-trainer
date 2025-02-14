@@ -619,6 +619,32 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    renderLibEntry() {
+        if (this.state.error || this.state.analyzing || this.state.text.length > 0) {
+            return null;
+        }
+        return (
+            <div className="flex flex-row justify-center my-10">
+                <div className="lg:w-1/3">
+                    <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
+                    <ul>
+                        <li className="list-inside">
+                            <a href="#">
+                                <div className="flex flex-row">
+                                    <img className="mx-2 h-12 w-12" src="/book.svg" />
+                                    <div className="flex flex-col">
+                                        <div className="text-lg font-bold">Ер Төстік</div>
+                                        <div className="italic text-gray-700">{this.i18n("heroicTale")}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        );
+    }
+
     renderAnalysisStatus() {
         if (this.state.error) {
             return (
@@ -754,7 +780,7 @@ class AnalyzerApp extends React.Component {
                 {this.renderKeyboard()}
                 {this.renderBreakdown()}
                 {this.renderAnalysisStatus()}
-                {this.renderIntro()}
+                {this.renderLibEntry()}
             </div>
         );
     }

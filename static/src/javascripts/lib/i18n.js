@@ -740,6 +740,15 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Grammar tip",
         "Подсказка по грамматике",
     );
+
+    setEnRu(map, "libTitle",
+        "Library",
+        "Библиотека",
+    );
+    setEnRu(map, "heroicTale",
+        "Heroic tale",
+        "Героическое сказание",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {
