@@ -191,6 +191,17 @@ function gcGetVerbFormExamples(verb, fe, neg, successCallback, errorCallback, co
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetBookChunks(bookId, offset, count, successCallback, errorCallback, context) {
+    const params = {
+        book_id: String(bookId),
+        offset: String(offset),
+        count: String(count),
+    };
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_book_chunks?${query}`;
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 const gcTokenKey = "gc-v1-token";
 
 function parseJwt (token) {
@@ -283,6 +294,7 @@ export {
     gcGetUntranslated,
     gcGetLlmTranslations,
     gcGetVerbFormExamples,
+    gcGetBookChunks,
     parseJwt,
     gcTokenIsValid,
     gcStoreToken,

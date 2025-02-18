@@ -749,6 +749,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Heroic tale",
         "Героическое сказание",
     );
+    setEnRu(map, "bookLoading",
+        "Loading book…",
+        "Загрузка книги…",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {

@@ -4,13 +4,14 @@ import { makeAnalyzeRequest, makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
-import { buildTextAnalyzerUrl, parseParams } from "../lib/url";
+import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
 import { copyToClipboard } from "../lib/clipboard";
 import { ShareButton } from "./share_button";
 import { grammarHelp } from "../lib/grammar_help";
+import { gcGetBookChunks } from "../lib/gc_api";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -42,6 +43,8 @@ class AnalyzerApp extends React.Component {
         this.handleSuggestError = this.handleSuggestError.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
+        this.handleBookChunkResponse = this.handleBookChunkResponse.bind(this);
+        this.handleBookChunkError = this.handleBookChunkError.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onInsert = this.onInsert.bind(this);
         this.onBackspace = this.onBackspace.bind(this);
@@ -53,16 +56,16 @@ class AnalyzerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onHintClick = this.onHintClick.bind(this);
 
-        const urlState = this.readUrlState();
-        if (urlState != null) {
-            this.state = urlState;
-            this.startAnalysis(urlState.text);
-        } else {
-            this.state = this.defaultState();
+        const state = this.readUrlState();
+        this.state = state;
+        if (state.text.length > 0) {
+            this.startAnalysis(state.text);
+        } else if (state.bookId > 0) {
+            this.startBookLoad(state.bookId, state.offset, state.count);
         }
     }
 
-    makeState(text, analyzing) {
+    makeState(text, analyzing, bookId, bookChunkLoading, offset, count) {
         return {
             text: text,
             lastEntered: text,
@@ -76,6 +79,10 @@ class AnalyzerApp extends React.Component {
             error: false,
             breakdown: [],
             popupCue: null,
+            bookId: bookId,
+            bookChunkLoading: bookChunkLoading,
+            offset: offset,
+            count: count,
         };
     }
 
@@ -83,16 +90,43 @@ class AnalyzerApp extends React.Component {
         return this.makeState(
             /* text */ "",
             /* analyzing */ false,
+            /* bookId */ null,
+            /* bookChunkLoading */ false,
+            /* offset */ 0,
+            /* count */ 1,
         );
     }
 
     readUrlState() {
         const params = parseParams();
         const text = params.text;
-        if (text == null || text.length == 0) {
-            return null;
+        if (text != null && text.length > 0) {
+            return this.makeState(
+                text,
+                /* analyzing */ true,
+                /* bookId */ null,
+                /* bookChunkLoading */ false,
+                /* offset */ 0,
+                /* count */ 1,
+            );
         }
-        return this.makeState(text, /* analyzing */ true);
+        const bookIdStr = params.book_id;
+        if (bookIdStr != null && Number(bookIdStr) > 0) {
+            const bookId = Number(bookIdStr);
+            const offsetStr = params.offset || "0";
+            const countStr = params.count || "1";
+            const offset = Number(offsetStr);
+            const count = Number(countStr);
+            return this.makeState(
+                /* text */ "",
+                /* analyzing */ true,
+                bookId,
+                /* bookChunkLoading */ true,
+                offset,
+                count,
+            );
+        }
+        return this.defaultState();
     }
 
     i18n(key) {
@@ -229,6 +263,37 @@ class AnalyzerApp extends React.Component {
             {
                 text: text,
             }
+        );
+    }
+
+    async handleBookChunkResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const chunks = response.chunks;
+        let textParts = [];
+        for (const chunk of chunks) {
+            textParts.push(chunk.content);
+        }
+        const text = textParts.join("\n");
+        const lastEntered = text;
+        const bookChunkLoading = false;
+        this.setState({ text, lastEntered, bookChunkLoading });
+        this.startAnalysis(text);
+    }
+
+    async handleBookChunkError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from /get_book_chunks: ${responseText}, bookId was ${context.bookId}.`);
+        this.setState({ analyzing: false, bookChunkLoading: false, error: true });
+    }
+
+    startBookLoad(bookId, offset, count) {
+        gcGetBookChunks(
+            bookId,
+            offset,
+            count,
+            this.handleBookChunkResponse,
+            this.handleBookChunkError,
+            { bookId }
         );
     }
 
@@ -629,7 +694,7 @@ class AnalyzerApp extends React.Component {
                     <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
                     <ul>
                         <li className="list-inside">
-                            <a href="#">
+                            <a href={buildTextAnalyzerBookUrl(1001, 0, 1, this.props.lang)}>
                                 <div className="flex flex-row">
                                     <img className="mx-2 h-12 w-12" src="/book.svg" />
                                     <div className="flex flex-col">
@@ -645,10 +710,16 @@ class AnalyzerApp extends React.Component {
         );
     }
 
-    renderAnalysisStatus() {
+    renderAppStatus() {
         if (this.state.error) {
             return (
                 <p className="text-center text-2xl text-red-600">{this.i18n("gotError")}</p>
+            );
+        } else if (this.state.bookChunkLoading) {
+            return (
+                <p className="text-center text-2xl text-gray-600">
+                    {this.i18n("bookLoading")}
+                </p>
             );
         } else if (this.state.analyzing) {
             return (
@@ -717,6 +788,20 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    moveBookToOffset(offset) {
+        const bookChunkLoading = true;
+        const analyzing = true;
+        this.setState({ analyzing, bookChunkLoading, offset });
+        this.startBookLoad(this.state.bookId, offset, 1);
+    }
+
+    bookPage(move) {
+        const offset = this.state.offset + move;
+        if (offset >= 0) {
+            this.moveBookToOffset(offset);
+        }
+    }
+
     onHintClick(popupCue) {
         this.setState({ popupCue });
     }
@@ -740,8 +825,23 @@ class AnalyzerApp extends React.Component {
             }
         }
 
+        const addPagination = function(app) {
+            row.push(
+                <div key="only" className={`my-4 flex flex-row text-5xl w-full cursor-pointer text-gray-500 ${rowVisibility}`}>
+                    <div onClick={ (e) => app.bookPage(-1) } className="text-right px-10 bg-gradient-to-l from-gray-100 hover:bg-gray-200 w-1/2">←</div>
+                    <div onClick={ (e) => app.bookPage( 1) } className="px-10 bg-gradient-to-r from-gray-100 hover:bg-gray-200 w-1/2">→</div>
+                </div>
+            );
+            flushRow();
+        }
+
+        const bookId = this.state.bookId;
         const grammar = this.state.grammar;
         const translations = this.state.translations;
+
+        if (bookId > 0) {
+            addPagination(this);
+        }
 
         for (const part of this.state.breakdown) {
             if (part.detectedForms.length == 0 && part.token == "\n") {
@@ -760,6 +860,9 @@ class AnalyzerApp extends React.Component {
             );
         }
         flushRow();
+        if (bookId > 0) {
+            addPagination(this);
+        }
         return (
             <div className="m-4 flex flex-col">
                 {rows}
@@ -779,7 +882,7 @@ class AnalyzerApp extends React.Component {
                 {this.renderForm()}
                 {this.renderKeyboard()}
                 {this.renderBreakdown()}
-                {this.renderAnalysisStatus()}
+                {this.renderAppStatus()}
                 {this.renderLibEntry()}
             </div>
         );
