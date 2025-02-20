@@ -31,6 +31,8 @@ function pickDemoSentence(cur) {
     return pickRandom(DEMO_POOL);
 }
 
+const BOOK101_LEN = 105;
+
 /**
  * props:
  * - lang: string
@@ -45,6 +47,8 @@ class AnalyzerApp extends React.Component {
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
         this.handleBookChunkResponse = this.handleBookChunkResponse.bind(this);
         this.handleBookChunkError = this.handleBookChunkError.bind(this);
+        this.onPageNumberChange = this.onPageNumberChange.bind(this);
+        this.onPageNumberSubmit = this.onPageNumberSubmit.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onInsert = this.onInsert.bind(this);
         this.onBackspace = this.onBackspace.bind(this);
@@ -82,6 +86,7 @@ class AnalyzerApp extends React.Component {
             bookId: bookId,
             bookChunkLoading: bookChunkLoading,
             offset: offset,
+            lastEnteredPage: String(offset + 1),
             count: count,
         };
     }
@@ -789,17 +794,32 @@ class AnalyzerApp extends React.Component {
     }
 
     moveBookToOffset(offset) {
+        if (!(0 <= offset && offset < BOOK101_LEN)) {
+            console.log(`move to offset ${offset} not possible`);
+            return;
+        }
         const bookChunkLoading = true;
         const analyzing = true;
-        this.setState({ analyzing, bookChunkLoading, offset });
+        const lastEnteredPage = String(offset + 1);
+        this.setState({ analyzing, bookChunkLoading, offset, lastEnteredPage });
         this.startBookLoad(this.state.bookId, offset, 1);
     }
 
     bookPage(move) {
         const offset = this.state.offset + move;
-        if (offset >= 0) {
-            this.moveBookToOffset(offset);
-        }
+        this.moveBookToOffset(offset);
+    }
+
+    onPageNumberChange(event) {
+        const lastEnteredPage = event.target.value;
+        this.setState({ lastEnteredPage });
+    }
+
+    onPageNumberSubmit(event) {
+        event.preventDefault();
+        const number = Number(this.state.lastEnteredPage);
+        const offset = number - 1;
+        this.moveBookToOffset(offset);
     }
 
     onHintClick(popupCue) {
@@ -827,9 +847,19 @@ class AnalyzerApp extends React.Component {
 
         const addPagination = function(app) {
             row.push(
-                <div key="only" className={`my-4 flex flex-row text-5xl w-full cursor-pointer text-gray-500 ${rowVisibility}`}>
-                    <div onClick={ (e) => app.bookPage(-1) } className="text-right px-10 bg-gradient-to-l from-gray-100 hover:bg-gray-200 w-1/2">←</div>
-                    <div onClick={ (e) => app.bookPage( 1) } className="px-10 bg-gradient-to-r from-gray-100 hover:bg-gray-200 w-1/2">→</div>
+                <div key="only" className={`my-4 flex flex-row text-5xl w-full text-gray-500 ${rowVisibility}`}>
+                    <div onClick={ (e) => app.bookPage(-1) } className="text-right px-10 bg-gradient-to-l from-gray-100 hover:bg-gray-200 w-1/2 cursor-pointer select-none">←</div>
+                    <form
+                        onSubmit={app.onPageNumberSubmit}
+                        className="flex flex-row text-2xl bg-gray-100 p-3">
+                        <input type="text" size="4" maxLength="5" pattern="\d{1,5}" value={app.state.lastEnteredPage}
+                            onChange={app.onPageNumberChange}
+                            className="shadow appearance-none border rounded px-2 text-center focus:outline-none focus:shadow-outline" />
+                        <span className="p-2">
+                            {app.i18n("ofTotal")}&nbsp;{BOOK101_LEN}
+                        </span>
+                    </form>
+                    <div onClick={ (e) => app.bookPage( 1) } className="px-10 bg-gradient-to-r from-gray-100 hover:bg-gray-200 w-1/2 cursor-pointer select-none">→</div>
                 </div>
             );
             flushRow();

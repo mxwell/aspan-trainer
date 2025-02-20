@@ -753,6 +753,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Loading book…",
         "Загрузка книги…",
     );
+    setEnRu(map, "ofTotal",
+        "of",
+        "из",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {
