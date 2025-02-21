@@ -31,7 +31,7 @@ function pickDemoSentence(cur) {
     return pickRandom(DEMO_POOL);
 }
 
-const BOOK101_LEN = 105;
+const BOOK101_LEN = 187;
 
 /**
  * props:
@@ -846,9 +846,22 @@ class AnalyzerApp extends React.Component {
         }
 
         const addPagination = function(app) {
+            const offset = app.state.offset;
+            const prevColor = (
+                offset > 0
+                ? "text-gray-500 cursor-pointer hover:bg-gray-200"
+                : "text-gray-300"
+            );
+            const nextColor = (
+                (offset + 1 < BOOK101_LEN)
+                ? "text-gray-500 cursor-pointer hover:bg-gray-200"
+                : "text-gray-300"
+            );
             row.push(
-                <div key="only" className={`my-4 flex flex-row text-5xl w-full text-gray-500 ${rowVisibility}`}>
-                    <div onClick={ (e) => app.bookPage(-1) } className="text-right px-10 bg-gradient-to-l from-gray-100 hover:bg-gray-200 w-1/2 cursor-pointer select-none">←</div>
+                <div key="only" className={`my-4 flex flex-row text-5xl w-full ${rowVisibility}`}>
+                    <div
+                        onClick={ (e) => app.bookPage(-1) }
+                        className={`text-right px-10 bg-gradient-to-l from-gray-100 w-1/2 select-none ${prevColor}`}>←</div>
                     <form
                         onSubmit={app.onPageNumberSubmit}
                         className="flex flex-row text-2xl bg-gray-100 p-3">
@@ -859,7 +872,9 @@ class AnalyzerApp extends React.Component {
                             {app.i18n("ofTotal")}&nbsp;{BOOK101_LEN}
                         </span>
                     </form>
-                    <div onClick={ (e) => app.bookPage( 1) } className="px-10 bg-gradient-to-r from-gray-100 hover:bg-gray-200 w-1/2 cursor-pointer select-none">→</div>
+                    <div
+                        onClick={ (e) => app.bookPage(1) }
+                        className={`px-10 bg-gradient-to-r from-gray-100 w-1/2 select-none ${nextColor}`}>→</div>
                 </div>
             );
             flushRow();
