@@ -136,10 +136,16 @@ class DetectedForm {
     }
 }
 
-function collectGlosses(source) {
+function collectGlosses(source, additionalSource) {
     let glosses = [];
     if (source) {
         for (const item of source) {
+            glosses.push(item);
+        }
+    }
+    if (additionalSource) {
+        for (const item of additionalSource) {
+            if (glosses.length >= 8) break;
             glosses.push(item);
         }
     }
@@ -180,8 +186,8 @@ function unpackResponseWordWithPos(word) {
     const possPerson = getGrammarPerson(parts[5]);
     const possNumber = getGrammarNumber(parts[6]);
     const wordgen = parts[7];
-    let ruGlosses = collectGlosses(meta.ruwkt);
-    let enGlosses = collectGlosses(meta.enwkt);
+    let ruGlosses = collectGlosses(meta.ruwkt, meta.rutr);
+    let enGlosses = collectGlosses(meta.enwkt, meta.entr);
     return new DetectedForm(
         pos,
         base,
