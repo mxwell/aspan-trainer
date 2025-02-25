@@ -281,7 +281,12 @@ class AnalyzerApp extends React.Component {
         const text = textParts.join("\n");
         const lastEntered = text;
         const bookChunkLoading = false;
-        this.setState({ text, lastEntered, bookChunkLoading });
+        this.setState(
+            { text, lastEntered, bookChunkLoading },
+            () => {
+                window.scrollTo(0, 0);
+            }
+        );
         this.startAnalysis(text);
     }
 
