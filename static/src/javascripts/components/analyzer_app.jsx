@@ -552,9 +552,10 @@ class AnalyzerApp extends React.Component {
         const newUrl = buildTextAnalyzerUrl(lastEntered, this.props.lang);
         window.history.pushState(null, "", newUrl);
 
+        const text = lastEntered;
         const suggestions = [];
         const analyzing = true;
-        this.setState({ suggestions, analyzing });
+        this.setState({ text, suggestions, analyzing });
         this.startAnalysis(lastEntered);
     }
 
