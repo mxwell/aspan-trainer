@@ -32,6 +32,7 @@ function pickDemoSentence(cur) {
 }
 
 const BOOK101_LEN = 187;
+const BOOK_TITLE = "Ер Төстік";
 
 /**
  * props:
@@ -709,7 +710,7 @@ class AnalyzerApp extends React.Component {
                                 <div className="flex flex-row">
                                     <img className="mx-2 h-12 w-12" src="/book.svg" />
                                     <div className="flex flex-col">
-                                        <div className="text-lg font-bold">Ер Төстік</div>
+                                        <div className="text-lg font-bold">{BOOK_TITLE}</div>
                                         <div className="italic text-gray-700">{this.i18n("heroicTale")}</div>
                                     </div>
                                 </div>
@@ -851,6 +852,15 @@ class AnalyzerApp extends React.Component {
             }
         }
 
+        const addBookTitle = function() {
+            row.push(
+                <div key="only" className="w-full my-2 text-4xl italic text-gray-500 text-center">
+                    {BOOK_TITLE}
+                </div>
+            );
+            flushRow();
+        };
+
         const addPagination = function(app) {
             const offset = app.state.offset;
             const prevColor = (
@@ -891,6 +901,7 @@ class AnalyzerApp extends React.Component {
         const translations = this.state.translations;
 
         if (bookId > 0) {
+            addBookTitle();
             addPagination(this);
         }
 
