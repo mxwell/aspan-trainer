@@ -809,6 +809,8 @@ class AnalyzerApp extends React.Component {
         const analyzing = true;
         const lastEnteredPage = String(offset + 1);
         this.setState({ analyzing, bookChunkLoading, offset, lastEnteredPage });
+        const newUrl = buildTextAnalyzerBookUrl(1001, offset, 1, this.props.lang);
+        window.history.pushState(null, "", newUrl);
         this.startBookLoad(this.state.bookId, offset, 1);
     }
 
