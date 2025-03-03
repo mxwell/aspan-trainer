@@ -21,9 +21,6 @@ class AnalyzedPartView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onPrev = this.onPrev.bind(this);
-        this.onNext = this.onNext.bind(this);
-
         this.state = { index: 0 };
     }
 
@@ -40,24 +37,6 @@ class AnalyzedPartView extends React.Component {
                 </div>
             </div>
         );
-    }
-
-    onPrev(event) {
-        event.preventDefault();
-        let index = this.state.index;
-        if (index > 0) {
-            index -= 1;
-        }
-        this.setState({ index });
-    }
-
-    onNext(event) {
-        event.preventDefault();
-        let index = this.state.index;
-        if (index + 1 < this.props.analyzedPart.detectedForms.length) {
-            index += 1;
-        }
-        this.setState({ index });
     }
 
     getFormNameKey(pos, detectedForm) {
@@ -96,38 +75,43 @@ class AnalyzedPartView extends React.Component {
         }
     }
 
-    renderBaseWithChevrons(base, index, total) {
-        const hasPrev = index > 0;
-        const hasNext = index + 1 < total;
-        if (!hasPrev && !hasNext) {
-            return (
-                <strong
-                    className="cursor-pointer text-center"
-                    onClick={(e) => { copyToClipboard(base); }}>
-                    {base}
-                </strong>
+    selectForm(index) {
+        this.setState({ index });
+    }
+
+    renderTabs(detectedForms, index) {
+        if (detectedForms.length < 2) {
+            return null;
+        }
+        const htmlParts = [];
+        for (const formIndex in detectedForms) {
+            const pos = detectedForms[formIndex].pos;
+            const name = this.i18n(`shrt_${pos}`);
+            const spanClass = (
+                formIndex == index
+                ? "mx-1 px-1 border-2 bg-white border-blue-400 text-blue-400 select-none cursor-default shadow-md"
+                : "mx-1 px-1 border-2 bg-white border-gray-500 text-gray-500 select-none cursor-pointer shadow-md"
+            )
+            htmlParts.push(
+                <span key={htmlParts.length} className={spanClass} onClick={() => this.selectForm(formIndex)}>
+                    {name}
+                </span>
             );
         }
-        const prevButton = (
-            hasPrev
-            ? (<button className="px-1" onClick={this.onPrev}>&lt;</button>)
-            : <span className="px-1 text-white">&lt;</span>
-        );
-        const nextButton = (
-            hasNext
-            ? (<button className="px-1" onClick={this.onNext}>&gt;</button>)
-            : <span className="px-1 text-white">&gt;</span>
-        );
         return (
-            <div className="flex flex-row justify-between wider-analyzed-part">
-                {prevButton}
-                <strong
-                    className="cursor-pointer"
-                    onClick={(e) => { copyToClipboard(base); }}>
-                    {base}
-                </strong>
-                {nextButton}
+            <div className="flex flex-row justify-evenly pb-4">
+                {htmlParts}
             </div>
+        );
+    }
+
+    renderBase(base) {
+        return (
+            <strong
+                className="cursor-pointer text-center"
+                onClick={(e) => { copyToClipboard(base); }}>
+                {base}
+            </strong>
         );
     }
 
@@ -154,10 +138,12 @@ class AnalyzedPartView extends React.Component {
         );
     }
 
-    renderDetails(detectedForm, index, total) {
+    renderDetails(detectedForms, index, total) {
         if (!this.props.grammar) return null;
 
-        const base = this.renderBaseWithChevrons(detectedForm.base, index, total);
+        const tabs = this.renderTabs(detectedForms, index);
+        const detectedForm = detectedForms[index];
+        const base = this.renderBase(detectedForm.base, index, total);
         const pos = detectedForm.pos;
         const posName = this.i18n(`pos_${pos}`);
         const exceptionalClause = (
@@ -215,6 +201,7 @@ class AnalyzedPartView extends React.Component {
         );
         return (
             <div className="flex flex-col border-2 border-gray-300 text-sm p-2">
+                {tabs}
                 {base}
                 <p className="">{posName}</p>
                 {exceptionalClause}
@@ -229,14 +216,14 @@ class AnalyzedPartView extends React.Component {
         );
     }
 
-    renderWithAnalysis(detectedForm, index, total) {
+    renderWithAnalysis(detectedForms, index, total) {
         return (
             <div
                 className="flex flex-col justify-top">
                 <div className="text-center text-2xl bg-gray-200 mt-10">
-                    {this.highlightDetectedForm(detectedForm)}
+                    {this.highlightDetectedForm(detectedForms[index])}
                 </div>
-                {this.renderDetails(detectedForm, index, total)}
+                {this.renderDetails(detectedForms, index, total)}
             </div>
         );
     }
@@ -249,7 +236,7 @@ class AnalyzedPartView extends React.Component {
         if (index >= total) {
             return this.renderWithoutAnalysis(analyzedPart.token);
         }
-        return this.renderWithAnalysis(detectedForms[index], index, total);
+        return this.renderWithAnalysis(detectedForms, index, total);
     }
 }
 

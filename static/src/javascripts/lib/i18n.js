@@ -757,6 +757,50 @@ function prepareAnalyzerOnlyTranslations(map) {
         "of",
         "из",
     );
+    setEnRu(map, "shrt_n",
+        "noun",
+        "сущ",
+    );
+    setEnRu(map, "shrt_v",
+        "verb",
+        "глаг",
+    );
+    setEnRu(map, "shrt_j",
+        "adj",
+        "прил",
+    );
+    setEnRu(map, "shrt_b",
+        "adv",
+        "нареч",
+    );
+    setEnRu(map, "shrt_p",
+        "pron",
+        "мест",
+    );
+    setEnRu(map, "shrt_i",
+        "int",
+        "межд",
+    );
+    setEnRu(map, "shrt_o",
+        "onom",
+        "оном",
+    );
+    setEnRu(map, "shrt_l",
+        "num",
+        "числ",
+    );
+    setEnRu(map, "shrt_c",
+        "conj",
+        "союз",
+    );
+    setEnRu(map, "shrt_e",
+        "prep",
+        "предл",
+    );
+    setEnRu(map, "shrt_t",
+        "part",
+        "част",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {
