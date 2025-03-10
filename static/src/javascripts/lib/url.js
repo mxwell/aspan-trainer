@@ -160,7 +160,7 @@ function buildVerbFormAudioUrl(verb, fe, text) {
     if (fe == true) {
         params.push(`fe=1`);
     }
-    return buildUrl("https://kazakhverb.khairulin.com/api/v1/tts", params);
+    return buildUrl("/unapi/v1/tts", params);
 }
 
 function buildVerbGymUrl(lang) {
