@@ -16,7 +16,6 @@ import {
     buildExplanationUrl,
     buildGcLandingUrl,
     buildParticipleDeclensionUrl,
-    buildVerbDetectorUrl,
     buildVerbFormAudioUrl,
     buildVerbGymUrl,
     buildViewerUrl2,
@@ -602,7 +601,6 @@ class ViewerApp extends React.Component {
             makeDetectRequest(
                 verb,
                 /* suggest */ false,
-                /* onlyVerbs */ false,
                 this.handleDetectResponse,
                 this.handleDetectError,
                 { params, verb }
@@ -1309,24 +1307,6 @@ class ViewerApp extends React.Component {
                     </table>
                     <a
                         href={verbLink}>
-                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
-                            {this.i18n("tryOut")}&nbsp;→
-                        </h2>
-                    </a>
-                </div>
-                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
-                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
-                        {this.i18n("title_verb_detector")}
-                    </h1>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
-                        {verbForm}
-                    </h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-700">
-                        {verb}
-                    </h2>
-                    <a
-                        href={buildVerbDetectorUrl(verbForm, lang)}>
                         <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
                             {this.i18n("tryOut")}&nbsp;→
                         </h2>

@@ -66,14 +66,6 @@ function buildExplanationUrl(verb, tense, sentenceType, forceExceptional, person
     return buildUrl(path, params);
 }
 
-function buildVerbDetectorUrl(form, lang) {
-    let params = [
-        `form=${encodeURI(form)}`,
-    ];
-    const path = `/verb_detector_${lang}.html`;
-    return buildUrl(path, params);
-}
-
 function buildCommonTextAnalyzerUrl(params, lang) {
     const path = `/text_analyzer_${lang}.html`;
     return buildUrl(path, params);
@@ -253,7 +245,6 @@ export {
     buildDeclensionUrl,
     buildParticipleDeclensionUrl,
     buildExplanationUrl,
-    buildVerbDetectorUrl,
     buildTextAnalyzerUrl,
     buildTextAnalyzerBookUrl,
     buildDictUrl,

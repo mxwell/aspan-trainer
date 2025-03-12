@@ -14,7 +14,6 @@ parcel build static/src/html/about_{en,kk,ru}.pug
 parcel build static/src/html/dict_{en,ru}.pug
 parcel build static/src/html/present_top_{en,ru}.pug
 parcel build static/src/html/text_analyzer_{en,ru}.pug
-parcel build static/src/html/verb_detector_{en,ru}.pug
 parcel build static/src/html/verb_gym_{en,ru}.pug
 parcel build static/src/html/declension_{en,ru}.pug
 parcel build static/src/html/explanation_{en,ru}.pug

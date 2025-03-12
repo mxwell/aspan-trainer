@@ -185,7 +185,6 @@ class AnalyzerApp extends React.Component {
         makeDetectRequest(
             fragment,
             /* suggest */ true,
-            /* onlyVerbs */ false,
             this.handleSuggestResponse,
             this.handleSuggestError,
             { fragment }

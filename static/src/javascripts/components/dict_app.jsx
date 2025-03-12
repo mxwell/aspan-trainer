@@ -129,11 +129,9 @@ class DictApp extends React.Component {
     }
 
     lookup(word, suggest) {
-        const onlyVerbs = false;
         makeDetectRequest(
             word,
             suggest,
-            onlyVerbs,
             this.handleDetectResponse,
             this.handleDetectError,
             { word }
