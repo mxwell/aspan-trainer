@@ -51,4 +51,6 @@ mv "${OUTPUT_DIR}/posts_en.html" "${EN_POSTS}/index.html"
 mv "${OUTPUT_DIR}/post_llm_vocab_en.html" "${EN_POSTS}/llm_vocab.html"
 mv "${OUTPUT_DIR}/post_dict_bench_en.html" "${EN_POSTS}/dict_bench.html"
 
+cp static/src/robots.txt $OUTPUT_DIR/
+
 echo "Output files are put under ${OUTPUT_DIR}"

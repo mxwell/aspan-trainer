@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /login_en.html
+Disallow: /login_ru.html
+Disallow: /explanation_en.html
+Disallow: /explanation_ru.html
+Disallow: /gc_create_en.html
+Disallow: /gc_create_ru.html
+Disallow: /gc_reviews_en.html
+Disallow: /gc_reviews_ru.html
+Disallow: /dict_en.html
+Disallow: /dict_ru.html
