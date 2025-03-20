@@ -61,6 +61,10 @@ class AnalyzerApp extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onHintClick = this.onHintClick.bind(this);
 
+        this.onPlayerReady = this.onPlayerReady.bind(this);
+        this.onPlayerStateChange = this.onPlayerStateChange.bind(this);
+        this.loadVideo = this.loadVideo.bind(this);
+
         const state = this.readUrlState();
         this.state = state;
         if (state.text.length > 0) {
@@ -70,7 +74,7 @@ class AnalyzerApp extends React.Component {
         }
     }
 
-    makeState(text, analyzing, bookId, bookChunkLoading, offset, count) {
+    makeState(text, analyzing, bookId, bookChunkLoading, offset, count, videoId) {
         return {
             text: text,
             lastEntered: text,
@@ -89,6 +93,7 @@ class AnalyzerApp extends React.Component {
             offset: offset,
             lastEnteredPage: String(offset + 1),
             count: count,
+            videoId: videoId,
         };
     }
 
@@ -100,6 +105,7 @@ class AnalyzerApp extends React.Component {
             /* bookChunkLoading */ false,
             /* offset */ 0,
             /* count */ 1,
+            /* videoId */ null,
         );
     }
 
@@ -114,6 +120,7 @@ class AnalyzerApp extends React.Component {
                 /* bookChunkLoading */ false,
                 /* offset */ 0,
                 /* count */ 1,
+                /* videoId */ null,
             );
         }
         const bookIdStr = params.book_id;
@@ -130,6 +137,19 @@ class AnalyzerApp extends React.Component {
                 /* bookChunkLoading */ true,
                 offset,
                 count,
+                /* videoId */ null,
+            );
+        }
+        const videoIdStr = params.video_id;
+        if (videoIdStr != null && videoIdStr.length > 0) {
+            return this.makeState(
+                /* text */ "",
+                /* analyzing */ true,
+                /* bookId */ null,
+                /* bookChunkLoading */ false,
+                /* offset */ 0,
+                /* count */ 1,
+                /* videoId */ videoIdStr,
             );
         }
         return this.defaultState();
@@ -631,6 +651,17 @@ class AnalyzerApp extends React.Component {
         }
     }
 
+    renderVideo() {
+        if (this.state.videoId == null) {
+            return null;
+        }
+        return (
+            <div className="p-6 flex flex-row justify-center">
+                <div id="player"></div>
+            </div>
+        );
+    }
+
     renderForm() {
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
@@ -942,6 +973,7 @@ class AnalyzerApp extends React.Component {
                         {this.i18n("titleTextAnalyzer")}
                     </a>
                 </h1>
+                {this.renderVideo()}
                 {this.renderForm()}
                 {this.renderKeyboard()}
                 {this.renderBreakdown()}
@@ -949,6 +981,50 @@ class AnalyzerApp extends React.Component {
                 {this.renderLibEntry()}
             </div>
         );
+    }
+
+    onPlayerReady(event) {
+        console.log("onPlayerReady called");
+    }
+
+    onPlayerStateChange(event) {
+        console.log("onPlayerStateChange called");
+
+        let state = this.player.getPlayerState();
+        let currentTime = this.player.getCurrentTime();
+        console.log(`state ${state}, current time ${currentTime}`);
+    }
+
+    loadVideo() {
+        const videoId = this.state.videoId;
+        console.log(`Creating YT player for ${videoId}`);
+        this.player = new window.YT.Player("player", {
+            videoId: videoId,
+            events: {
+                onReady: this.onPlayerReady,
+                onStateChange: this.onPlayerStateChange,
+            },
+        });
+    }
+
+    componentDidMount() {
+        if (this.state.videoId == null) {
+            return;
+        }
+
+        /* the code is from https://stackoverflow.com/a/54921282/2622071 */
+        if (!window.YT) {
+            console.log("Creating YT iFrame");
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+
+            window.onYouTubeIframeAPIReady = this.loadVideo;
+
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        } else {
+            this.loadVideo();
+        }
     }
 }
 
