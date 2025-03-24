@@ -11,7 +11,7 @@ import { checkForEmulation } from "../lib/layout";
 import { copyToClipboard } from "../lib/clipboard";
 import { ShareButton } from "./share_button";
 import { grammarHelp } from "../lib/grammar_help";
-import { gcGetBookChunks } from "../lib/gc_api";
+import { gcGetBookChunks, gcGetVideoSubtitles } from "../lib/gc_api";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -34,6 +34,11 @@ function pickDemoSentence(cur) {
 const BOOK101_LEN = 187;
 const BOOK_TITLE = "Ер Төстік";
 
+const VIDEO_UNSTARTED = -1;
+const VIDEO_ENDED = 0;
+const VIDEO_PLAYING = 1;
+const VIDEO_PAUSED = 2;
+
 /**
  * props:
  * - lang: string
@@ -48,12 +53,17 @@ class AnalyzerApp extends React.Component {
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
         this.handleBookChunkResponse = this.handleBookChunkResponse.bind(this);
         this.handleBookChunkError = this.handleBookChunkError.bind(this);
+        this.handleSubtitlesResponse = this.handleSubtitlesResponse.bind(this);
+        this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
         this.onPageNumberChange = this.onPageNumberChange.bind(this);
         this.onPageNumberSubmit = this.onPageNumberSubmit.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onInsert = this.onInsert.bind(this);
         this.onBackspace = this.onBackspace.bind(this);
         this.onKeyboardClick = this.onKeyboardClick.bind(this);
+        this.onToSubtitleStart = this.onToSubtitleStart.bind(this);
+        this.onPlayClick = this.onPlayClick.bind(this);
+        this.onPauseClick = this.onPauseClick.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDemo = this.onDemo.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
@@ -94,6 +104,13 @@ class AnalyzerApp extends React.Component {
             lastEnteredPage: String(offset + 1),
             count: count,
             videoId: videoId,
+            videoPosMs: -1,
+            subtitlesLoading: false,
+            subStartMs: -1,
+            subEndMs: -1,
+            subtitles: [],
+            subIndex: 0,
+            videoState: VIDEO_UNSTARTED,
         };
     }
 
@@ -144,7 +161,7 @@ class AnalyzerApp extends React.Component {
         if (videoIdStr != null && videoIdStr.length > 0) {
             return this.makeState(
                 /* text */ "",
-                /* analyzing */ true,
+                /* analyzing */ false,
                 /* bookId */ null,
                 /* bookChunkLoading */ false,
                 /* offset */ 0,
@@ -651,18 +668,91 @@ class AnalyzerApp extends React.Component {
         }
     }
 
-    renderVideo() {
-        if (this.state.videoId == null) {
-            return null;
+    onToSubtitleStart(e) {
+        e.preventDefault();
+        const subIndex = this.state.subIndex;
+        if (subIndex < 0) {
+            console.log("no subtitle selected");
+            return;
+        }
+        const subtitles = this.state.subtitles;
+        if (subIndex >= subtitles.length) {
+            console.log("out of range sub index");
+            return;
+        }
+        const positionMs = subtitles[subIndex].start_ms;
+        console.log(`YT: seek to ${positionMs} ms`);
+        this.player.seekTo((positionMs - 900) / 1000, /* allowSeekAhead */ true);
+    }
+
+    onPlayClick(e) {
+        e.preventDefault();
+        this.player.playVideo();
+    }
+
+    onPauseClick(e) {
+        e.preventDefault();
+        this.player.pauseVideo();
+    }
+
+    renderVideoControls() {
+        const videoState = this.state.videoState;
+        let controlClick = null;
+        let controlImg = null;
+        if (videoState == VIDEO_PAUSED || videoState == VIDEO_UNSTARTED || videoState == VIDEO_ENDED) {
+            controlClick = this.onPlayClick;
+            controlImg = "/play48.svg";
+        } else {
+            controlClick = this.onPauseClick;
+            controlImg = "/pause48.svg";
         }
         return (
-            <div className="p-6 flex flex-row justify-center">
+            <div className="flex flex-row">
+                <button
+                    type="button"
+                    onClick={this.onToSubtitleStart}
+                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    <img src="/skip_prev48.svg" alt="seek to subtitle start" className="h-12" />
+                </button>
+                <button
+                    type="button"
+                    onClick={controlClick}
+                    className="mx-2 bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                    <img src={controlImg} alt="play or pause" className="h-12" />
+                </button>
+            </div>
+        );
+    }
+
+    renderVideoForm() {
+        return (
+            <div className="p-6 flex flex-row">
                 <div id="player"></div>
+                <form onSubmit={this.onSubmit} className="px-3 flex flex-col">
+                    <textarea
+                        ref="textInput"
+                        rows="8"
+                        onChange={this.onChange}
+                        onKeyDown={this.onKeyDown}
+                        value={this.state.lastEntered}
+                        maxLength="2048"
+                        required
+                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                        placeholder={this.i18n("hintEnterTextForAnalysis")}
+                        />
+                    <div className="p-2 flex flex-row justify-between">
+                        {this.renderVideoControls()}
+                        {this.renderControls()}
+                    </div>
+                </form>
             </div>
         );
     }
 
     renderForm() {
+        if (this.state.videoId != null) {
+            return this.renderVideoForm();
+        }
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                 <textarea
@@ -727,7 +817,7 @@ class AnalyzerApp extends React.Component {
     }
 
     renderLibEntry() {
-        if (this.state.error || this.state.analyzing || this.state.text.length > 0) {
+        if (this.state.error || this.state.analyzing || this.state.text.length > 0 || this.state.videoId != null) {
             return null;
         }
         return (
@@ -973,7 +1063,6 @@ class AnalyzerApp extends React.Component {
                         {this.i18n("titleTextAnalyzer")}
                     </a>
                 </h1>
-                {this.renderVideo()}
                 {this.renderForm()}
                 {this.renderKeyboard()}
                 {this.renderBreakdown()}
@@ -983,16 +1072,132 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    async handleSubtitlesResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        const subtitles = response.subtitles;
+
+        const subStartMs = context.startMs;
+        let subEndMs = context.endMs;
+        if (subtitles.length >= 100) {
+            subEndMs = subtitles[subtitles.length - 1].end_ms;
+        }
+        const subtitlesLoading = false;
+        let subIndex = -1;
+        let lastEntered = "";
+        const posMs = this.state.videoPosMs;
+        for (const index in subtitles) {
+            const sub = subtitles[index];
+            if (sub.start_ms <= posMs && posMs <= sub.end_ms) {
+                subIndex = index;
+                lastEntered = sub.content;
+                break;
+            }
+        }
+        const error = false;
+
+        console.log(`Loaded ${subtitles.length} subtitles covering [${subStartMs}, ${subEndMs}], cur subIndex ${subIndex}`);
+        this.setState(
+            {
+                lastEntered,
+                error,
+                subtitlesLoading,
+                subStartMs,
+                subEndMs,
+                subtitles,
+                subIndex,
+            }
+        );
+        this.startAnalysis(lastEntered);
+    }
+
+    async handleSubtitlesError(context, responseTextPromise) {
+        let responseText = await responseTextPromise;
+        console.log(`Got error from /get_video_subtitles: ${responseText}, range [${context.startMs}, ${context.endMs}]`);
+        this.setState({ analyzing: false, subtitlesLoading: false, error: true, subStartMs: context.startMs, subEndMs: context.endMs });
+    }
+
+    loadSubtitlesIfNeeded(positionMs) {
+        const loadedStart = this.state.subStartMs;
+        const loadedEnd = this.state.subEndMs;
+        if (loadedStart <= positionMs && positionMs <= loadedEnd) {
+            // no need to load if we have subtitles for the next 10 seconds
+            if (positionMs + 10000 < loadedEnd) {
+                return;
+            }
+        }
+        const startMs = positionMs;
+        const endMs = positionMs + 60000;  // load next 60 seconds
+        this.setState({ subtitlesLoading: true });
+        gcGetVideoSubtitles(
+            this.state.videoId,
+            startMs,
+            endMs,
+            this.handleSubtitlesResponse, // TODO
+            this.handleSubtitlesError,
+            { startMs, endMs }
+        );
+    }
+
+    advanceSubtitle() {
+        const state = this.player.getPlayerState();
+        const positionSeconds = this.player.getCurrentTime();
+        const positionMs = Math.floor(positionSeconds * 1000);
+
+        const curIndex = this.state.subIndex;
+        const subtitles = this.state.subtitles;
+        for (let index = curIndex + 1; index < subtitles.length; ++index) {
+            const sub = subtitles[index];
+            if (sub.start_ms > positionMs) {
+                break;
+            }
+            if (sub.end_ms >= positionMs) {
+                const lastEntered = sub.content;
+                const subIndex = index;
+                console.log(`Advance sub to ${positionMs} ms: ${curIndex} -> ${subIndex}`);
+                this.setState(
+                    {
+                        lastEntered,
+                        subIndex,
+                    }
+                );
+                this.startAnalysis(lastEntered);
+                break;
+            }
+        }
+
+        if (state == window.YT.PlayerState.PLAYING) {
+            setTimeout(() => {
+                this.advanceSubtitle();
+            }, 500);
+        }
+    }
+
+    getPositionAndLoadSubtitlesIfNeeded() {
+        let videoState = this.player.getPlayerState();
+        if (videoState != this.state.videoState) {
+            this.setState({ videoState });
+        }
+        let positionSeconds = this.player.getCurrentTime();
+        let positionMs = Math.floor(positionSeconds * 1000);
+        // console.log(`YT: pos ${positionMs} ms`);
+        this.loadSubtitlesIfNeeded(positionMs);
+        if (videoState == VIDEO_PLAYING) {
+            // console.log(`setting timers for subtitles`);
+            setTimeout(() => {
+                this.getPositionAndLoadSubtitlesIfNeeded();
+            }, 10000);
+            setTimeout(() => {
+                this.advanceSubtitle();
+            }, 500);
+        }
+    }
+
     onPlayerReady(event) {
-        console.log("onPlayerReady called");
+        console.log("YT: ready");
     }
 
     onPlayerStateChange(event) {
-        console.log("onPlayerStateChange called");
-
-        let state = this.player.getPlayerState();
-        let currentTime = this.player.getCurrentTime();
-        console.log(`state ${state}, current time ${currentTime}`);
+        this.getPositionAndLoadSubtitlesIfNeeded();
     }
 
     loadVideo() {

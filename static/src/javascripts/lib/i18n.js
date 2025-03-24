@@ -801,6 +801,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "part",
         "част",
     );
+    setEnRu(map, "shrt_s",
+        "postp",
+        "послел",
+    );
 }
 
 function prepareDictOnlyTranslations(map) {
