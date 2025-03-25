@@ -11,7 +11,7 @@ class InvalidAuthTokenException extends Error {
     }
 }
 
-function makeGenericApiRequest(method, url, params, successCallback, errorCallback, context, idToken, expectJson) {
+function makeGenericApiRequest(method, url, params, rawBody, successCallback, errorCallback, context, idToken, expectJson) {
     if (method !== "GET" && method !== "POST") {
         throw "unsupported http method " + method;
     }
@@ -28,7 +28,11 @@ function makeGenericApiRequest(method, url, params, successCallback, errorCallba
         headers: headers,
     };
     if (method == "POST") {
-        fetchParams["body"] = JSON.stringify(params);
+        if (rawBody != null) {
+            fetchParams["body"] = rawBody;
+        } else {
+            fetchParams["body"] = JSON.stringify(params);
+        }
     }
     fetch(url, fetchParams)
         .then((response) => {
@@ -44,11 +48,15 @@ function makeGenericApiRequest(method, url, params, successCallback, errorCallba
 }
 
 function makeGetApiRequest(url, successCallback, errorCallback, context, idToken, expectJson) {
-    makeGenericApiRequest("GET", url, null, successCallback, errorCallback, context, idToken, expectJson);
+    makeGenericApiRequest("GET", url, null, null, successCallback, errorCallback, context, idToken, expectJson);
 }
 
 function makeJsonApiRequest(url, params, successCallback, errorCallback, context, idToken, expectJson) {
-    makeGenericApiRequest("POST", url, params, successCallback, errorCallback, context, idToken, expectJson);
+    makeGenericApiRequest("POST", url, params, null, successCallback, errorCallback, context, idToken, expectJson);
+}
+
+function makePostRawBodyRequest(url, rawBody, successCallback, errorCallback, context, idToken, expectJson) {
+    makeGenericApiRequest("POST", url, null, rawBody, successCallback, errorCallback, context, idToken, expectJson);
 }
 
 /* copied from https://stackoverflow.com/a/111545 */
@@ -83,6 +91,11 @@ function makeAnalyzeRequest(lastEntered, successCallback, errorCallback, context
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function makeAnalyzeSubRequest(wordsRawBody, successCallback, errorCallback, context) {
+    const url = "/analyze_sub";
+    makePostRawBodyRequest(url, wordsRawBody, successCallback, errorCallback, context, "lala", true);
+}
+
 function loadTopList(successCallback, errorCallback) {
     const url = `/present_top100_ru_en.colonsv`;
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", false);
@@ -96,5 +109,6 @@ export {
     makeSuggestRequest,
     makeDetectRequest,
     makeAnalyzeRequest,
+    makeAnalyzeSubRequest,
     loadTopList,
 };

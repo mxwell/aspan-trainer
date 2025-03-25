@@ -39,9 +39,11 @@ function tokenize(input) {
 }
 
 class AnalyzedPart {
-    constructor(token, detectedForms) {
+    constructor(token, detectedForms, startTime, endTime) {
         this.token = token;
         this.detectedForms = detectedForms;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 }
 
@@ -53,7 +55,7 @@ function parseAnalyzeResponse(responseJson) {
     let result = [];
     for (const part of parts) {
         let detectedForms = unpackDetectResponseWithPos(part.forms);
-        result.push(new AnalyzedPart(part.text, detectedForms));
+        result.push(new AnalyzedPart(part.text, detectedForms, part.startTime, part.endTime));
     }
     return result;
 }

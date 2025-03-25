@@ -14,6 +14,7 @@ function copyToClipboard(text) {
  * - analyzedPart: AnalyzedPart
  * - grammar: bool
  * - translations: bool
+ * - highlight: bool
  * - hintCallback: function(cue: string)
  * - lang
  */
@@ -29,10 +30,15 @@ class AnalyzedPartView extends React.Component {
     }
 
     renderWithoutAnalysis(content) {
+        const divClass = (
+            this.props.highlight
+            ? "text-center text-2xl bg-gray-400 mt-10"
+            : "text-center text-2xl bg-gray-200 mt-10"
+        );
         return (
             <div
                 className="flex flex-col justify-top">
-                <div className="text-center text-2xl bg-gray-200 mt-10">
+                <div className={divClass}>
                     <pre>{content}</pre>
                 </div>
             </div>
@@ -217,10 +223,15 @@ class AnalyzedPartView extends React.Component {
     }
 
     renderWithAnalysis(detectedForms, index, total) {
+        const divClass = (
+            this.props.highlight
+            ? "text-center text-2xl bg-gray-400 mt-10"
+            : "text-center text-2xl bg-gray-200 mt-10"
+        );
         return (
             <div
                 className="flex flex-col justify-top">
-                <div className="text-center text-2xl bg-gray-200 mt-10">
+                <div className={divClass}>
                     {this.highlightDetectedForm(detectedForms[index])}
                 </div>
                 {this.renderDetails(detectedForms, index, total)}

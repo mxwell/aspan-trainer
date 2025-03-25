@@ -1,6 +1,6 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { makeAnalyzeRequest, makeDetectRequest } from "../lib/requests";
+import { makeAnalyzeRequest, makeAnalyzeSubRequest, makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
@@ -110,6 +110,7 @@ class AnalyzerApp extends React.Component {
             subEndMs: -1,
             subtitles: [],
             subIndex: 0,
+            partIndex: -1,
             videoState: VIDEO_UNSTARTED,
         };
     }
@@ -271,26 +272,30 @@ class AnalyzerApp extends React.Component {
                 }
             }
             if (filteredForms.length > 0) {
-                filteredParts.push(new AnalyzedPart(part.token, filteredForms));
+                filteredParts.push(new AnalyzedPart(part.token, filteredForms, part.startTime, part.endTime));
             } else {
                 /*
                  * Split unrecognized content into lines and insert parts with "\n" in-between,
                  * so that we can split the breakdown into flex-rows during rendering.
                  */
                 const lines = part.token.split("\n");
-                filteredParts.push(new AnalyzedPart(lines[0], []));
+                filteredParts.push(new AnalyzedPart(lines[0], [], part.startTime, part.endTime));
                 for (let i = 1; i < lines.length; ++i) {
-                    filteredParts.push(new AnalyzedPart("\n", []));
-                    filteredParts.push(new AnalyzedPart(lines[i], []));
+                    filteredParts.push(new AnalyzedPart("\n", [], null, null));
+                    filteredParts.push(new AnalyzedPart(lines[i], [], null, null));
                 }
             }
         }
-        this.setState({ analyzing: false, error: false, breakdown: filteredParts });
+        const isVideo = this.state.videoId != null;
+        this.setState({ analyzing: false, error: false, breakdown: filteredParts, partIndex: -1 });
+        if (isVideo) {
+            this.advancePart(context.subIndex, filteredParts, -1);
+        }
     }
 
     async handleAnalyzeError(context, responseTextPromise) {
         let responseText = await responseTextPromise;
-        console.log(`Got error from /analyze: ${responseText}, text was ${context.text}.`);
+        console.log(`Got error from /analyze: ${responseText}`);
         this.setState({ analyzing: false, error: true });
     }
 
@@ -302,9 +307,7 @@ class AnalyzerApp extends React.Component {
             text,
             this.handleAnalyzeResponse,
             this.handleAnalyzeError,
-            {
-                text: text,
-            }
+            { }
         );
     }
 
@@ -1027,17 +1030,22 @@ class AnalyzerApp extends React.Component {
             addPagination(this);
         }
 
-        for (const part of this.state.breakdown) {
+        const parts = this.state.breakdown
+        const partIndex = this.state.partIndex;
+        for (const index in parts) {
+            const part = parts[index];
             if (part.detectedForms.length == 0 && part.token == "\n") {
                 flushRow();
                 continue;
             }
+            const highlight = (index == partIndex);
             row.push(
                 <AnalyzedPartView
                     key={row.length}
                     analyzedPart={part}
                     grammar={grammar}
                     translations={translations}
+                    highlight={highlight}
                     hintCallback={this.onHintClick}
                     lang={this.props.lang}
                 />
@@ -1072,6 +1080,15 @@ class AnalyzerApp extends React.Component {
         );
     }
 
+    startSubAnalysis(subIndex, wordsRawBody) {
+        makeAnalyzeSubRequest(
+            wordsRawBody,
+            this.handleAnalyzeResponse,
+            this.handleAnalyzeError,
+            { subIndex }
+        );
+    }
+
     async handleSubtitlesResponse(context, responseJsonPromise) {
         const response = await responseJsonPromise;
         const subtitles = response.subtitles;
@@ -1084,12 +1101,14 @@ class AnalyzerApp extends React.Component {
         const subtitlesLoading = false;
         let subIndex = -1;
         let lastEntered = "";
+        let words = null;
         const posMs = this.state.videoPosMs;
         for (const index in subtitles) {
             const sub = subtitles[index];
             if (sub.start_ms <= posMs && posMs <= sub.end_ms) {
                 subIndex = index;
                 lastEntered = sub.content;
+                words = sub.words;
                 break;
             }
         }
@@ -1107,7 +1126,9 @@ class AnalyzerApp extends React.Component {
                 subIndex,
             }
         );
-        this.startAnalysis(lastEntered);
+        if (lastEntered.length > 0) {
+            this.startSubAnalysis(subIndex, words);
+        }
     }
 
     async handleSubtitlesError(context, responseTextPromise) {
@@ -1147,28 +1168,70 @@ class AnalyzerApp extends React.Component {
         const subtitles = this.state.subtitles;
         for (let index = curIndex + 1; index < subtitles.length; ++index) {
             const sub = subtitles[index];
-            if (sub.start_ms > positionMs) {
+            if (sub.start_ms > positionMs) {  // time of this subtitle has not come yet
                 break;
             }
-            if (sub.end_ms >= positionMs) {
+            if (sub.end_ms >= positionMs) {   // this subtitle has started but has not finished yet
                 const lastEntered = sub.content;
                 const subIndex = index;
+                const partIndex = -1;
                 console.log(`Advance sub to ${positionMs} ms: ${curIndex} -> ${subIndex}`);
                 this.setState(
                     {
                         lastEntered,
                         subIndex,
+                        partIndex,
                     }
                 );
-                this.startAnalysis(lastEntered);
+                if (lastEntered.length > 0) {
+                    this.startSubAnalysis(subIndex, sub.words);
+                }
                 break;
             }
         }
 
-        if (state == window.YT.PlayerState.PLAYING) {
+        if (state == VIDEO_PLAYING) {
             setTimeout(() => {
                 this.advanceSubtitle();
             }, 500);
+        }
+    }
+
+    advancePart(subIndex, breakdown, curPartIndex) {
+        if (this.state.subIndex != subIndex) {
+            console.log(`Stop advancing through sub ${subIndex}: cur sub ${this.state.subIndex}`);
+            return;
+        }
+
+        const positionSeconds = this.player.getCurrentTime();
+        const positionMs = Math.floor(positionSeconds * 1000);
+
+        let delayMs = 100;
+        let nextPartIndex = curPartIndex;
+        for (let index = curPartIndex + 1; index < breakdown.length; ++index) {
+            const part = breakdown[index];
+            if (part.startTime > positionMs) {  // time of this part has not come yet
+                break;
+            }
+            if (part.endTime >= positionMs) {  // this part has started but has not finished yet
+                const partIndex = index;
+                console.log(`Advance part to ${positionMs} ms: ${curPartIndex} -> ${partIndex}`);
+                this.setState({ partIndex });
+                delayMs = part.endTime - part.startTime;
+                nextPartIndex = partIndex;
+                break;
+            }
+        }
+
+
+        const state = this.player.getPlayerState();
+        if (state == VIDEO_PLAYING) {
+            console.log(`Next part advance after ${delayMs} ms`);
+            setTimeout(() => {
+                this.advancePart(subIndex, breakdown, nextPartIndex);
+            }, delayMs);
+        } else {
+            console.log(`Not scheduling next part advance`);
         }
     }
 
