@@ -729,9 +729,11 @@ class AnalyzerApp extends React.Component {
 
     renderVideoForm() {
         return (
-            <div className="p-6 flex flex-row">
-                <div id="player"></div>
-                <form onSubmit={this.onSubmit} className="px-3 flex flex-col">
+            <div className="flex flex-row flex-wrap">
+                <div className="p-4">
+                    <div id="player"></div>
+                </div>
+                <form onSubmit={this.onSubmit} className="p-4 flex flex-col">
                     <textarea
                         ref="textInput"
                         rows="8"
