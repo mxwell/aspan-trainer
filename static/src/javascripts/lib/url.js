@@ -88,6 +88,13 @@ function buildTextAnalyzerBookUrl(bookId, offset, count, lang) {
     return buildCommonTextAnalyzerUrl(params, lang);
 }
 
+function buildTextAnalyzerVideoUrl(videoId, lang) {
+    let params = [
+        `video_id=${videoId}`,
+    ];
+    return buildCommonTextAnalyzerUrl(params, lang);
+}
+
 function buildDictUrl(word, lang) {
     const path = `/dict_${lang}.html`;
     if (word == null || word.length == 0) {
@@ -247,6 +254,7 @@ export {
     buildExplanationUrl,
     buildTextAnalyzerUrl,
     buildTextAnalyzerBookUrl,
+    buildTextAnalyzerVideoUrl,
     buildDictUrl,
     buildViewerUrl2,
     buildViewerWithExamplesUrl,

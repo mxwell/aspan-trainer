@@ -741,6 +741,10 @@ function prepareAnalyzerOnlyTranslations(map) {
         "Подсказка по грамматике",
     );
 
+    setEnRu(map, "videosTitle",
+        "Videos with subtitles",
+        "Видео с субтитрами"
+    );
     setEnRu(map, "libTitle",
         "Library",
         "Библиотека",

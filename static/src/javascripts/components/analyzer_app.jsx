@@ -4,7 +4,7 @@ import { makeAnalyzeRequest, makeAnalyzeSubRequest, makeDetectRequest } from "..
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
-import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams } from "../lib/url";
+import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams, buildTextAnalyzerVideoUrl } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
@@ -31,6 +31,15 @@ function pickDemoSentence(cur) {
     return pickRandom(DEMO_POOL);
 }
 
+class VideoItem {
+    constructor(title, channel, videoId, date) {
+        this.title = title;
+        this.channel = channel;
+        this.videoId = videoId;
+        this.date = date;
+    }
+}
+
 const BOOK101_LEN = 187;
 const BOOK_TITLE = "Ер Төстік";
 
@@ -38,6 +47,16 @@ const VIDEO_UNSTARTED = -1;
 const VIDEO_ENDED = 0;
 const VIDEO_PLAYING = 1;
 const VIDEO_PAUSED = 2;
+const VIDEO_ITEMS = [
+    new VideoItem("Бибарыс Сейтақ: Тіл идеологиясы, Қазақ диалектілері, Тілімізде 80% – араб сөзі, Түркі лингвистикасы", "DOPE SOZ", "rdcVoQRoRLA", "2025-01-06"),
+    new VideoItem("Назгүл Қожабек: Калькасыз қазақ тілі, Контент жасаушылардың 70%-ы орысша ойланады", "Kozqaras podcast", "7-PGNlU9Hlw", "2024-10-16"),
+    new VideoItem("Раиса Сайран Қадыр - Моңғолиядан келіп, шетел кітаптарын Қазақ тіліне аударған іскер әйел.", "Kozqaras podcast", "yx5zwPuR3Vo", "2024-04-06"),
+    new VideoItem("Айкерім Есенәлі: Келін емес, отбасылы болуға дайындалу керек, ақшалы әйелдің сөзі өтеді", "Kozqaras podcast", "JIaIlMcVsHw", "2024-07-08"),
+    new VideoItem("Неге орысша сөйлейміз? | Әлия Әшім | TEDxArgynbekov Street", "TEDx Talks", "rCIFuk4Ct08", "2025-01-15"),
+    new VideoItem("Тәуелді қоғам: Мектепке бармауға қуану | Ескендір Бестай | TEDxArgynbekov Street", "TEDx Talks", "rYI2MTofDaE", "2025-01-15"),
+    new VideoItem("ChatGPT-ды қолдану: Неге қазірден бастау маңызды? | Тимур Бектұр | TEDxArgynbekov Street", "TEDx Talks", "f8Adt8gBxBw", "2025-01-15"),
+    new VideoItem("Өзінің сопы екенін білмейтін сәләфиттер бар | Ақберен Елгезек", "Janar Baisemiz | журналист", "PPfYWnvrkio", "2025-02-22"),
+];
 
 /**
  * props:
@@ -825,23 +844,42 @@ class AnalyzerApp extends React.Component {
         if (this.state.error || this.state.analyzing || this.state.text.length > 0 || this.state.videoId != null) {
             return null;
         }
+        let videoHtmls = [];
+        for (const item of VIDEO_ITEMS) {
+            videoHtmls.push(
+                <a key={videoHtmls.length}
+                    className="hover:bg-gray-200"
+                    href={buildTextAnalyzerVideoUrl(item.videoId, this.props.lang)}>
+                    <div className="my-4 flex flex-row">
+                        <img className="mx-2 h-12 w-12" src="/video24.svg" />
+                        <div className="flex flex-col">
+                            <div className="text-lg font-bold">{item.title}</div>
+                            <div className="italic text-gray-700">{item.channel}&nbsp;•&nbsp;{item.date}</div>
+                        </div>
+                    </div>
+                </a>
+            );
+        }
         return (
             <div className="flex flex-row justify-center my-10">
-                <div className="lg:w-1/3">
+                <div className="lg:w-1/3 flex flex-col">
+                    <h3 className="m-4 text-2xl text-gray-700">{this.i18n("videosTitle")}</h3>
+                    <div className="flex flex-col">
+                        {videoHtmls}
+                    </div>
                     <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
-                    <ul>
-                        <li className="list-inside">
-                            <a href={buildTextAnalyzerBookUrl(1001, 0, 1, this.props.lang)}>
-                                <div className="flex flex-row">
-                                    <img className="mx-2 h-12 w-12" src="/book.svg" />
-                                    <div className="flex flex-col">
-                                        <div className="text-lg font-bold">{BOOK_TITLE}</div>
-                                        <div className="italic text-gray-700">{this.i18n("heroicTale")}</div>
-                                    </div>
+                    <div className="flex flex-col">
+                        <a className="hover:bg-gray-200"
+                            href={buildTextAnalyzerBookUrl(1001, 0, 1, this.props.lang)}>
+                            <div className="my-4 flex flex-row">
+                                <img className="mx-2 h-12 w-12" src="/book.svg" />
+                                <div className="flex flex-col">
+                                    <div className="text-lg font-bold">{BOOK_TITLE}</div>
+                                    <div className="italic text-gray-700">{this.i18n("heroicTale")}</div>
                                 </div>
-                            </a>
-                        </li>
-                    </ul>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         );
