@@ -4,7 +4,7 @@ mixin a_viewer_page_kk()
       var l10n = {
         langCode: "kk",
         title: "Kazakh Verb",
-        description: "Қазақ етістіктерінің кестесі",
+        description: "Қазақ тілі құралдары",
         contactUs: "Байланыс:",
         ytChannel: "Youtube арнамыз",
         tgChannel: "Telegram арнамыз",
@@ -29,6 +29,8 @@ mixin a_viewer_page_kk()
         linkDict: "/dict_en.pug",
         titleAbout: "About",
         linkAbout: "./about_kk.pug",
+        imgGooglePlay: "../images/google_play_en.png",
+        linkGooglePlay: "https://play.google.com/store/apps/details?id=com.khairulin.kazakhverb",
       }
     +a_viewer_page(l10n, "../javascripts/viewer_kk.jsx")
         block
