@@ -213,6 +213,16 @@ function gcGetVideoSubtitles(videoId, startMs, endMs, successCallback, errorCall
     return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function gcGetClips(offset, count, successCallback, errorCallback, context) {
+    const params = {
+        o: String(offset),
+        c: String(count),
+    };
+    const query = encodeQueryData(params);
+    const url = `/gcapi/v1/get_clips?${query}`;
+    return makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 const gcTokenKey = "gc-v1-token";
 
 function parseJwt (token) {
@@ -307,6 +317,7 @@ export {
     gcGetVerbFormExamples,
     gcGetBookChunks,
     gcGetVideoSubtitles,
+    gcGetClips,
     parseJwt,
     gcTokenIsValid,
     gcStoreToken,

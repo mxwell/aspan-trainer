@@ -12,6 +12,7 @@ import { copyToClipboard } from "../lib/clipboard";
 import { ShareButton } from "./share_button";
 import { grammarHelp } from "../lib/grammar_help";
 import { gcGetBookChunks, gcGetVideoSubtitles } from "../lib/gc_api";
+import { ClipGallery } from "./clip_gallery";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -863,10 +864,7 @@ class AnalyzerApp extends React.Component {
         return (
             <div className="flex flex-row justify-center my-10">
                 <div className="lg:w-1/3 flex flex-col">
-                    <h3 className="m-4 text-2xl text-gray-700">{this.i18n("videosTitle")}</h3>
-                    <div className="flex flex-col">
-                        {videoHtmls}
-                    </div>
+                    <ClipGallery pageSize="3" lang={this.props.lang} />
                     <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
                     <div className="flex flex-col">
                         <a className="hover:bg-gray-200"
