@@ -864,7 +864,7 @@ class AnalyzerApp extends React.Component {
         return (
             <div className="flex flex-row justify-center my-10">
                 <div className="lg:w-1/3 flex flex-col">
-                    <ClipGallery pageSize="3" lang={this.props.lang} />
+                    <ClipGallery pageSize={3} lang={this.props.lang} />
                     <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
                     <div className="flex flex-col">
                         <a className="hover:bg-gray-200"

@@ -1,7 +1,19 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { gcGetClips } from "../lib/gc_api";
+import { buildTextAnalyzerVideoUrl } from "../lib/url";
 
+function printDuration(durationSeconds) {
+    const hours = Math.floor(durationSeconds / 3600);
+    const minutes = Math.floor((durationSeconds % 3600) / 60);
+    const seconds = durationSeconds % 60;
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+}
 
 /**
  * props:
@@ -48,7 +60,7 @@ export class ClipGallery extends React.Component {
         if (clips.length > 0) {
             pages.push(clips);
         }
-        const loadedAll = clips < this.props.pageSize;
+        const loadedAll = clips.length < this.props.pageSize;
         this.setState({
             loading,
             pages,
@@ -73,6 +85,33 @@ export class ClipGallery extends React.Component {
         );
     }
 
+    onPageChange(diff) {
+        console.log(`onPageChange: ${diff}`);
+        // TODO
+    }
+
+    renderPagination(page, pages) {
+        const prevColor = (
+            page > 0
+            ? "text-gray-500 cursor-pointer hover:bg-gray-200"
+            : "text-gray-300"
+        );
+        const nextColor = (
+            (page + 1 < pages.length || !this.state.loadedAll)
+            ? "text-gray-500 cursor-pointer hover:bg-gray-200"
+            : "text-gray-300"
+        );
+        return (
+            <div className="flex flex-row text-5xl w-full">
+                <div onClick={ (e) => this.onPageChange(-1) }
+                    className={`text-right px-10 bg-gradient-to-l from-gray-100 w-1/2 select-none ${prevColor}`}>←</div>
+                <div
+                    onClick={ (e) => this.onPageChange(1) }
+                    className={`px-10 bg-gradient-to-r from-gray-100 w-1/2 select-none ${nextColor}`}>→</div>
+            </div>
+        );
+    }
+
     renderPage() {
         if (this.state.loading) {
             return (<p>{this.i18n("isLoading")}</p>);
@@ -83,18 +122,36 @@ export class ClipGallery extends React.Component {
             );
         }
 
-        const clips = this.state.pages[this.state.page];
+        const page = this.state.page;
+        const pages = this.state.pages;
+        const clips = pages[page];
 
         let htmlItems = [];
         for (const clip of clips) {
             htmlItems.push(
-                <li className="list-disc list-inside" key={htmlItems.length}>
-                    {clip.title}
+                <li className="" key={htmlItems.length}>
+                    <a className="hover:bg-gray-200"
+                        href={buildTextAnalyzerVideoUrl(clip.video_id, this.props.lang)}>
+                        <div className="my-4 flex flex-row">
+                            <img className="mx-2 h-12 w-12" src="/video24.svg" />
+                            <div className="flex flex-col">
+                                <div className="text-lg font-bold">{clip.title}</div>
+                                <div className="italic text-gray-700">
+                                    {clip.author}
+                                    &nbsp;•&nbsp;
+                                    {clip.published_on}
+                                    &nbsp;•&nbsp;
+                                    {printDuration(clip.duration_secs)}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </li>
             );
         }
         return (
             <ul>
+                {this.renderPagination(page, pages)}
                 {htmlItems}
             </ul>
         );
