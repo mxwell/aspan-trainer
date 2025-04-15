@@ -46,9 +46,9 @@ export class ClipGallery extends React.Component {
         const offset = context.offset;
 
         const clips = response.clips;
-        const prevPages = this.state.pages;
-        if (prevPages.length != offset) {
-            console.log(`handleGetClipsResponse: unexpected pages size: ${prevPages.length} instead of ${offset}`);
+        const curOffset = this.state.page * this.props.pageSize;
+        if (curOffset != offset) {
+            console.log(`handleGetClipsResponse: unexpected offset: ${curOffset} instead of ${offset}`);
             this.setState({
                 loading: false,
                 error: true,
@@ -56,7 +56,7 @@ export class ClipGallery extends React.Component {
             return
         }
         const loading = false;
-        let pages = prevPages;
+        let pages = this.state.pages;
         if (clips.length > 0) {
             pages.push(clips);
         }
@@ -86,8 +86,26 @@ export class ClipGallery extends React.Component {
     }
 
     onPageChange(diff) {
-        console.log(`onPageChange: ${diff}`);
-        // TODO
+        const page = this.state.page + diff;
+        if (page < 0 || (page >= this.state.pages.length && this.state.loadedAll)) {
+            console.log(`New page is out of range: ${page}`);
+            return;
+        }
+        if (this.state.loading) {
+            console.log("Already loading, page is not changed");
+            return;
+        }
+        console.log(`changing page to  ${page}`);
+        if (0 <= 0 && page < this.state.pages.length) {
+            this.setState({ page });
+        } else {
+            const loading = true;
+            this.setState({
+                loading,
+                page,
+            });
+            this.startLoading(page);
+        }
     }
 
     renderPagination(page, pages) {
