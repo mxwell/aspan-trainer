@@ -265,7 +265,7 @@ function prepareViewerOnlyTranslations(map) {
     setEnRuKz(map, "restartQuiz", "Restart quiz", "Перезапустить тест", "Тестті жаңағырау");
     setEnRu(map, "landingConjugationIntro",
         "In the Conjugation section, you will instantly get access to comprehensive tables with forms of any of the 23,000 Kazakh verbs",
-        "В разделе Спряжения вы мгновенно получите доступ к исчерпывающим таблицам с формами любого из 23000 казахского глагола",
+        "В разделе Спряжения вы мгновенно получите доступ к исчерпывающим таблицам с формами любого из 23000 казахских глаголов",
     );
     setEnRu(map, "landingConj8tenses3moods",
         "✓ Complete coverage of possible forms: all 8 tenses and 3 moods",
