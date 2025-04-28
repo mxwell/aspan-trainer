@@ -17,7 +17,6 @@ import {
     buildGcLandingUrl,
     buildParticipleDeclensionUrl,
     buildVerbFormAudioUrl,
-    buildVerbGymUrl,
     buildViewerUrl2,
     parseParams
 } from "../lib/url";
@@ -25,7 +24,6 @@ import {
     getOptionalExceptionalVerbMeanings,
     createSideQuizTask,
     generateVerbForms,
-    generatePromoVerbForms,
     detectValidVerb,
 } from '../lib/verb_forms';
 import { SideQuiz, initialSideQuizState } from './side_quiz';
@@ -33,7 +31,6 @@ import { buildPersonNumberList } from '../lib/grammar_utils';
 import { cleanWhitespace, hasMixedAlphabets, trimAndLowercase } from '../lib/input_validation';
 import { unpackDetectResponseWithPos } from '../lib/detector';
 import { AUX_VERBS, parseAuxVerb } from '../lib/aux_verbs';
-import { generatePromoDeclensionForms } from '../lib/declension';
 import { highlightDeclensionPhrasal } from '../lib/highlight';
 import { Keyboard, backspaceTextInput, insertIntoTextInput } from './keyboard';
 import { abIsLatin, ALPHABET_KEYS, parseAlphabetKey } from '../lib/ab';
@@ -1284,72 +1281,47 @@ class ViewerApp extends React.Component {
             return null;
         }
         const lang = this.props.lang;
-        const verb = "келу";
-        const verbForms = generatePromoVerbForms(verb, false);
-        const verbLink = buildViewerUrl2(verb, SENTENCE_TYPES[0], false, null, lang, null, false);
-        const verbForm = "келмеймін";
-        const subject = "келген";
-        const declensionForms = generatePromoDeclensionForms(subject);
+        const conjugationLink = buildViewerUrl2("келу", SENTENCE_TYPES[0], false, null, lang, null, false);
+        const declensionLink = buildDeclensionUrl("алма", false, lang);
         return (
-            <div className="flex flex-col lg:flex-row justify-center">
-                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
-                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500">
-                        {this.i18n("titleConjugation")}
+            <div className="flex flex-col justify-center">
+                <a href={conjugationLink} className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
+                    <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
+                        <img src="/feather.svg" />
+                        <span className="mx-2">{this.i18n("titleConjugation")}</span>
                     </h1>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
-                        {verb}
+
+                    <p className="my-2">{this.i18n("landingConjugationIntro")}</p>
+                    <p>{this.i18n("landingConj8tenses3moods")}</p>
+                    <p>{this.i18n("landingConjHighlight")}</p>
+                    <p>{this.i18n("landingConjSentenceType")}</p>
+                    <p>{this.i18n("landingConjInput")}</p>
+                    <p>{this.i18n("landingConjTranslation")}</p>
+                    <p>{this.i18n("landingConjAudio")}</p>
+
+                    <h2 className="mt-4 text-right underline">
+                        {this.i18n("tryOut")}&nbsp;→
                     </h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
-                    <table className="mx-4">
-                        <tbody>
-                            {this.renderFormRows(verbForms, "", false)}
-                        </tbody>
-                    </table>
-                    <a
-                        href={verbLink}>
-                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
-                            {this.i18n("tryOut")}&nbsp;→
-                        </h2>
-                    </a>
-                </div>
-                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
-                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
-                        {this.i18n("titleDeclension")}
+                </a>
+
+                <a href={declensionLink} className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
+                    <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
+                        <img src="/beaker.svg" />
+                        <span className="mx-2">{this.i18n("titleDeclension")}</span>
                     </h1>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
-                        {subject}
+
+                    <p className="my-2">{this.i18n("landingDeclensionIntro")}</p>
+                    <p>{this.i18n("landingDeclensionPlural")}</p>
+                    <p>{this.i18n("landingDeclensionPossessive")}</p>
+                    <p>{this.i18n("landingDeclensionCases")}</p>
+                    <p>{this.i18n("landingDeclensionHighlight")}</p>
+                    <p>{this.i18n("landingDeclensionException")}</p>
+                    <p>{this.i18n("landingDeclensionInput")}</p>
+
+                    <h2 className="mt-4 text-right underline">
+                        {this.i18n("tryOut")}&nbsp;→
                     </h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
-                    <table className="mx-4">
-                        <tbody>
-                            {this.renderDeclensionForms(declensionForms)}
-                        </tbody>
-                    </table>
-                    <a
-                        href={buildDeclensionUrl(subject, false, lang)}>
-                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
-                            {this.i18n("tryOut")}&nbsp;→
-                        </h2>
-                    </a>
-                </div>
-                <div className="max-w-sm lg:w-48 bg-red-100 p-4 m-10">
-                    <h1 className="my-4 text-center text-5xl lg:text-lg font-bold text-red-500 text-center">
-                        {this.i18n("verbGym")}
-                    </h1>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">
-                        «Сіз [ келу ]»
-                    </h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500">↓</h2>
-                    <h2 className="text-center text-3xl lg:text-lg text-gray-500 bg-white border-gray-300 border-2">
-                        келесіз<span className="px-2 text-green-400">✅</span>
-                    </h2>
-                    <a
-                        href={buildVerbGymUrl(lang)}>
-                        <h2 className="mt-4 text-right text-3xl lg:text-base text-blue-600 underline">
-                            {this.i18n("tryOut")}&nbsp;→
-                        </h2>
-                    </a>
-                </div>
+                </a>
             </div>
         );
     }

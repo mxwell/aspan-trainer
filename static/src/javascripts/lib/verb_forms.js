@@ -100,19 +100,6 @@ function generateGerundForms(verb, forceExceptional, sentenceType, lat) {
     return new TenseForms("gerund", "hybrid", forms);
 }
 
-export function generatePromoVerbForms(verb, forceExceptional) {
-    let forms = [];
-    const verbBuilder = new VerbBuilder(verb, forceExceptional);
-    const number = GRAMMAR_NUMBERS[0];
-    const sentenceType = SENTENCE_TYPES[0];
-    for (const person of GRAMMAR_PERSONS) {
-        const phrasal = verbBuilder.presentTransitiveForm(person, number, sentenceType);
-        const pronoun = getPronounByParams(NOMINATIVE_PRONOUN, person, number);
-        forms.push(new VerbForm(pronoun, null, null, phrasal, null, false));
-    }
-    return new TenseForms("presentTransitive", "present", forms);
-}
-
 export function generatePreviewVerbForms(verb, forceExceptional) {
     let forms = [];
     const verbBuilder = new VerbBuilder(verb, forceExceptional);

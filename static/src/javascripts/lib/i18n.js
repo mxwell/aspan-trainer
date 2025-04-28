@@ -263,6 +263,62 @@ function prepareViewerOnlyTranslations(map) {
     setEnRuKz(map, "shouldTryAgain", "You should try again", "Вам стоит попробовать ещё раз", "Сіз қайтадан көріңіз келеді");
     setEnRuKz(map, "yourScore", "Your score", "Ваш счёт", "Сіздің есептіңіз");
     setEnRuKz(map, "restartQuiz", "Restart quiz", "Перезапустить тест", "Тестті жаңағырау");
+    setEnRu(map, "landingConjugationIntro",
+        "In the Conjugation section, you will instantly get access to comprehensive tables with forms of any of the 23,000 Kazakh verbs",
+        "В разделе Спряжения вы мгновенно получите доступ к исчерпывающим таблицам с формами любого из 23000 казахского глагола",
+    );
+    setEnRu(map, "landingConj8tenses3moods",
+        "✓ Complete coverage of possible forms: all 8 tenses and 3 moods",
+        "✓ Полный охват возможных форм: все 8 времён и 3 наклонения",
+    );
+    setEnRu(map, "landingConjHighlight",
+        "✓ Visual highlighting of verb stems, negative particles, suffixes, and personal endings for better understanding of structure",
+        "✓ Визуальное выделение основы глагола, отрицательных частиц, суффиксов и личных окончаний для лучшего понимания структуры",
+    );
+    setEnRu(map, "landingConjSentenceType",
+        "✓ Flexible switching between affirmative, negative, and interrogative forms",
+        "✓ Гибкое переключение между утвердительными, отрицательными и вопросительными формами",
+    );
+    setEnRu(map, "landingConjInput",
+        "✓ Auto-completion and on-screen keyboard with Kazakh layout for convenient verb input",
+        "✓ Автодополнение и экранная клавиатура с казахской раскладкой для удобного ввода глаголов",
+    );
+    setEnRu(map, "landingConjTranslation",
+        "✓ Numerous verb translations for better comprehension",
+        "✓ Большое число переводов глаголов для лучшего понимания",
+    );
+    setEnRu(map, "landingConjAudio",
+        "✓ Option to listen to the correct pronunciation of any form",
+        "✓ Прослушивание правильного произношения любой формы",
+    );
+    setEnRu(map, "landingDeclensionIntro",
+        "The Declension section is dedicated to generating basic derivative forms of nouns and participles",
+        "Раздел Склонение посвящён генерации базовых производных форм существительных и причастий",
+    );
+    setEnRu(map, "landingDeclensionPlural",
+        "✓ Formation of plural forms",
+        "✓ Образование множественного числа",
+    );
+    setEnRu(map, "landingDeclensionPossessive",
+        "✓ Formation of possessive forms",
+        "✓ Образование притяжательных форм",
+    );
+    setEnRu(map, "landingDeclensionCases",
+        "✓ Declension by cases, including plural forms and all possessive forms",
+        "✓ Склонение по падежам, в том числе множественного числа и всех притяжательных форм",
+    );
+    setEnRu(map, "landingDeclensionHighlight",
+        "✓ Color highlighting of the word stem, plural endings, case and possessive affixes for better understanding of the structure",
+        "✓ Цветовое выделение основы, окончаний множественного числа, падежных и притяжательных аффиксов для лучшего понимания структуры",
+    );
+    setEnRu(map, "landingDeclensionException",
+        "✓ Working with exception words with the ability to flexibly switch between declension variants",
+        "✓ Работа со словами-исключениями с возможностью гибкого переключения между вариантами склонения",
+    );
+    setEnRu(map, "landingDeclensionInput",
+        "✓ On-screen keyboard with Kazakh layout for convenient input",
+        "✓ Экранная клавиатура с казахской раскладкой для удобного ввода",
+    );
 }
 
 function prepareExplanationOnlyTranslations(map) {

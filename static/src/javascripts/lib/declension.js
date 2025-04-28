@@ -124,20 +124,6 @@ export function generateDeclensionTables(subject, forceAlternative) {
     return generateDeclensionTablesOfBuilder(nounBuilder, forceAlternative);
 }
 
-export function generatePromoDeclensionForms(subject) {
-    let nounBuilder = new NounBuilder(subject);
-    let forms = [];
-    let itemsToShow = 4;
-    for (const septik of SEPTIKS) {
-        const phrasal = nounBuilder.septikForm(septik);
-        forms.push(new DeclensionForm(septik, phrasal));
-        if (--itemsToShow <= 0) {
-            break;
-        }
-    }
-    return forms;
-}
-
 export function generatePreviewDeclensionForms(subject) {
     let nounBuilder = new NounBuilder(subject);
     let forms = [];
