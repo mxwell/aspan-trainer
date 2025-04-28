@@ -16,24 +16,34 @@ mixin a_viewer_page(l10n, js_path)
                 header(class="bg-blue-800 text-white p-1 flex justify-between")
                     div(class="ml-2 md:mx-8 my-1 flex")
                         div(class="pr-2")
-                            button(id="ham_btn")
+                            button(id="ham_btn", class="focus:outline-none")
                                 img(class="ham_icon", src="../images/menu.svg")
                             div(id="ham_menu_content", class="absolute z-50 hidden flex flex-col")
                                 a(href= l10n.linkConjugation)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleConjugation
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/feather.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleConjugation
                                 a(href= l10n.linkDeclension)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleDeclension
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/beaker.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleDeclension
                                 a(href= l10n.linkTextAnalyzer)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleTextAnalyzer
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/academic.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleTextAnalyzer
                                 a(href= l10n.linkTop100Verbs)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleTop100Verbs
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/arrowup.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleTop100Verbs
                                 a(href= l10n.linkGym)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleGym
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/gym.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleGym
                                 a(href= l10n.linkPosts)
                                     button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
                                         = l10n.titlePosts
