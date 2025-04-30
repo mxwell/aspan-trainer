@@ -319,6 +319,22 @@ function prepareViewerOnlyTranslations(map) {
         "✓ On-screen keyboard with Kazakh layout for convenient input",
         "✓ Экранная клавиатура с казахской раскладкой для удобного ввода",
     );
+    setEnRu(map, "titleTgBot",
+        "Telegram bot",
+        "Бот в Telegram",
+    );
+    setEnRu(map, "landingTgBotIntro",
+        "The Telegram bot offers exclusive tools not available on the website",
+        "Бот в Telegram предлагает эксклюзивные инструменты, которых нет на сайте",
+    );
+    setEnRu(map, "landingTgBotTts",
+        "✓ The speech generator instantly voices words, phrases, or short sentences in Kazakh language to help perfect pronunciation",
+        "✓ Генератор речи мгновенно озвучивает слова, фразы или небольшие предложения на казахском языке для оттачивания произношения",
+    );
+    setEnRu(map, "landingTgBotGym",
+        "✓ The interactive trainer allows you to practice selected grammar topics. Each topic consists of 10 exercises where you need to compose and pronounce a sentence. Users can submit answers as voice messages and receive immediate feedback",
+        "✓ Интерактивный тренажёр позволяет практиковать избранные грамматические темы. Каждая тема состоит из 10 упражнений, в которых нужно составить и произнести предложение. Пользователи могут отправлять ответы в виде голосовых сообщений и получать мгновенную обратную связь",
+    );
 }
 
 function prepareExplanationOnlyTranslations(map) {

@@ -1322,6 +1322,21 @@ class ViewerApp extends React.Component {
                         {this.i18n("tryOut")}&nbsp;→
                     </h2>
                 </a>
+
+                <a href="https://t.me/KazakhVerbBot" className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
+                    <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
+                        <img src="/telegram.svg" />
+                        <span className="mx-2">{this.i18n("titleTgBot")}</span>
+                    </h1>
+
+                    <p className="my-2">{this.i18n("landingTgBotIntro")}</p>
+                    <p>{this.i18n("landingTgBotTts")}</p>
+                    <p>{this.i18n("landingTgBotGym")}</p>
+
+                    <h2 className="mt-4 text-right underline">
+                        {this.i18n("tryOut")}&nbsp;→
+                    </h2>
+                </a>
             </div>
         );
     }

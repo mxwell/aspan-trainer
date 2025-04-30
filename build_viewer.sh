@@ -36,7 +36,7 @@ cp static/src/images/check_{box,box_blank,box_indet}.svg $OUTPUT_DIR/
 cp static/src/images/{edit_square,keyboard,share,sound}.svg $OUTPUT_DIR/
 cp static/src/images/{create,delete,edit,restart,thumb_down,thumb_up,warning}.svg $OUTPUT_DIR/
 cp static/src/images/{book,info,pause48,play48,skip_prev48,video24}.svg $OUTPUT_DIR/
-cp static/src/images/{beaker,feather}.svg $OUTPUT_DIR/
+cp static/src/images/{beaker,feather,telegram}.svg $OUTPUT_DIR/
 
 cp static/src/data/present_top100_ru_en.colonsv $OUTPUT_DIR/
 
