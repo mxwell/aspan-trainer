@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+    <!-- Icon from Meteor Icons by zkreations - https://github.com/zkreations/icons/blob/main/LICENSE -->
+    <path fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3q2 0 2-2q-2 0-2 2M8 6C0 6 3 22 8 22q2 0 3-.5t2 0t3 .5q3 0 4.5-6a1 1 0 0 1-.5-7.5Q19 6 16 6q-1 0-2.5.5t-3 0T8 6"/>
+</svg>
