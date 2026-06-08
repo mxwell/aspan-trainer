@@ -242,6 +242,49 @@ export function generateVerbForms(verb, auxVerb, auxNeg, forceExceptional, sente
     return tenses;
 }
 
+export function generateMainVerbForms(verb, forceExceptional) {
+    const sentenceType = SENTENCE_TYPES[0];
+    const lat = false;
+    let tenses = [];
+    let verbBuilder = new VerbBuilder(verb, forceExceptional);
+    tenses.push(createForms(
+        "presentTransitive",
+        "present",
+        NOMINATIVE_PRONOUN,
+        lat,
+        (person, number) => verbBuilder.presentTransitiveForm(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
+        "past",
+        "past",
+        NOMINATIVE_PRONOUN,
+        lat,
+        (person, number) => verbBuilder.pastForm(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
+        "remotePast",
+        "past",
+        NOMINATIVE_PRONOUN,
+        lat,
+        (person, number) => verbBuilder.remotePastTense(person, number, sentenceType, /* auxNeg */ false),
+    ));
+    tenses.push(createForms(
+        "pastUncertain",
+        "past",
+        NOMINATIVE_PRONOUN,
+        lat,
+        (person, number) => verbBuilder.pastUncertainTense(person, number, sentenceType),
+    ));
+    tenses.push(createForms(
+        "imperativeMood",
+        "moods",
+        NOMINATIVE_PRONOUN,
+        lat,
+        (person, number) => verbBuilder.imperativeMood(person, number, sentenceType),
+    ));
+    return tenses;
+}
+
 const CASE_KEYS = [
     "presentTransitive",
     "presentContinuous",

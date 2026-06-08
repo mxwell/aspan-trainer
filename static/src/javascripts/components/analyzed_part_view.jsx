@@ -16,6 +16,7 @@ function copyToClipboard(text) {
  * - translations: bool
  * - highlight: bool
  * - hintCallback: function(cue: string)
+ * - verbFormsCallback: function(verb: string)
  * - lang
  */
 class AnalyzedPartView extends React.Component {
@@ -205,19 +206,32 @@ class AnalyzedPartView extends React.Component {
             ? (<p className="italic">{this.i18n(`analyzerPoss_${detectedForm.possPerson}_${detectedForm.possNumber}`)}</p>)
             : null
         );
+        const verbForms = (
+            pos == "v"
+            ? (<img
+                src="/table.svg"
+                alt="show main verb forms"
+                title="show main verb forms"
+                onClick={(e) => this.props.verbFormsCallback(detectedForm.base, detectedForm.excVerb)}
+                className="cursor-pointer h-6 w-6 self-start" />)
+            : null
+        );
         return (
-            <div className="flex flex-col border-2 border-gray-300 text-sm p-2">
-                {tabs}
-                {base}
-                <p className="">{posName}</p>
-                {exceptionalClause}
-                {formElement}
-                {negation}
-                {grammarPerson}
-                {grammarNumber}
-                {wordgen}
-                {poss}
-                {this.renderTranslations(detectedForm)}
+            <div className="flex flex-row border-2 border-gray-300 text-sm p-2">
+                <div className="flex flex-col">
+                    {tabs}
+                    {base}
+                    <p className="">{posName}</p>
+                    {exceptionalClause}
+                    {formElement}
+                    {negation}
+                    {grammarPerson}
+                    {grammarNumber}
+                    {wordgen}
+                    {poss}
+                    {this.renderTranslations(detectedForm)}
+                </div>
+                {verbForms}
             </div>
         );
     }

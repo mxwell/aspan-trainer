@@ -4,7 +4,7 @@ import { makeAnalyzeRequest, makeAnalyzeSubRequest, makeDetectRequest } from "..
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
-import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams, buildTextAnalyzerVideoUrl } from "../lib/url";
+import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams, buildTextAnalyzerVideoUrl, buildViewerUrl2 } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
@@ -13,6 +13,8 @@ import { ShareButton } from "./share_button";
 import { grammarHelp } from "../lib/grammar_help";
 import { gcGetBookChunks, gcGetVideoSubtitles } from "../lib/gc_api";
 import { ClipGallery } from "./clip_gallery";
+import { generateMainVerbForms } from "../lib/verb_forms";
+import { highlightPhrasal } from "../lib/highlight";
 
 const DEMO_POOL = [
     "Парижден оралған спортшылардан коронавирус анықталған",
@@ -90,6 +92,8 @@ class AnalyzerApp extends React.Component {
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onHintClick = this.onHintClick.bind(this);
+        this.onVerbFormsClick = this.onVerbFormsClick.bind(this);
+        this.closeVerbFormsPanel = this.closeVerbFormsPanel.bind(this);
 
         this.onPlayerReady = this.onPlayerReady.bind(this);
         this.onPlayerStateChange = this.onPlayerStateChange.bind(this);
@@ -118,6 +122,7 @@ class AnalyzerApp extends React.Component {
             error: false,
             breakdown: [],
             popupCue: null,
+            verbFormsPanel: null,
             bookId: bookId,
             bookChunkLoading: bookChunkLoading,
             offset: offset,
@@ -996,6 +1001,71 @@ class AnalyzerApp extends React.Component {
         this.setState({ popupCue });
     }
 
+    onVerbFormsClick(verb, forceExceptional) {
+        this.setState({ verbFormsPanel: { verb, forceExceptional } });
+    }
+
+    closeVerbFormsPanel() {
+        this.setState({ verbFormsPanel: null });
+    }
+
+    renderMainTense(tenseForms) {
+        let rows = [];
+        for (const form of tenseForms.forms) {
+            rows.push(
+                <tr className="border-t-2 text-2xl lg:text-base" key={`row_${rows.length}`}>
+                    <td className="pr-2 text-gray-600">{form.pronoun}</td>
+                    <td>{highlightPhrasal(form.verbPhrase, -1)}</td>
+                </tr>
+            );
+        }
+        return (
+            <div className="px-6 py-2" key={tenseForms.tenseNameKey}>
+                <h3 className="text-xl font-bold text-red-500">{this.i18n(tenseForms.tenseNameKey)}</h3>
+                <table>
+                    <tbody>
+                        {rows}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
+    renderVerbFormsPanel() {
+        const panel = this.state.verbFormsPanel;
+        if (panel == null) {
+            return null;
+        }
+        const verb = panel.verb;
+        let tables = [];
+        try {
+            const tenses = generateMainVerbForms(verb, panel.forceExceptional);
+            for (const tenseForms of tenses) {
+                tables.push(this.renderMainTense(tenseForms));
+            }
+        } catch (err) {
+            console.log(`Error during main verb form generation: ${err}`);
+        }
+        return (
+            <div className="my-4 flex flex-row justify-center">
+                <div className="bg-blue-100 w-2/3 border-2 rounded-2xl">
+                    <div className="flex flex-row justify-between border-b-2 text-gray-500">
+                        <h3 className="p-2 text-xl">{this.i18n("analyzerMainVerbForms_templ")(verb)}</h3>
+                        <span
+                            className="p-2 text-sm border-l-2 cursor-pointer"
+                            onClick={(e) => this.closeVerbFormsPanel()}>X</span>
+                    </div>
+                    <div className="flex flex-row flex-wrap py-2">
+                        {tables}
+                    </div>
+                    <div className="p-2 border-t-2 text-right">
+                        <a className="text-blue-600" href={buildViewerUrl2(verb, "Statement", panel.forceExceptional, null, this.props.lang, null, false)}>{this.i18n("seeAllVerbForms")}&nbsp;→</a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     renderBreakdown() {
         let rows = [];
         let row = [];
@@ -1085,11 +1155,19 @@ class AnalyzerApp extends React.Component {
                     translations={translations}
                     highlight={highlight}
                     hintCallback={this.onHintClick}
+                    verbFormsCallback={this.onVerbFormsClick}
                     lang={this.props.lang}
                 />
             );
         }
         flushRow();
+        if (this.state.verbFormsPanel != null) {
+            rows.push(
+                <div key={rows.length} className={rowVisibility}>
+                    {this.renderVerbFormsPanel()}
+                </div>
+            );
+        }
         if (bookId > 0) {
             addPagination(this);
         }

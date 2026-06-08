@@ -744,6 +744,14 @@ function prepareAnalyzerOnlyTranslations(map) {
         "negation",
         "отрицание",
     );
+    setEnRu(map, "analyzerMainVerbForms_templ",
+        (verb) => `Main verb forms of ${verb}`,
+        (verb) => `Основные формы глагола ${verb}`,
+    );
+    setEnRu(map, "seeAllVerbForms",
+        "See all verb forms",
+        "Все формы глагола",
+    );
     setEnRu(map, "analyzerPoss_First_Singular",
         "1p possessive",
         "притяжательное 1л",
