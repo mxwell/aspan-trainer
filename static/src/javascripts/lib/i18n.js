@@ -1692,10 +1692,6 @@ function prepareWatchOnlyTranslations(map) {
         "Generate subtitles",
         "Сгенерировать субтитры",
     );
-    setEnRu(map, "generatingSubtitles",
-        "Generating subtitles...",
-        "Генерация субтитров...",
-    );
     setEnRu(map, "cantGenerateSubtitles",
         "Can't generate subtitles",
         "Невозможно сгенерировать субтитры",
@@ -1707,6 +1703,46 @@ function prepareWatchOnlyTranslations(map) {
     setEnRu(map, "invalidYtUrl",
         "Please enter a valid YouTube video URL",
         "Введите корректную ссылку на YouTube-видео",
+    );
+    setEnRu(map, "statusQueueFull",
+        "Processing queue is full, please try again later",
+        "Очередь обработки заполнена, попробуйте позже",
+    );
+    setEnRu(map, "statusPending",
+        "Waiting in queue",
+        "Ожидание в очереди",
+    );
+    setEnRu(map, "statusProcessing",
+        "Processing",
+        "Обработка",
+    );
+    setEnRu(map, "statusFailed",
+        "Processing failed",
+        "Обработка не удалась",
+    );
+    setEnRu(map, "statusDone",
+        "Subtitles are ready",
+        "Субтитры готовы",
+    );
+    setEnRu(map, "statusUpdated",
+        (ts) => `Updated ${ts}`,
+        (ts) => `Обновлено ${ts}`,
+    );
+    setEnRu(map, "jobsAhead",
+        "Queued ahead",
+        "В очереди перед вами",
+    );
+    setEnRu(map, "videoDuration",
+        "Video duration",
+        "Длительность видео",
+    );
+    setEnRu(map, "refreshButton",
+        "Refresh",
+        "Обновить",
+    );
+    setEnRu(map, "watchButton",
+        "Watch",
+        "Смотреть",
     );
 }
 

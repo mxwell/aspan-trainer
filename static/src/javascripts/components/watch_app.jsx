@@ -46,6 +46,39 @@ function formatDuration(totalSecs) {
     return `${mins}:${pad(secs)}`;
 }
 
+function formatTimestamp(ms) {
+    const d = new Date(ms);
+    const now = new Date();
+    const sameDay = d.getFullYear() === now.getFullYear()
+        && d.getMonth() === now.getMonth()
+        && d.getDate() === now.getDate();
+    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (sameDay) {
+        return time;
+    }
+    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return `${date} ${time}`;
+}
+
+function isProcessingState(state) {
+    return state === "fetch_pending" || state === "fetch_running"
+        || state === "asr_pending" || state === "asr_running";
+}
+
+function processStatusKey(state) {
+    switch (state) {
+        case "at_capacity": return "statusQueueFull";
+        case "fetch_pending": return "statusPending";
+        case "fetch_running":
+        case "asr_pending":
+        case "asr_running": return "statusProcessing";
+        case "failed": return "statusFailed";
+        case "done": return "statusDone";
+        default: return "statusPending";
+    }
+}
+
 class WatchApp extends React.Component {
     constructor(props) {
         super(props);
@@ -62,6 +95,8 @@ class WatchApp extends React.Component {
         this.handleFetchSuccess = this.handleFetchSuccess.bind(this);
         this.handleFetchError = this.handleFetchError.bind(this);
         this.onGenerateClick = this.onGenerateClick.bind(this);
+        this.onRefreshClick = this.onRefreshClick.bind(this);
+        this.onProceedClick = this.onProceedClick.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
     }
 
@@ -128,9 +163,20 @@ class WatchApp extends React.Component {
         const probe = await responseJsonPromise;
         console.log("probe result", probe);
 
-        if (probe.state === "new") {
+        const processState = probe.process && probe.process.state;
+
+        if (processState === "new") {
             this.setState({ appMode: APP_MODE_PREVIEW, probe });
             this.pushVideoUrl(probe.info.online_video_id);
+        } else if (processState === "done") {
+            this.setState({ appMode: APP_MODE_WATCH, probe });
+            this.pushVideoUrl(probe.info.online_video_id);
+        } else if (isProcessingState(processState)) {
+            this.setState({ appMode: APP_MODE_PROCESSING, probe, process: probe.process, processUpdatedAt: Date.now() });
+            this.pushVideoUrl(probe.info.online_video_id);
+        } else if (processState === "failed") {
+            const errorMessage = (probe.process && probe.process.error_message) || this.i18n("service_error");
+            this.setState({ appMode: APP_MODE_ERROR, errorMessage });
         } else {
             this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.i18n("videoNotPreviewable") });
         }
@@ -173,16 +219,31 @@ class WatchApp extends React.Component {
         fetchVideo(id, this.handleFetchSuccess, this.handleFetchError);
     }
 
+    onRefreshClick() {
+        const id = this.state.probe && this.state.probe.id;
+        if (!id) {
+            console.warn("no internal video id for refresh");
+            return;
+        }
+
+        this.setState({ refreshing: true });
+        fetchVideo(id, this.handleFetchSuccess, this.handleFetchError);
+    }
+
+    onProceedClick() {
+        this.setState({ appMode: APP_MODE_WATCH });
+    }
+
     async handleFetchSuccess(context, responseJsonPromise) {
-        const result = await responseJsonPromise;
-        console.log("fetch result", result);
-        // Remain in APP_MODE_PROCESSING (waiting screen) until progress polling is wired up.
+        const process = await responseJsonPromise;
+        console.log("fetch result", process);
+        this.setState({ process: process, processUpdatedAt: Date.now(), refreshing: false });
     }
 
     async handleFetchError(context, responseTextPromise) {
         const text = await responseTextPromise;
         console.log("fetch error:", text);
-        this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text) });
+        this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text), refreshing: false });
     }
 
     renderPromptForm() {
@@ -214,13 +275,9 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderPreviewForm() {
-        const probe = this.state.probe;
-        const info = probe.info;
-        const obstacle = probe.processing_obstacle;
-
+    renderVideoInfo(info) {
         return (
-            <div className="flex flex-col items-center">
+            <React.Fragment>
                 <img
                     src={info.thumbnail_url}
                     alt={info.title}
@@ -230,6 +287,17 @@ class WatchApp extends React.Component {
                 <div className="mt-2 text-xl font-medium text-gray-800">{info.title}</div>
                 <div className="text-gray-600">{info.channel_title}</div>
                 <div className="text-gray-500">{formatDuration(info.duration_secs)}</div>
+            </React.Fragment>
+        );
+    }
+
+    renderPreviewForm() {
+        const probe = this.state.probe;
+        const obstacle = probe.processing_obstacle;
+
+        return (
+            <div className="flex flex-col items-center">
+                {this.renderVideoInfo(probe.info)}
                 {obstacle === ""
                     ? <button
                         type="button"
@@ -253,10 +321,58 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderProcessingForm() {
+    renderProcessingScreen() {
+        const probe = this.state.probe;
+        const info = probe && probe.info;
+        const process = this.state.process;
+
+        const queue = process && process.queue ? process.queue : [];
+        const isTerminal = process && (process.state === "failed" || process.state === "done");
+        const refreshDisabled = !process || this.state.refreshing || isTerminal;
+
         return (
-            <div className="flex justify-center py-4">
-                <div className="text-2xl text-gray-500">{this.i18n("generatingSubtitles")}</div>
+            <div className="flex flex-col items-center">
+                {info && this.renderVideoInfo(info)}
+                <div className="mt-3 text-xl text-gray-700">
+                    {process ? this.i18n(processStatusKey(process.state)) : this.i18n("isLoading")}
+                </div>
+                {process && this.state.processUpdatedAt && (
+                    <div className="text-sm text-gray-500">
+                        {this.i18n("statusUpdated")(formatTimestamp(this.state.processUpdatedAt))}
+                    </div>
+                )}
+                {process && process.state === "failed" && process.error_message && (
+                    <div className="mt-1 text-red-600">{process.error_message}</div>
+                )}
+                {queue.length > 0 && (
+                    <div className="mt-3 w-full max-w-md text-left">
+                        <div className="text-gray-600">{this.i18n("jobsAhead")}</div>
+                        <ul className="mt-1 list-disc list-inside">
+                            {queue.map((job, i) => (
+                                <li key={i} className="text-gray-700">
+                                    {this.i18n("videoDuration")}:&nbsp;{formatDuration(job.video_duration_secs)}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+                <div className="mt-3 flex flex-row gap-2">
+                    <button
+                        type="button"
+                        onClick={this.onRefreshClick}
+                        disabled={refreshDisabled}
+                        className="bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        {this.i18n("refreshButton")}
+                    </button>
+                    {process && process.state === "done" && (
+                        <button
+                            type="button"
+                            onClick={this.onProceedClick}
+                            className="bg-green-500 hover:bg-green-700 text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            {this.i18n("watchButton")}
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
@@ -275,7 +391,7 @@ class WatchApp extends React.Component {
         } else if (appMode == APP_MODE_PROBING) {
             return this.renderProbingForm();
         } else if (appMode == APP_MODE_PROCESSING) {
-            return this.renderProcessingForm();
+            return this.renderProcessingScreen();
         } else if (appMode == APP_MODE_PREVIEW) {
             return this.renderPreviewForm();
         } else if (appMode == APP_MODE_ERROR) {
