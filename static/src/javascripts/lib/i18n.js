@@ -1679,6 +1679,29 @@ function prepareGcOnlyTranslations(map) {
     );
 }
 
+function prepareWatchOnlyTranslations(map) {
+    setEnRu(map, "titleSubtitlesForYt",
+        "Subtitles for YouTube",
+        "Субтитры для YouTube",
+    );
+    setEnRu(map, "hintPasteYtUrl",
+        "Paste YouTube video URL",
+        "Вставьте ссылку на YouTube-видео",
+    );
+    setEnRu(map, "generateSubtitles",
+        "Generate subtitles",
+        "Сгенерировать субтитры",
+    );
+    setEnRu(map, "cantGenerateSubtitles",
+        "Can't generate subtitles",
+        "Невозможно сгенерировать субтитры",
+    );
+    setEnRu(map, "videoNotPreviewable",
+        "This video can't be opened right now",
+        "Не удалось открыть это видео",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -1694,6 +1717,7 @@ function prepareTranslations() {
     prepareDeclensionAppOnlyTranslations(map);
     prepareGymOnlyTranslations(map);
     prepareGcOnlyTranslations(map);
+    prepareWatchOnlyTranslations(map);
 
     return map;
 }

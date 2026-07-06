@@ -101,6 +101,11 @@ function loadTopList(successCallback, errorCallback) {
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", false);
 }
 
+function probeVideo(onlineVideoId, successCallback, errorCallback) {
+    const url = `/qarauapi/v1/probe/${onlineVideoId}`;
+    makeGetApiRequest(url, successCallback, errorCallback, null, "lala", true);
+}
+
 export {
     InvalidAuthTokenException,
     makeGetApiRequest,
@@ -111,4 +116,5 @@ export {
     makeAnalyzeRequest,
     makeAnalyzeSubRequest,
     loadTopList,
+    probeVideo,
 };

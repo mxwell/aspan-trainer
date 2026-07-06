@@ -224,6 +224,11 @@ function buildGcReviewsUrl(offset, dir, approvesMin, lang) {
     return buildUrl(path, params);
 }
 
+function buildWatchUrl(params, lang) {
+    const path = `/watch_${lang}.html`;
+    return buildUrl(path, params);
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -266,6 +271,7 @@ export {
     buildGcCreateUrl,
     buildGcCreatePrefilledUrl,
     buildGcReviewsUrl,
+    buildWatchUrl,
     parseParams,
     buildGlosbeUrl,
     buildLugatUrl,
