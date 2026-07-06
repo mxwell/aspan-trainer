@@ -277,7 +277,7 @@ class WatchApp extends React.Component {
 
     renderVideoInfo(info) {
         return (
-            <React.Fragment>
+            <div className="border border-gray-200 rounded-xl bg-blue-100 p-4 flex flex-col items-center">
                 <img
                     src={info.thumbnail_url}
                     alt={info.title}
@@ -287,7 +287,7 @@ class WatchApp extends React.Component {
                 <div className="mt-2 text-xl font-medium text-gray-800">{info.title}</div>
                 <div className="text-gray-600">{info.channel_title}</div>
                 <div className="text-gray-500">{formatDuration(info.duration_secs)}</div>
-            </React.Fragment>
+            </div>
         );
     }
 
