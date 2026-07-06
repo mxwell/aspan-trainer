@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
-import { probeVideo } from "../lib/requests";
+import { probeVideo, fetchVideo } from "../lib/requests";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -59,6 +59,8 @@ class WatchApp extends React.Component {
         this.startProbe = this.startProbe.bind(this);
         this.handleProbeSuccess = this.handleProbeSuccess.bind(this);
         this.handleProbeError = this.handleProbeError.bind(this);
+        this.handleFetchSuccess = this.handleFetchSuccess.bind(this);
+        this.handleFetchError = this.handleFetchError.bind(this);
         this.onGenerateClick = this.onGenerateClick.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
     }
@@ -161,7 +163,26 @@ class WatchApp extends React.Component {
     }
 
     onGenerateClick() {
-        // TODO: POST /fetch/:id to start processing
+        const id = this.state.probe && this.state.probe.id;
+        if (!id) {
+            console.warn("no internal video id on probe");
+            return;
+        }
+
+        this.setState({ appMode: APP_MODE_PROCESSING });
+        fetchVideo(id, this.handleFetchSuccess, this.handleFetchError);
+    }
+
+    async handleFetchSuccess(context, responseJsonPromise) {
+        const result = await responseJsonPromise;
+        console.log("fetch result", result);
+        // Remain in APP_MODE_PROCESSING (waiting screen) until progress polling is wired up.
+    }
+
+    async handleFetchError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("fetch error:", text);
+        this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text) });
     }
 
     renderPromptForm() {
@@ -232,6 +253,14 @@ class WatchApp extends React.Component {
         );
     }
 
+    renderProcessingForm() {
+        return (
+            <div className="flex justify-center py-4">
+                <div className="text-2xl text-gray-500">{this.i18n("generatingSubtitles")}</div>
+            </div>
+        );
+    }
+
     renderErrorForm() {
         return (
             <div className="flex justify-center py-4">
@@ -245,6 +274,8 @@ class WatchApp extends React.Component {
             return this.renderPromptForm();
         } else if (appMode == APP_MODE_PROBING) {
             return this.renderProbingForm();
+        } else if (appMode == APP_MODE_PROCESSING) {
+            return this.renderProcessingForm();
         } else if (appMode == APP_MODE_PREVIEW) {
             return this.renderPreviewForm();
         } else if (appMode == APP_MODE_ERROR) {

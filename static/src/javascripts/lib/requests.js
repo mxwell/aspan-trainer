@@ -59,6 +59,29 @@ function makePostRawBodyRequest(url, rawBody, successCallback, errorCallback, co
     makeGenericApiRequest("POST", url, null, rawBody, successCallback, errorCallback, context, idToken, expectJson);
 }
 
+function makePostNoBodyRequest(url, successCallback, errorCallback, context, idToken, expectJson) {
+    if (idToken == null) {
+        throw new InvalidAuthTokenException("no auth token is provided");
+    }
+    let headers = {};
+    extendHeadersWithToken(headers, idToken);
+    let fetchParams = {
+        method: "POST",
+        headers: headers,
+    };
+    fetch(url, fetchParams)
+        .then((response) => {
+            if (response.ok) {
+                if (expectJson)
+                    successCallback(context, response.json());
+                else
+                    successCallback(context, response.text());
+            } else {
+                errorCallback(context, response.text());
+            }
+        });
+}
+
 /* copied from https://stackoverflow.com/a/111545 */
 function encodeQueryData(data) {
     const ret = [];
@@ -106,10 +129,16 @@ function probeVideo(onlineVideoId, successCallback, errorCallback) {
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", true);
 }
 
+function fetchVideo(internalId, successCallback, errorCallback) {
+    const url = `/qarauapi/v1/fetch/${internalId}`;
+    makePostNoBodyRequest(url, successCallback, errorCallback, null, "lala", true);
+}
+
 export {
     InvalidAuthTokenException,
     makeGetApiRequest,
     makeJsonApiRequest,
+    makePostNoBodyRequest,
     encodeQueryData,
     makeSuggestRequest,
     makeDetectRequest,
@@ -117,4 +146,5 @@ export {
     makeAnalyzeSubRequest,
     loadTopList,
     probeVideo,
+    fetchVideo,
 };

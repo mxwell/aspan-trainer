@@ -1692,6 +1692,10 @@ function prepareWatchOnlyTranslations(map) {
         "Generate subtitles",
         "Сгенерировать субтитры",
     );
+    setEnRu(map, "generatingSubtitles",
+        "Generating subtitles...",
+        "Генерация субтитров...",
+    );
     setEnRu(map, "cantGenerateSubtitles",
         "Can't generate subtitles",
         "Невозможно сгенерировать субтитры",
