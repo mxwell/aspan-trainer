@@ -1700,6 +1700,10 @@ function prepareWatchOnlyTranslations(map) {
         "This video can't be opened right now",
         "Не удалось открыть это видео",
     );
+    setEnRu(map, "invalidYtUrl",
+        "Please enter a valid YouTube video URL",
+        "Введите корректную ссылку на YouTube-видео",
+    );
 }
 
 function prepareTranslations() {

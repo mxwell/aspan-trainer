@@ -60,6 +60,7 @@ class WatchApp extends React.Component {
         this.handleProbeSuccess = this.handleProbeSuccess.bind(this);
         this.handleProbeError = this.handleProbeError.bind(this);
         this.onGenerateClick = this.onGenerateClick.bind(this);
+        this.onInputChange = this.onInputChange.bind(this);
     }
 
     makeState(appMode, videoId) {
@@ -90,11 +91,18 @@ class WatchApp extends React.Component {
     startProbe(videoUrl) {
         const id = extractYouTubeVideoId(videoUrl);
         if (!id) {
-            console.warn("not a valid YouTube URL:", videoUrl);
+            this.setState({ promptError: this.i18n("invalidYtUrl") });
             return;
         }
 
+        this.setState({ promptError: null });
         this.probeById(id);
+    }
+
+    onInputChange() {
+        if (this.state.promptError) {
+            this.setState({ promptError: null });
+        }
     }
 
     probeById(id) {
@@ -168,6 +176,7 @@ class WatchApp extends React.Component {
                             maxLength="100"
                             placeholder={this.i18n("hintPasteYtUrl")}
                             className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            onChange={this.onInputChange}
                             autoFocus />
                         <button
                             type="button"
@@ -176,6 +185,9 @@ class WatchApp extends React.Component {
                             →
                         </button>
                     </div>
+                    {this.state.promptError && (
+                        <div className="mt-2 text-red-600 text-2xl lg:text-xl">{this.state.promptError}</div>
+                    )}
                 </form>
             </div>
         );
