@@ -134,6 +134,12 @@ function fetchVideo(internalId, successCallback, errorCallback) {
     makePostNoBodyRequest(url, successCallback, errorCallback, null, "lala", true);
 }
 
+function loadSubtitles(transcriptionId, query, successCallback, errorCallback, context) {
+    const queryStr = encodeQueryData(query);
+    const url = `/qarauapi/v1/subtitles/${transcriptionId}?${queryStr}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     InvalidAuthTokenException,
     makeGetApiRequest,
@@ -147,4 +153,5 @@ export {
     loadTopList,
     probeVideo,
     fetchVideo,
+    loadSubtitles,
 };

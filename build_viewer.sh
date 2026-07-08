@@ -7,6 +7,7 @@ EN_OUTPUT="${OUTPUT_DIR}/en"
 KK_OUTPUT="${OUTPUT_DIR}/kk"
 EN_POSTS="${EN_OUTPUT}/posts"
 
+rm -rf .cache/*
 rm -rf $OUTPUT_DIR/*
 
 # export NODE_ENV="development"
