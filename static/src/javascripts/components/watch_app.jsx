@@ -454,7 +454,9 @@ class WatchApp extends React.Component {
             this.requestSubtitlesJump(positionMs);
             return;
         }
-        const loadedStart = subtitles[0].start_ms;
+        const loadedStart = this.state.subtitlesRequestStartMs != null
+            ? this.state.subtitlesRequestStartMs
+            : subtitles[0].start_ms;
         const loadedEnd = subtitles[subtitles.length - 1].end_ms;
         const next = this.state.next;
         if (positionMs < loadedStart - SUBTITLE_BUFFER_MS || positionMs > loadedEnd + SUBTITLE_BUFFER_MS) {
@@ -518,6 +520,7 @@ class WatchApp extends React.Component {
             const cue = computeDisplayedCue(this.lastPositionMs, items);
             this.setState({
                 subtitles: items,
+                subtitlesRequestStartMs: context.seekMs,
                 next,
                 subtitlesLoading: false,
                 currentCueIndex: cue.index,
