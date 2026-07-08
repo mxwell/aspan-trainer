@@ -21,6 +21,11 @@ function isValidYouTubeVideoId(id) {
 }
 
 function extractYouTubeVideoId(url) {
+    // Accept a bare 11-character video ID directly.
+    if (isValidYouTubeVideoId(url)) {
+        return url;
+    }
+
     try {
         const parsed = new URL(url);
         const host = parsed.hostname.replace(/^www\./, '');
