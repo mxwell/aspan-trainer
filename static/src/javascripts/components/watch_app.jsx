@@ -643,6 +643,7 @@ class WatchApp extends React.Component {
         const queue = process && process.queue ? process.queue : [];
         const isTerminal = process && (process.state === "failed" || process.state === "done");
         const refreshDisabled = !process || this.state.refreshing || isTerminal;
+        const quota = process && process.asr_quota && process.asr_quota.day ? process.asr_quota : null;
 
         return (
             <div className="flex flex-col items-center">
@@ -670,6 +671,7 @@ class WatchApp extends React.Component {
                         </ul>
                     </div>
                 )}
+                {quota && this.renderAsrQuota(quota)}
                 <div className="mt-3 flex flex-row gap-2">
                     <button
                         type="button"
@@ -688,6 +690,24 @@ class WatchApp extends React.Component {
                         </button>
                     )}
                 </div>
+            </div>
+        );
+    }
+
+    renderAsrQuota(quota) {
+        const pct = Math.min(100, Math.max(0, quota.used_percent));
+        const barColor = pct >= 90 ? "bg-red-500" : "bg-blue-500";
+        return (
+            <div className="mt-3 w-full max-w-md text-left">
+                <div className="text-gray-600">{this.i18n("asrQuota")}</div>
+                <div className="mt-1 text-gray-700">{quota.day}</div>
+                <div className="mt-2 h-4 w-full rounded bg-gray-300 overflow-hidden">
+                    <div
+                        className={`h-4 ${barColor}`}
+                        style={{ width: pct + "%" }}>
+                    </div>
+                </div>
+                <div className="mt-1 text-sm text-gray-500">{quota.used_percent}%</div>
             </div>
         );
     }

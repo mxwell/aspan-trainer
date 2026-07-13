@@ -1736,6 +1736,10 @@ function prepareWatchOnlyTranslations(map) {
         "Video duration",
         "Длительность видео",
     );
+    setEnRu(map, "asrQuota",
+        "Daily speech recognition quota",
+        "Дневная квота распознавания речи",
+    );
     setEnRu(map, "refreshButton",
         "Refresh",
         "Обновить",
