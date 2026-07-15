@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles } from "../lib/requests";
+import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos } from "../lib/requests";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -203,6 +203,9 @@ class WatchApp extends React.Component {
         this.requestSubtitlesPage = this.requestSubtitlesPage.bind(this);
         this.handleSubtitlesResponse = this.handleSubtitlesResponse.bind(this);
         this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
+        this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
+        this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
+        this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
 
         this.player = null;
         this.playerReady = false;
@@ -219,6 +222,7 @@ class WatchApp extends React.Component {
         return {
             appMode: appMode,
             videoId: videoId || null,
+            suggestedVideos: [],
         }
     }
 
@@ -234,6 +238,8 @@ class WatchApp extends React.Component {
         window.addEventListener("popstate", this.onPopState);
         if (this.state.videoId) {
             this.probeById(this.state.videoId);
+        } else {
+            loadSuggestedVideos(this.handleSuggestedVideosSuccess, this.handleSuggestedVideosError);
         }
     }
 
@@ -725,6 +731,23 @@ class WatchApp extends React.Component {
         }
     }
 
+    // ===== APP_MODE_PROMPT: suggested videos =====
+
+    async handleSuggestedVideosSuccess(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        const videos = (resp && resp.videos) || [];
+        this.setState({ suggestedVideos: videos });
+    }
+
+    async handleSuggestedVideosError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("suggested videos error:", text);
+    }
+
+    onSuggestedVideoClick(videoId) {
+        this.probeById(videoId);
+    }
+
     renderPromptForm() {
         return (
             <div>
@@ -750,6 +773,43 @@ class WatchApp extends React.Component {
                         <div className="mt-2 text-red-600 text-2xl lg:text-xl">{this.state.promptError}</div>
                     )}
                 </form>
+                {this.renderSuggestedVideos()}
+            </div>
+        );
+    }
+
+    renderSuggestedVideos() {
+        const videos = this.state.suggestedVideos || [];
+        if (videos.length === 0) {
+            return null;
+        }
+        return (
+            <div className="mt-6 px-3">
+                <div className="text-xl font-medium text-gray-700 mb-2">{this.i18n("suggestedVideosTitle")}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {videos.map((v) => (
+                        <div
+                            key={v.online_video_id}
+                            onClick={() => this.onSuggestedVideoClick(v.online_video_id)}
+                            className="cursor-pointer flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
+                            <div className="relative" style={{ paddingBottom: "75%" }}>
+                                <img
+                                    src={v.thumbnail_url}
+                                    alt={v.title}
+                                    width={v.thumbnail_width}
+                                    height={v.thumbnail_height}
+                                    className="absolute inset-0 w-full h-full object-cover" />
+                                <span className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-sm px-1 rounded">
+                                    {formatDuration(v.duration_secs)}
+                                </span>
+                            </div>
+                            <div className="p-2">
+                                <div className="text-sm font-medium text-gray-800 truncate" title={v.title}>{v.title}</div>
+                                <div className="text-xs text-gray-500 mt-1">{v.channel_title}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

@@ -140,6 +140,11 @@ function loadSubtitles(transcriptionId, query, successCallback, errorCallback, c
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function loadSuggestedVideos(successCallback, errorCallback) {
+    const url = `/qarauapi/v1/suggested_videos`;
+    makeGetApiRequest(url, successCallback, errorCallback, null, "lala", true);
+}
+
 export {
     InvalidAuthTokenException,
     makeGetApiRequest,
@@ -154,4 +159,5 @@ export {
     probeVideo,
     fetchVideo,
     loadSubtitles,
+    loadSuggestedVideos,
 };

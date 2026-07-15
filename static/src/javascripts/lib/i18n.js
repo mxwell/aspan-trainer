@@ -1756,6 +1756,10 @@ function prepareWatchOnlyTranslations(map) {
         "No subtitles available",
         "Субтитры отсутствуют",
     );
+    setEnRu(map, "suggestedVideosTitle",
+        "Suggested videos",
+        "Рекомендуемые видео",
+    );
 }
 
 function prepareTranslations() {
