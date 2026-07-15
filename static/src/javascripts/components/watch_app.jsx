@@ -15,6 +15,7 @@ const VIDEO_PLAYING = 1;
 const SUBTITLE_BUFFER_MS = 10000;
 const SUBTITLE_WORD_COUNT = 150;
 const TICK_MS = 500;
+const PROCESSING_POLL_MS = 10000;
 
 function isValidYouTubeVideoId(id) {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
@@ -57,19 +58,18 @@ function formatDuration(totalSecs) {
     return `${mins}:${pad(secs)}`;
 }
 
-function formatTimestamp(ms) {
-    const d = new Date(ms);
-    const now = new Date();
-    const sameDay = d.getFullYear() === now.getFullYear()
-        && d.getMonth() === now.getMonth()
-        && d.getDate() === now.getDate();
-    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    if (sameDay) {
-        return time;
+function formatElapsedDuration(totalMs) {
+    const totalSecs = Math.max(0, Math.floor(totalMs / 1000));
+    const secs = totalSecs % 60;
+    const mins = Math.floor(totalSecs / 60) % 60;
+    const hours = Math.floor(totalSecs / 3600);
+    if (hours > 0) {
+        return `${hours}h ${mins}m ${secs}s`;
     }
-    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    return `${date} ${time}`;
+    if (mins > 0) {
+        return `${mins}m ${secs}s`;
+    }
+    return `${secs}s`;
 }
 
 function formatCueTimestamp(ms) {
@@ -144,6 +144,9 @@ class WatchApp extends React.Component {
         this.onGenerateClick = this.onGenerateClick.bind(this);
         this.onRefreshClick = this.onRefreshClick.bind(this);
         this.onProceedClick = this.onProceedClick.bind(this);
+        this.startProcessingPoll = this.startProcessingPoll.bind(this);
+        this.stopProcessingPoll = this.stopProcessingPoll.bind(this);
+        this.pollProcessingStatus = this.pollProcessingStatus.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
         this.enterWatchMode = this.enterWatchMode.bind(this);
         this.bootYouTubePlayer = this.bootYouTubePlayer.bind(this);
@@ -161,6 +164,8 @@ class WatchApp extends React.Component {
         this.player = null;
         this.playerReady = false;
         this.tickTimer = null;
+        this.processPollTimer = null;
+        this.processTickTimer = null;
         this.transcriptionId = null;
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
@@ -192,9 +197,16 @@ class WatchApp extends React.Component {
         if (prevState.appMode !== APP_MODE_WATCH && this.state.appMode === APP_MODE_WATCH) {
             this.enterWatchMode();
         }
+        if (prevState.appMode !== APP_MODE_PROCESSING && this.state.appMode === APP_MODE_PROCESSING) {
+            this.setState({ processStartedAt: Date.now() });
+            this.startProcessingPoll();
+        } else if (prevState.appMode === APP_MODE_PROCESSING && this.state.appMode !== APP_MODE_PROCESSING) {
+            this.stopProcessingPoll();
+        }
     }
 
     componentWillUnmount() {
+        this.stopProcessingPoll();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
             this.tickTimer = null;
@@ -338,12 +350,48 @@ class WatchApp extends React.Component {
         const process = await responseJsonPromise;
         console.log("fetch result", process);
         this.setState({ process: process, processUpdatedAt: Date.now(), refreshing: false });
+        if (process && (process.state === "failed" || process.state === "done")) {
+            this.stopProcessingPoll();
+        }
     }
 
     async handleFetchError(context, responseTextPromise) {
         const text = await responseTextPromise;
         console.log("fetch error:", text);
         this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text), refreshing: false });
+    }
+
+    // ===== APP_MODE_PROCESSING: poll for job status while ASR/fetch is running =====
+
+    startProcessingPoll() {
+        this.stopProcessingPoll();
+        this.processPollTimer = setInterval(this.pollProcessingStatus, PROCESSING_POLL_MS);
+        // Re-render every second so the "Waiting Xm Ys…" readout ticks live.
+        this.processTickTimer = setInterval(() => this.forceUpdate(), 1000);
+    }
+
+    stopProcessingPoll() {
+        if (this.processPollTimer) {
+            clearInterval(this.processPollTimer);
+            this.processPollTimer = null;
+        }
+        if (this.processTickTimer) {
+            clearInterval(this.processTickTimer);
+            this.processTickTimer = null;
+        }
+    }
+
+    pollProcessingStatus() {
+        const process = this.state.process;
+        if (process && (process.state === "failed" || process.state === "done")) {
+            this.stopProcessingPoll();
+            return;
+        }
+        const id = this.state.probe && this.state.probe.id;
+        if (!id) {
+            return;
+        }
+        fetchVideo(id, this.handleFetchSuccess, this.handleFetchError);
     }
 
     // ===== APP_MODE_WATCH: embedded YouTube player + paged subtitles =====
@@ -644,31 +692,40 @@ class WatchApp extends React.Component {
         const isTerminal = process && (process.state === "failed" || process.state === "done");
         const refreshDisabled = !process || this.state.refreshing || isTerminal;
         const quota = process && process.asr_quota && process.asr_quota.day ? process.asr_quota : null;
+        const elapsedMs = this.state.processStartedAt != null
+            ? (isTerminal ? (this.state.processUpdatedAt || Date.now()) : Date.now()) - this.state.processStartedAt
+            : null;
 
         return (
             <div className="flex flex-col items-center">
                 {info && this.renderVideoInfo(info)}
-                <div className="mt-3 text-xl text-gray-700">
-                    {process ? this.i18n(processStatusKey(process.state)) : this.i18n("isLoading")}
+                <div className="mt-3 flex flex-row items-center">
+                    {!isTerminal && (
+                        <div
+                            className="animate-spin rounded-full h-6 w-6 border-4 border-gray-200 mr-2"
+                            style={{ borderTopColor: "#3b82f6", borderRightColor: "#3b82f6" }}>
+                        </div>
+                    )}
+                    <div className="text-xl text-gray-700">
+                        {process ? this.i18n(processStatusKey(process.state)) : this.i18n("isLoading")}
+                    </div>
                 </div>
-                {process && this.state.processUpdatedAt && (
+                {!isTerminal && (
+                    <div className="mt-1 text-sm text-gray-500">{this.i18n("processingHint")}</div>
+                )}
+                {process && elapsedMs != null && (
                     <div className="text-sm text-gray-500">
-                        {this.i18n("statusUpdated")(formatTimestamp(this.state.processUpdatedAt))}
+                        {isTerminal
+                            ? this.i18n("statusWaited")(formatElapsedDuration(elapsedMs))
+                            : this.i18n("statusWaiting")(formatElapsedDuration(elapsedMs))}
                     </div>
                 )}
                 {process && process.state === "failed" && process.error_message && (
                     <div className="mt-1 text-red-600">{process.error_message}</div>
                 )}
                 {queue.length > 0 && (
-                    <div className="mt-3 w-full max-w-md text-left">
-                        <div className="text-gray-600">{this.i18n("jobsAhead")}</div>
-                        <ul className="mt-1 list-disc list-inside">
-                            {queue.map((job, i) => (
-                                <li key={i} className="text-gray-700">
-                                    {this.i18n("videoDuration")}:&nbsp;{formatDuration(job.video_duration_secs)}
-                                </li>
-                            ))}
-                        </ul>
+                    <div className="mt-3 text-gray-700">
+                        {this.i18n("queuePositionTempl")(queue.length + 1)}
                     </div>
                 )}
                 {quota && this.renderAsrQuota(quota)}

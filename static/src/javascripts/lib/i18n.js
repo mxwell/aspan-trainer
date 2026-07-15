@@ -1724,17 +1724,21 @@ function prepareWatchOnlyTranslations(map) {
         "Subtitles are ready",
         "Субтитры готовы",
     );
-    setEnRu(map, "statusUpdated",
-        (ts) => `Updated ${ts}`,
-        (ts) => `Обновлено ${ts}`,
+    setEnRu(map, "statusWaiting",
+        (duration) => `Waiting ${duration}…`,
+        (duration) => `Ожидание: ${duration}…`,
     );
-    setEnRu(map, "jobsAhead",
-        "Queued ahead",
-        "В очереди перед вами",
+    setEnRu(map, "statusWaited",
+        (duration) => `Waited ${duration}`,
+        (duration) => `Ожидание заняло: ${duration}`,
     );
-    setEnRu(map, "videoDuration",
-        "Video duration",
-        "Длительность видео",
+    setEnRu(map, "queuePositionTempl",
+        (position) => `You're #${position} in line`,
+        (position) => `Вы №${position} в очереди`,
+    );
+    setEnRu(map, "processingHint",
+        "This usually takes 2-3 minutes, longer if there's a queue.",
+        "Обычно это занимает 2-3 минуты, дольше при большой очереди.",
     );
     setEnRu(map, "asrQuota",
         "Daily speech recognition quota",
