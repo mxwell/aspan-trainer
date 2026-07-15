@@ -730,13 +730,15 @@ class WatchApp extends React.Component {
                 )}
                 {quota && this.renderAsrQuota(quota)}
                 <div className="mt-3 flex flex-row gap-2">
-                    <button
-                        type="button"
-                        onClick={this.onRefreshClick}
-                        disabled={refreshDisabled}
-                        className="bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                        {this.i18n("refreshButton")}
-                    </button>
+                    {(!process || process.state !== "done") && (
+                        <button
+                            type="button"
+                            onClick={this.onRefreshClick}
+                            disabled={refreshDisabled}
+                            className="bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            {this.i18n("refreshButton")}
+                        </button>
+                    )}
                     {process && process.state === "done" && (
                         <button
                             type="button"

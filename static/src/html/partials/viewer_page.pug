@@ -35,8 +35,10 @@ mixin a_viewer_page(l10n, js_path)
                                         span(class="mx-2")
                                             = l10n.titleTextAnalyzer
                                 a(href= l10n.linkYtSubtitles)
-                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full")
-                                        = l10n.titleYtSubtitles
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
+                                        img(class="lg:h-8", src="../images/yt.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleYtSubtitles
                                 a(href= l10n.linkTop100Verbs)
                                     button(class="bg-blue-800 border-2 border-gray-300 text-4xl lg:text-2xl text-left py-1 px-2 w-full flex flex-row")
                                         img(class="lg:h-8", src="../images/arrowup.svg")
