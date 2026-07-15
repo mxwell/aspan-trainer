@@ -15,6 +15,7 @@ const VIDEO_PLAYING = 1;
 const SUBTITLE_BUFFER_MS = 10000;
 const SUBTITLE_WORD_COUNT = 150;
 const TICK_MS = 500;
+const MIN_TICK_MS = 50;
 const PROCESSING_POLL_MS = 10000;
 
 function isValidYouTubeVideoId(id) {
@@ -108,6 +109,45 @@ function computeDisplayedCue(positionMs, subtitles) {
     return { index: -1, upcoming: false };
 }
 
+// Returns the index of the currently active word within `words` — the last
+// word whose start_ms has passed — so the highlight persists through any
+// micro-gap until the next word begins. Returns -1 if before the first word.
+function computeActiveWordIndex(positionMs, words) {
+    let active = -1;
+    for (let i = 0; i < words.length; ++i) {
+        if (words[i].start_ms > positionMs) break;
+        active = i;
+    }
+    return active;
+}
+
+// Computes how long to wait before the next tick so it lands as close as
+// possible to the next event that could change what's displayed: the next
+// word's start (for word highlighting), the next cue's start (during a
+// silent gap), or a bounded fallback poll otherwise. Clamped to
+// [MIN_TICK_MS, TICK_MS] so a seek that doesn't produce a player state-change
+// event (a known YouTube IFrame API quirk) is still caught within TICK_MS.
+function computeNextTickDelayMs(positionMs, playbackRate, subtitles, cueIndex, upcoming, activeWordIndex) {
+    const rate = playbackRate > 0 ? playbackRate : 1;
+
+    if (cueIndex === -1 || cueIndex >= subtitles.length) {
+        return TICK_MS;
+    }
+
+    const cue = subtitles[cueIndex];
+    let targetMs;
+    if (upcoming) {
+        targetMs = cue.start_ms;
+    } else {
+        const words = cue.words || [];
+        const nextWord = words[activeWordIndex + 1];
+        targetMs = nextWord ? nextWord.start_ms : cue.end_ms;
+    }
+
+    const delay = (targetMs - positionMs) / rate;
+    return Math.min(TICK_MS, Math.max(MIN_TICK_MS, delay));
+}
+
 function isProcessingState(state) {
     return state === "fetch_pending" || state === "fetch_running"
         || state === "asr_pending" || state === "asr_running";
@@ -155,6 +195,7 @@ class WatchApp extends React.Component {
         this.loadVideo = this.loadVideo.bind(this);
         this.onPlayerReady = this.onPlayerReady.bind(this);
         this.onPlayerStateChange = this.onPlayerStateChange.bind(this);
+        this.onPlayerRateChange = this.onPlayerRateChange.bind(this);
         this.tick = this.tick.bind(this);
         this.updateCurrentCue = this.updateCurrentCue.bind(this);
         this.loadSubtitlesIfNeeded = this.loadSubtitlesIfNeeded.bind(this);
@@ -516,6 +557,7 @@ class WatchApp extends React.Component {
             events: {
                 onReady: this.onPlayerReady,
                 onStateChange: this.onPlayerStateChange,
+                onPlaybackRateChange: this.onPlayerRateChange,
             },
         });
     }
@@ -530,6 +572,13 @@ class WatchApp extends React.Component {
         this.tick();
     }
 
+    // A speed change invalidates the delay the pending timer was scheduled
+    // with (it was computed against the old rate), so re-tick immediately
+    // rather than waiting for it to fire late/early.
+    onPlayerRateChange(event) {
+        this.tick();
+    }
+
     tick() {
         // Clear any pending tick so rapid onStateChange events can't stack timers.
         if (this.tickTimer) {
@@ -540,23 +589,27 @@ class WatchApp extends React.Component {
             return;
         }
         const positionMs = Math.floor(this.player.getCurrentTime() * 1000);
-        this.updateCurrentCue(positionMs);
+        const { index, upcoming, activeWordIndex } = this.updateCurrentCue(positionMs);
         this.loadSubtitlesIfNeeded(positionMs);
         if (this.player.getPlayerState() === VIDEO_PLAYING) {
-            this.tickTimer = setTimeout(() => this.tick(), TICK_MS);
+            const delay = computeNextTickDelayMs(
+                positionMs, this.player.getPlaybackRate(), this.state.subtitles || [], index, upcoming, activeWordIndex
+            );
+            this.tickTimer = setTimeout(() => this.tick(), delay);
         }
     }
 
     updateCurrentCue(positionMs) {
         this.lastPositionMs = positionMs;
-        const { index, upcoming } = computeDisplayedCue(positionMs, this.state.subtitles || []);
-        if (upcoming) {
-            // While a cue is upcoming, push the live position each tick so the
-            // gap-progress bar under it advances smoothly.
-            this.setState({ currentCueIndex: index, currentCueUpcoming: true, positionMs });
-        } else if (index !== this.state.currentCueIndex || this.state.currentCueUpcoming) {
-            this.setState({ currentCueIndex: index, currentCueUpcoming: false });
-        }
+        const subtitles = this.state.subtitles || [];
+        const { index, upcoming } = computeDisplayedCue(positionMs, subtitles);
+        const activeWordIndex = (!upcoming && index !== -1)
+            ? computeActiveWordIndex(positionMs, subtitles[index].words)
+            : -1;
+        // Push the live position every tick (not just while a cue is upcoming)
+        // so per-word highlighting can track playback during an active cue too.
+        this.setState({ currentCueIndex: index, currentCueUpcoming: upcoming, positionMs });
+        return { index, upcoming, activeWordIndex };
     }
 
     loadSubtitlesIfNeeded(positionMs) {
@@ -868,6 +921,7 @@ class WatchApp extends React.Component {
         const subtitles = this.state.subtitles || [];
         const idx = this.state.currentCueIndex;
         const upcoming = !!this.state.currentCueUpcoming;
+        const positionMs = this.state.positionMs || 0;
 
         if (this.state.subtitlesLoading && subtitles.length === 0) {
             return (
@@ -897,7 +951,6 @@ class WatchApp extends React.Component {
 
         if (upcoming) {
             // Fill across the silent gap: from the previous cue's end to this cue's start.
-            const positionMs = this.state.positionMs || 0;
             const gapStart = idx > 0 ? subtitles[idx - 1].end_ms : 0;
             const gapEnd = sub.start_ms;
             const total = Math.max(1, gapEnd - gapStart);
@@ -914,11 +967,21 @@ class WatchApp extends React.Component {
             </div>
         );
 
+        const activeWordIndex = upcoming ? -1 : computeActiveWordIndex(positionMs, sub.words);
+
         return (
             <div className={cardClass}>
                 {progressBar}
                 <span className={stampClass}>{formatCueTimestamp(sub.start_ms)}</span>
-                <span className={textClass}>{sub.text}</span>
+                <span className={textClass}>
+                    {sub.words.map((w, i) => (
+                        <span
+                            key={i}
+                            className={i === activeWordIndex ? "bg-yellow-300 rounded px-0.5 transition-colors duration-150" : ""}>
+                            {w.word}{" "}
+                        </span>
+                    ))}
+                </span>
             </div>
         );
     }
