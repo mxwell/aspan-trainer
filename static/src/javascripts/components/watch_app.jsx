@@ -147,6 +147,8 @@ class WatchApp extends React.Component {
         this.startProcessingPoll = this.startProcessingPoll.bind(this);
         this.stopProcessingPoll = this.stopProcessingPoll.bind(this);
         this.pollProcessingStatus = this.pollProcessingStatus.bind(this);
+        this.onPopState = this.onPopState.bind(this);
+        this.resetToPrompt = this.resetToPrompt.bind(this);
         this.onInputChange = this.onInputChange.bind(this);
         this.enterWatchMode = this.enterWatchMode.bind(this);
         this.bootYouTubePlayer = this.bootYouTubePlayer.bind(this);
@@ -188,6 +190,7 @@ class WatchApp extends React.Component {
     }
 
     componentDidMount() {
+        window.addEventListener("popstate", this.onPopState);
         if (this.state.videoId) {
             this.probeById(this.state.videoId);
         }
@@ -206,6 +209,7 @@ class WatchApp extends React.Component {
     }
 
     componentWillUnmount() {
+        window.removeEventListener("popstate", this.onPopState);
         this.stopProcessingPoll();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
@@ -292,6 +296,66 @@ class WatchApp extends React.Component {
         }
         const url = buildWatchUrl([`v=${encodeURI(videoId)}`], this.props.lang);
         window.history.pushState(null, "", url);
+    }
+
+    // Fires on browser back/forward. Re-derive intent from the URL rather than
+    // trusting event.state, since we never push a state object.
+    onPopState() {
+        const videoId = parseParams().v;
+        if (videoId && isValidYouTubeVideoId(videoId)) {
+            const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
+            if (videoId !== currentVideoId) {
+                this.probeById(videoId);
+            }
+        } else {
+            this.resetToPrompt();
+        }
+    }
+
+    // Tears down whatever mode we were in (polling, YT player, subtitle tracking)
+    // and returns to a clean APP_MODE_PROMPT, e.g. after navigating back past the
+    // point where a video id first entered the URL.
+    resetToPrompt() {
+        this.stopProcessingPoll();
+        if (this.tickTimer) {
+            clearTimeout(this.tickTimer);
+            this.tickTimer = null;
+        }
+        if (this.player) {
+            try {
+                this.player.destroy();
+            } catch (e) {
+                // ignore — player may already be gone
+            }
+            this.player = null;
+        }
+        this.playerReady = false;
+        this.transcriptionId = null;
+        this.subtitlesEndMs = null;
+        this.subLoadToken = 0;
+        this.lastPositionMs = 0;
+        if (this.inputRef.current) {
+            this.inputRef.current.value = "";
+        }
+        this.setState({
+            appMode: APP_MODE_PROMPT,
+            videoId: null,
+            probe: null,
+            process: null,
+            processStartedAt: null,
+            processUpdatedAt: null,
+            promptError: null,
+            errorMessage: null,
+            refreshing: false,
+            proceeding: false,
+            subtitles: [],
+            next: null,
+            currentCueIndex: -1,
+            currentCueUpcoming: false,
+            positionMs: 0,
+            subtitlesLoading: false,
+            subtitlesRequestStartMs: null,
+        });
     }
 
     async handleProbeError(context, responseTextPromise) {
