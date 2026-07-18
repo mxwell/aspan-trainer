@@ -1,7 +1,9 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos } from "../lib/requests";
+import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, makeAnalyzeSubRequest } from "../lib/requests";
+import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
+import { AnalyzedPartView } from "./analyzed_part_view";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -206,6 +208,9 @@ class WatchApp extends React.Component {
         this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
+        this.onGrammarToggle = this.onGrammarToggle.bind(this);
+        this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
+        this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
 
         this.player = null;
         this.playerReady = false;
@@ -216,6 +221,11 @@ class WatchApp extends React.Component {
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
         this.lastPositionMs = 0;
+        this.analysisToken = 0;
+        // Cue index the in-flight (or last issued) analysis request was for. Kept
+        // outside state so back-to-back ticks can't re-issue the same request while
+        // the response — and the state update it carries — is still pending.
+        this.analysisCueIndex = -1;
     }
 
     makeState(appMode, videoId) {
@@ -223,6 +233,10 @@ class WatchApp extends React.Component {
             appMode: appMode,
             videoId: videoId || null,
             suggestedVideos: [],
+            grammar: false,
+            breakdown: [],
+            breakdownCueIndex: -1,
+            analyzing: false,
         }
     }
 
@@ -381,6 +395,8 @@ class WatchApp extends React.Component {
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
         this.lastPositionMs = 0;
+        this.analysisToken = 0;
+        this.analysisCueIndex = -1;
         if (this.inputRef.current) {
             this.inputRef.current.value = "";
         }
@@ -402,6 +418,9 @@ class WatchApp extends React.Component {
             positionMs: 0,
             subtitlesLoading: false,
             subtitlesRequestStartMs: null,
+            breakdown: [],
+            breakdownCueIndex: -1,
+            analyzing: false,
         });
     }
 
@@ -517,7 +536,12 @@ class WatchApp extends React.Component {
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
         this.lastPositionMs = 0;
-        this.setState({ subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0 });
+        this.analysisToken = 0;
+        this.analysisCueIndex = -1;
+        this.setState({
+            subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0,
+            breakdown: [], breakdownCueIndex: -1, analyzing: false,
+        });
 
         if (this.transcriptionId != null) {
             // Initial load: a page of words from the start (covers roughly the first minute).
@@ -615,6 +639,9 @@ class WatchApp extends React.Component {
         // Push the live position every tick (not just while a cue is upcoming)
         // so per-word highlighting can track playback during an active cue too.
         this.setState({ currentCueIndex: index, currentCueUpcoming: upcoming, positionMs });
+        if (!upcoming && index !== -1) {
+            this.startSubAnalysisIfNeeded(index, subtitles[index]);
+        }
         return { index, upcoming, activeWordIndex };
     }
 
@@ -694,6 +721,9 @@ class WatchApp extends React.Component {
                 this.subtitlesEndMs = endMs;
             }
             const cue = computeDisplayedCue(this.lastPositionMs, items);
+            // A jump replaces the array wholesale, so cue indices from the previous
+            // batch — including any we analyzed — no longer refer to the same cues.
+            this.analysisCueIndex = -1;
             this.setState({
                 subtitles: items,
                 subtitlesRequestStartMs: context.seekMs,
@@ -702,6 +732,8 @@ class WatchApp extends React.Component {
                 currentCueIndex: cue.index,
                 currentCueUpcoming: cue.upcoming,
                 positionMs: this.lastPositionMs,
+                breakdown: [],
+                breakdownCueIndex: -1,
             });
             console.log(`Loaded ${items.length} cues from start_ms=${context.seekMs}, next=${next}, end=${endMs}`);
         } else {
@@ -728,6 +760,86 @@ class WatchApp extends React.Component {
         console.log(`subtitles error: ${text}`);
         if (context.token === this.subLoadToken) {
             this.setState({ subtitlesLoading: false });
+        }
+    }
+
+    // ===== Grammar breakdown of the displayed cue =====
+
+    onGrammarToggle() {
+        const grammar = !this.state.grammar;
+        if (grammar) {
+            this.setState({ grammar });
+            // Analyze the cue on screen right now instead of waiting for the next one.
+            const subtitles = this.state.subtitles || [];
+            const index = this.state.currentCueIndex;
+            if (!this.state.currentCueUpcoming && index >= 0 && index < subtitles.length) {
+                this.startSubAnalysis(index, subtitles[index]);
+            }
+        } else {
+            this.analysisCueIndex = -1;
+            this.setState({ grammar, breakdown: [], breakdownCueIndex: -1, analyzing: false });
+        }
+    }
+
+    startSubAnalysisIfNeeded(cueIndex, cue) {
+        if (!this.state.grammar || this.analysisCueIndex === cueIndex) {
+            return;
+        }
+        this.startSubAnalysis(cueIndex, cue);
+    }
+
+    startSubAnalysis(cueIndex, cue) {
+        const words = (cue && cue.words) || [];
+        if (words.length === 0) {
+            return;
+        }
+        this.analysisToken += 1;
+        this.analysisCueIndex = cueIndex;
+        const token = this.analysisToken;
+        // /analyze_sub expects absolute-ms timings under different field names than
+        // the subtitles endpoint returns.
+        const body = JSON.stringify({
+            words: words.map((w) => ({
+                word: w.word,
+                startTime: w.start_ms,
+                endTime: w.end_ms,
+            })),
+        });
+        this.setState({ analyzing: true });
+        makeAnalyzeSubRequest(
+            body,
+            this.handleAnalyzeResponse,
+            this.handleAnalyzeError,
+            { token, cueIndex },
+        );
+    }
+
+    async handleAnalyzeResponse(context, responseJsonPromise) {
+        const response = await responseJsonPromise;
+        if (context.token !== this.analysisToken) {
+            console.log("ignore stale analysis response");
+            return;
+        }
+        const analyzedParts = parseAnalyzeResponse(response);
+        let filteredParts = [];
+        for (const part of analyzedParts) {
+            let filteredForms = [];
+            for (const candidate of part.detectedForms) {
+                if (candidate.tense != "infinitive") {
+                    filteredForms.push(candidate);
+                }
+            }
+            filteredParts.push(new AnalyzedPart(part.token, filteredForms, part.startTime, part.endTime));
+        }
+        this.setState({ breakdown: filteredParts, breakdownCueIndex: context.cueIndex, analyzing: false });
+    }
+
+    async handleAnalyzeError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log(`analyze_sub error: ${text}`);
+        if (context.token === this.analysisToken) {
+            this.analysisCueIndex = -1; // allow a retry when this cue comes around again
+            this.setState({ analyzing: false });
         }
     }
 
@@ -971,7 +1083,11 @@ class WatchApp extends React.Component {
                     </div>
                 )}
                 <div className="w-full max-w-2xl px-4 py-2">
+                    <div className="flex flex-row justify-end">
+                        {this.renderGrammarToggler()}
+                    </div>
                     {this.renderSubtitles()}
+                    {this.renderBreakdown()}
                 </div>
             </div>
         );
@@ -1042,6 +1158,55 @@ class WatchApp extends React.Component {
                         </span>
                     ))}
                 </span>
+            </div>
+        );
+    }
+
+    renderGrammarToggler() {
+        return (
+            <div
+                className="mx-4 rounded flex flex-row cursor-pointer select-none"
+                onClick={this.onGrammarToggle}>
+                <img
+                    className="mx-2 h-8"
+                    src={this.state.grammar ? "/toggle_on.svg" : "/toggle_off.svg"}
+                />
+                <span className="text-xl">{this.i18n("toggleGrammar")}</span>
+            </div>
+        );
+    }
+
+    renderBreakdown() {
+        if (!this.state.grammar) {
+            return null;
+        }
+        const breakdown = this.state.breakdown || [];
+        // Only show a breakdown that belongs to the cue currently on screen, so a
+        // stale one never lingers under a cue it doesn't describe.
+        if (breakdown.length === 0 || this.state.breakdownCueIndex !== this.state.currentCueIndex) {
+            return this.state.analyzing
+                ? (<div className="m-4 text-center text-gray-500">{this.i18n("analyzing")}</div>)
+                : null;
+        }
+
+        const positionMs = this.state.positionMs || 0;
+        return (
+            <div className="m-4 flex flex-row flex-wrap">
+                {breakdown.map((part, i) => (
+                    <AnalyzedPartView
+                        key={i}
+                        analyzedPart={part}
+                        grammar={true}
+                        translations={false}
+                        highlight={
+                            part.startTime != null && part.endTime != null
+                            && part.startTime <= positionMs && positionMs <= part.endTime
+                        }
+                        hintCallback={null}
+                        verbFormsCallback={null}
+                        lang={this.props.lang}
+                    />
+                ))}
             </div>
         );
     }

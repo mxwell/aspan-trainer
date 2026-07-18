@@ -159,14 +159,15 @@ class AnalyzedPartView extends React.Component {
             : null
         );
         const formNameKey = this.getFormNameKey(pos, detectedForm);
+        const hintCallback = this.props.hintCallback;
         const formElement = (
             formNameKey != null
             ? (<div className="italic flex flex-row">
                 <span>{this.i18n(formNameKey)}</span>
-                <img
+                {hintCallback != null && <img
                     src="/info.svg"
-                    onClick={(e) => this.props.hintCallback(formNameKey)}
-                    className="cursor-pointer px-2" />
+                    onClick={(e) => hintCallback(formNameKey)}
+                    className="cursor-pointer px-2" />}
             </div>)
             : null
         );
@@ -194,10 +195,10 @@ class AnalyzedPartView extends React.Component {
             (wordgenNameKey != null)
             ? (<div className="italic flex flex-row">
                 <span>{this.i18n(wordgenNameKey)}</span>
-                <img
+                {hintCallback != null && <img
                     src="/info.svg"
-                    onClick={(e) => this.props.hintCallback(wordgenNameKey)}
-                    className="cursor-pointer px-2" />
+                    onClick={(e) => hintCallback(wordgenNameKey)}
+                    className="cursor-pointer px-2" />}
             </div>)
             : null
         );
@@ -207,7 +208,7 @@ class AnalyzedPartView extends React.Component {
             : null
         );
         const verbForms = (
-            pos == "v"
+            pos == "v" && this.props.verbFormsCallback != null
             ? (<img
                 src="/table.svg"
                 alt="show main verb forms"
