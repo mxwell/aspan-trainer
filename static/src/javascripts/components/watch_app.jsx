@@ -111,16 +111,40 @@ function computeDisplayedCue(positionMs, subtitles) {
     return { index: -1, upcoming: false };
 }
 
-// Returns the index of the currently active word within `words` — the last
-// word whose start_ms has passed — so the highlight persists through any
-// micro-gap until the next word begins. Returns -1 if before the first word.
-function computeActiveWordIndex(positionMs, words) {
+// Letters (Kazakh Cyrillic and Latin) or digits - the character classes that make
+// a token worth a breakdown card.
+const BREAKDOWN_CONTENT_RE = /[A-Za-zА-Яа-яЁӘІҢҒҮҰҚӨҺёәіңғүұқөһ0-9]/;
+
+// The breakdown shows words and phrases only. Tokens made purely of spaces and
+// punctuation (" ", ", ", ". ") carry no grammar and are already visible in the
+// cue above, so they'd only be dead cards to scroll past.
+function isBreakdownWorthy(token) {
+    return BREAKDOWN_CONTENT_RE.test(token);
+}
+
+// Returns the index of the currently active item - the last one whose start has
+// passed - so the highlight persists through any micro-gap until the next item
+// begins. Returns -1 if before the first item. `startOf` returns an item's start
+// in ms, or null for items that carry no timing (never active, and skipped over
+// so a timed item's highlight survives them).
+function computeActiveIndex(positionMs, items, startOf) {
     let active = -1;
-    for (let i = 0; i < words.length; ++i) {
-        if (words[i].start_ms > positionMs) break;
+    for (let i = 0; i < items.length; ++i) {
+        const start = startOf(items[i]);
+        if (start == null) continue;
+        if (start > positionMs) break;
         active = i;
     }
     return active;
+}
+
+function computeActiveWordIndex(positionMs, words) {
+    return computeActiveIndex(positionMs, words, (w) => w.start_ms);
+}
+
+// Breakdown parts synthesized from unrecognized content carry null timings.
+function computeActivePartIndex(positionMs, breakdown) {
+    return computeActiveIndex(positionMs, breakdown, (p) => p.startTime);
 }
 
 // Computes how long to wait before the next tick so it lands as close as
@@ -177,6 +201,7 @@ class WatchApp extends React.Component {
         this.state = state;
 
         this.inputRef = React.createRef();
+        this.breakdownRef = React.createRef();
         this.onSubmit = this.onSubmit.bind(this);
         this.startProbe = this.startProbe.bind(this);
         this.handleProbeSuccess = this.handleProbeSuccess.bind(this);
@@ -224,7 +249,7 @@ class WatchApp extends React.Component {
         this.analysisToken = 0;
         // Cue index the in-flight (or last issued) analysis request was for. Kept
         // outside state so back-to-back ticks can't re-issue the same request while
-        // the response — and the state update it carries — is still pending.
+        // the response - and the state update it carries - is still pending.
         this.analysisCueIndex = -1;
     }
 
@@ -267,6 +292,38 @@ class WatchApp extends React.Component {
         } else if (prevState.appMode === APP_MODE_PROCESSING && this.state.appMode !== APP_MODE_PROCESSING) {
             this.stopProcessingPoll();
         }
+        this.syncBreakdownScroll(prevState);
+    }
+
+    // Keeps the highlighted part of the horizontally scrolling breakdown in view.
+    // Only acts when the active part actually changes: scrolling on every render
+    // would restart the smooth-scroll animation each tick and make the row stutter.
+    syncBreakdownScroll(prevState) {
+        const container = this.breakdownRef.current;
+        if (container == null) {
+            return;
+        }
+        if (prevState.breakdownCueIndex !== this.state.breakdownCueIndex) {
+            // New cue, new parts - start from the left rather than inheriting the
+            // previous cue's scroll offset.
+            container.scrollLeft = 0;
+        }
+        const breakdown = this.state.breakdown || [];
+        const curPositionMs = this.state.positionMs;
+        const index = computeActivePartIndex(curPositionMs || 0, breakdown);
+        const prevIndex = computeActivePartIndex(prevState.positionMs || 0, prevState.breakdown || []);
+        if (index === -1 || (index === prevIndex && prevState.breakdownCueIndex === this.state.breakdownCueIndex)) {
+            return;
+        }
+        const row = container.firstChild;
+        const el = row && row.children[index];
+        if (el == null) {
+            return;
+        }
+        // Center the active part; scrollLeft on the container alone, since
+        // scrollIntoView() would also scroll the page and yank the video out of view.
+        const left = el.offsetLeft - (container.clientWidth - el.offsetWidth) / 2;
+        container.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
     }
 
     componentWillUnmount() {
@@ -280,7 +337,7 @@ class WatchApp extends React.Component {
             try {
                 this.player.destroy();
             } catch (e) {
-                // ignore — player may already be gone
+                // ignore - player may already be gone
             }
             this.player = null;
         }
@@ -386,7 +443,7 @@ class WatchApp extends React.Component {
             try {
                 this.player.destroy();
             } catch (e) {
-                // ignore — player may already be gone
+                // ignore - player may already be gone
             }
             this.player = null;
         }
@@ -722,7 +779,7 @@ class WatchApp extends React.Component {
             }
             const cue = computeDisplayedCue(this.lastPositionMs, items);
             // A jump replaces the array wholesale, so cue indices from the previous
-            // batch — including any we analyzed — no longer refer to the same cues.
+            // batch - including any we analyzed - no longer refer to the same cues.
             this.analysisCueIndex = -1;
             this.setState({
                 subtitles: items,
@@ -823,6 +880,9 @@ class WatchApp extends React.Component {
         const analyzedParts = parseAnalyzeResponse(response);
         let filteredParts = [];
         for (const part of analyzedParts) {
+            if (!isBreakdownWorthy(part.token)) {
+                continue;
+            }
             let filteredForms = [];
             for (const candidate of part.detectedForms) {
                 if (candidate.tense != "infinitive") {
@@ -1190,23 +1250,29 @@ class WatchApp extends React.Component {
         }
 
         const positionMs = this.state.positionMs || 0;
+        const activePartIndex = computeActivePartIndex(positionMs, breakdown);
+        // "relative" makes the scroll container the offsetParent of the parts, so
+        // their offsetLeft is measured from its content box, the same coordinate
+        // space as scrollLeft (see syncBreakdownScroll())
         return (
-            <div className="m-4 flex flex-row flex-wrap">
-                {breakdown.map((part, i) => (
-                    <AnalyzedPartView
-                        key={i}
-                        analyzedPart={part}
-                        grammar={true}
-                        translations={false}
-                        highlight={
-                            part.startTime != null && part.endTime != null
-                            && part.startTime <= positionMs && positionMs <= part.endTime
-                        }
-                        hintCallback={null}
-                        verbFormsCallback={null}
-                        lang={this.props.lang}
-                    />
-                ))}
+            <div ref={this.breakdownRef} className="relative my-4 overflow-x-auto">
+                <div className="flex flex-row flex-nowrap items-start">
+                    {breakdown.map((part, i) => (
+                        // Flex children shrink by default, which would squeeze the cards
+                        // instead of overflowing the row - pin each one's width.
+                        <div key={i} className="flex-shrink-0">
+                            <AnalyzedPartView
+                                analyzedPart={part}
+                                grammar={true}
+                                translations={false}
+                                highlight={i === activePartIndex}
+                                hintCallback={null}
+                                verbFormsCallback={null}
+                                lang={this.props.lang}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
