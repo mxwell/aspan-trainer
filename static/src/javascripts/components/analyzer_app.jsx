@@ -1,18 +1,16 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
-import { makeAnalyzeRequest, makeAnalyzeSubRequest, makeDetectRequest } from "../lib/requests";
+import { makeAnalyzeRequest, makeDetectRequest } from "../lib/requests";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { pickRandom } from "../lib/random";
-import { buildTextAnalyzerUrl, buildTextAnalyzerBookUrl, parseParams, buildTextAnalyzerVideoUrl, buildViewerUrl2 } from "../lib/url";
+import { buildTextAnalyzerUrl, parseParams, buildViewerUrl2 } from "../lib/url";
 import { catCompletion } from "../lib/suggest";
 import { backspaceTextInput, insertIntoTextInput, Keyboard } from "./keyboard";
 import { checkForEmulation } from "../lib/layout";
 import { copyToClipboard } from "../lib/clipboard";
 import { ShareButton } from "./share_button";
 import { grammarHelp } from "../lib/grammar_help";
-import { gcGetBookChunks, gcGetVideoSubtitles } from "../lib/gc_api";
-import { ClipGallery } from "./clip_gallery";
 import { generateMainVerbForms } from "../lib/verb_forms";
 import { highlightPhrasal } from "../lib/highlight";
 
@@ -34,33 +32,6 @@ function pickDemoSentence(cur) {
     return pickRandom(DEMO_POOL);
 }
 
-class VideoItem {
-    constructor(title, channel, videoId, date) {
-        this.title = title;
-        this.channel = channel;
-        this.videoId = videoId;
-        this.date = date;
-    }
-}
-
-const BOOK101_LEN = 187;
-const BOOK_TITLE = "Ер Төстік";
-
-const VIDEO_UNSTARTED = -1;
-const VIDEO_ENDED = 0;
-const VIDEO_PLAYING = 1;
-const VIDEO_PAUSED = 2;
-const VIDEO_ITEMS = [
-    new VideoItem("Бибарыс Сейтақ: Тіл идеологиясы, Қазақ диалектілері, Тілімізде 80% – араб сөзі, Түркі лингвистикасы", "DOPE SOZ", "rdcVoQRoRLA", "2025-01-06"),
-    new VideoItem("Назгүл Қожабек: Калькасыз қазақ тілі, Контент жасаушылардың 70%-ы орысша ойланады", "Kozqaras podcast", "7-PGNlU9Hlw", "2024-10-16"),
-    new VideoItem("Раиса Сайран Қадыр - Моңғолиядан келіп, шетел кітаптарын Қазақ тіліне аударған іскер әйел.", "Kozqaras podcast", "yx5zwPuR3Vo", "2024-04-06"),
-    new VideoItem("Айкерім Есенәлі: Келін емес, отбасылы болуға дайындалу керек, ақшалы әйелдің сөзі өтеді", "Kozqaras podcast", "JIaIlMcVsHw", "2024-07-08"),
-    new VideoItem("Неге орысша сөйлейміз? | Әлия Әшім | TEDxArgynbekov Street", "TEDx Talks", "rCIFuk4Ct08", "2025-01-15"),
-    new VideoItem("Тәуелді қоғам: Мектепке бармауға қуану | Ескендір Бестай | TEDxArgynbekov Street", "TEDx Talks", "rYI2MTofDaE", "2025-01-15"),
-    new VideoItem("ChatGPT-ды қолдану: Неге қазірден бастау маңызды? | Тимур Бектұр | TEDxArgynbekov Street", "TEDx Talks", "f8Adt8gBxBw", "2025-01-15"),
-    new VideoItem("Өзінің сопы екенін білмейтін сәләфиттер бар | Ақберен Елгезек", "Janar Baisemiz | журналист", "PPfYWnvrkio", "2025-02-22"),
-];
-
 /**
  * props:
  * - lang: string
@@ -73,19 +44,10 @@ class AnalyzerApp extends React.Component {
         this.handleSuggestError = this.handleSuggestError.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
-        this.handleBookChunkResponse = this.handleBookChunkResponse.bind(this);
-        this.handleBookChunkError = this.handleBookChunkError.bind(this);
-        this.handleSubtitlesResponse = this.handleSubtitlesResponse.bind(this);
-        this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
-        this.onPageNumberChange = this.onPageNumberChange.bind(this);
-        this.onPageNumberSubmit = this.onPageNumberSubmit.bind(this);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onInsert = this.onInsert.bind(this);
         this.onBackspace = this.onBackspace.bind(this);
         this.onKeyboardClick = this.onKeyboardClick.bind(this);
-        this.onToSubtitleStart = this.onToSubtitleStart.bind(this);
-        this.onPlayClick = this.onPlayClick.bind(this);
-        this.onPauseClick = this.onPauseClick.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onDemo = this.onDemo.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
@@ -95,20 +57,14 @@ class AnalyzerApp extends React.Component {
         this.onVerbFormsClick = this.onVerbFormsClick.bind(this);
         this.closeVerbFormsPanel = this.closeVerbFormsPanel.bind(this);
 
-        this.onPlayerReady = this.onPlayerReady.bind(this);
-        this.onPlayerStateChange = this.onPlayerStateChange.bind(this);
-        this.loadVideo = this.loadVideo.bind(this);
-
         const state = this.readUrlState();
         this.state = state;
         if (state.text.length > 0) {
             this.startAnalysis(state.text);
-        } else if (state.bookId > 0) {
-            this.startBookLoad(state.bookId, state.offset, state.count);
         }
     }
 
-    makeState(text, analyzing, bookId, bookChunkLoading, offset, count, videoId) {
+    makeState(text, analyzing) {
         return {
             text: text,
             lastEntered: text,
@@ -123,20 +79,6 @@ class AnalyzerApp extends React.Component {
             breakdown: [],
             popupCue: null,
             verbFormsPanel: null,
-            bookId: bookId,
-            bookChunkLoading: bookChunkLoading,
-            offset: offset,
-            lastEnteredPage: String(offset + 1),
-            count: count,
-            videoId: videoId,
-            videoPosMs: -1,
-            subtitlesLoading: false,
-            subStartMs: -1,
-            subEndMs: -1,
-            subtitles: [],
-            subIndex: 0,
-            partIndex: -1,
-            videoState: VIDEO_UNSTARTED,
         };
     }
 
@@ -144,11 +86,6 @@ class AnalyzerApp extends React.Component {
         return this.makeState(
             /* text */ "",
             /* analyzing */ false,
-            /* bookId */ null,
-            /* bookChunkLoading */ false,
-            /* offset */ 0,
-            /* count */ 1,
-            /* videoId */ null,
         );
     }
 
@@ -159,40 +96,6 @@ class AnalyzerApp extends React.Component {
             return this.makeState(
                 text,
                 /* analyzing */ true,
-                /* bookId */ null,
-                /* bookChunkLoading */ false,
-                /* offset */ 0,
-                /* count */ 1,
-                /* videoId */ null,
-            );
-        }
-        const bookIdStr = params.book_id;
-        if (bookIdStr != null && Number(bookIdStr) > 0) {
-            const bookId = Number(bookIdStr);
-            const offsetStr = params.offset || "0";
-            const countStr = params.count || "1";
-            const offset = Number(offsetStr);
-            const count = Number(countStr);
-            return this.makeState(
-                /* text */ "",
-                /* analyzing */ true,
-                bookId,
-                /* bookChunkLoading */ true,
-                offset,
-                count,
-                /* videoId */ null,
-            );
-        }
-        const videoIdStr = params.video_id;
-        if (videoIdStr != null && videoIdStr.length > 0) {
-            return this.makeState(
-                /* text */ "",
-                /* analyzing */ false,
-                /* bookId */ null,
-                /* bookChunkLoading */ false,
-                /* offset */ 0,
-                /* count */ 1,
-                /* videoId */ videoIdStr,
             );
         }
         return this.defaultState();
@@ -311,11 +214,7 @@ class AnalyzerApp extends React.Component {
                 }
             }
         }
-        const isVideo = this.state.videoId != null;
-        this.setState({ analyzing: false, error: false, breakdown: filteredParts, partIndex: -1 });
-        if (isVideo) {
-            this.advancePart(context.subIndex, filteredParts, -1);
-        }
+        this.setState({ analyzing: false, error: false, breakdown: filteredParts });
     }
 
     async handleAnalyzeError(context, responseTextPromise) {
@@ -333,42 +232,6 @@ class AnalyzerApp extends React.Component {
             this.handleAnalyzeResponse,
             this.handleAnalyzeError,
             { }
-        );
-    }
-
-    async handleBookChunkResponse(context, responseJsonPromise) {
-        const response = await responseJsonPromise;
-        const chunks = response.chunks;
-        let textParts = [];
-        for (const chunk of chunks) {
-            textParts.push(chunk.content);
-        }
-        const text = textParts.join("\n");
-        const lastEntered = text;
-        const bookChunkLoading = false;
-        this.setState(
-            { text, lastEntered, bookChunkLoading },
-            () => {
-                window.scrollTo(0, 0);
-            }
-        );
-        this.startAnalysis(text);
-    }
-
-    async handleBookChunkError(context, responseTextPromise) {
-        let responseText = await responseTextPromise;
-        console.log(`Got error from /get_book_chunks: ${responseText}, bookId was ${context.bookId}.`);
-        this.setState({ analyzing: false, bookChunkLoading: false, error: true });
-    }
-
-    startBookLoad(bookId, offset, count) {
-        gcGetBookChunks(
-            bookId,
-            offset,
-            count,
-            this.handleBookChunkResponse,
-            this.handleBookChunkError,
-            { bookId }
         );
     }
 
@@ -696,93 +559,7 @@ class AnalyzerApp extends React.Component {
         }
     }
 
-    onToSubtitleStart(e) {
-        e.preventDefault();
-        const subIndex = this.state.subIndex;
-        if (subIndex < 0) {
-            console.log("no subtitle selected");
-            return;
-        }
-        const subtitles = this.state.subtitles;
-        if (subIndex >= subtitles.length) {
-            console.log("out of range sub index");
-            return;
-        }
-        const positionMs = subtitles[subIndex].start_ms;
-        console.log(`YT: seek to ${positionMs} ms`);
-        this.player.seekTo((positionMs - 900) / 1000, /* allowSeekAhead */ true);
-    }
-
-    onPlayClick(e) {
-        e.preventDefault();
-        this.player.playVideo();
-    }
-
-    onPauseClick(e) {
-        e.preventDefault();
-        this.player.pauseVideo();
-    }
-
-    renderVideoControls() {
-        const videoState = this.state.videoState;
-        let controlClick = null;
-        let controlImg = null;
-        if (videoState == VIDEO_PAUSED || videoState == VIDEO_UNSTARTED || videoState == VIDEO_ENDED) {
-            controlClick = this.onPlayClick;
-            controlImg = "/play48.svg";
-        } else {
-            controlClick = this.onPauseClick;
-            controlImg = "/pause48.svg";
-        }
-        return (
-            <div className="flex flex-row">
-                <button
-                    type="button"
-                    onClick={this.onToSubtitleStart}
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
-                    <img src="/skip_prev48.svg" alt="seek to subtitle start" className="h-12" />
-                </button>
-                <button
-                    type="button"
-                    onClick={controlClick}
-                    className="mx-2 bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
-                    <img src={controlImg} alt="play or pause" className="h-12" />
-                </button>
-            </div>
-        );
-    }
-
-    renderVideoForm() {
-        return (
-            <div className="flex flex-row flex-wrap">
-                <div className="p-4">
-                    <div id="player"></div>
-                </div>
-                <form onSubmit={this.onSubmit} className="p-4 flex flex-col">
-                    <textarea
-                        ref="textInput"
-                        rows="8"
-                        onChange={this.onChange}
-                        onKeyDown={this.onKeyDown}
-                        value={this.state.lastEntered}
-                        maxLength="2048"
-                        required
-                        className="shadow appearance-none border rounded mx-2 p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
-                        placeholder={this.i18n("hintEnterTextForAnalysis")}
-                        />
-                    <div className="p-2 flex flex-row justify-between">
-                        {this.renderVideoControls()}
-                        {this.renderControls()}
-                    </div>
-                </form>
-            </div>
-        );
-    }
-
     renderForm() {
-        if (this.state.videoId != null) {
-            return this.renderVideoForm();
-        }
         return (
             <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                 <textarea
@@ -846,58 +623,10 @@ class AnalyzerApp extends React.Component {
         );
     }
 
-    renderLibEntry() {
-        if (this.state.error || this.state.analyzing || this.state.text.length > 0 || this.state.videoId != null) {
-            return null;
-        }
-        let videoHtmls = [];
-        for (const item of VIDEO_ITEMS) {
-            videoHtmls.push(
-                <a key={videoHtmls.length}
-                    className="hover:bg-gray-200"
-                    href={buildTextAnalyzerVideoUrl(item.videoId, this.props.lang)}>
-                    <div className="my-4 flex flex-row">
-                        <img className="mx-2 h-12 w-12" src="/video24.svg" />
-                        <div className="flex flex-col">
-                            <div className="text-lg font-bold">{item.title}</div>
-                            <div className="italic text-gray-700">{item.channel}&nbsp;•&nbsp;{item.date}</div>
-                        </div>
-                    </div>
-                </a>
-            );
-        }
-        return (
-            <div className="flex flex-row justify-center my-10">
-                <div className="lg:w-1/3 flex flex-col">
-                    <ClipGallery pageSize={3} lang={this.props.lang} />
-                    <h3 className="m-4 text-2xl text-gray-700">{this.i18n("libTitle")}</h3>
-                    <div className="flex flex-col">
-                        <a className="hover:bg-gray-200"
-                            href={buildTextAnalyzerBookUrl(1001, 0, 1, this.props.lang)}>
-                            <div className="my-4 flex flex-row">
-                                <img className="mx-2 h-12 w-12" src="/book.svg" />
-                                <div className="flex flex-col">
-                                    <div className="text-lg font-bold">{BOOK_TITLE}</div>
-                                    <div className="italic text-gray-700">{this.i18n("heroicTale")}</div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     renderAppStatus() {
         if (this.state.error) {
             return (
                 <p className="text-center text-2xl text-red-600">{this.i18n("gotError")}</p>
-            );
-        } else if (this.state.bookChunkLoading) {
-            return (
-                <p className="text-center text-2xl text-gray-600">
-                    {this.i18n("bookLoading")}
-                </p>
             );
         } else if (this.state.analyzing) {
             return (
@@ -966,36 +695,6 @@ class AnalyzerApp extends React.Component {
         );
     }
 
-    moveBookToOffset(offset) {
-        if (!(0 <= offset && offset < BOOK101_LEN)) {
-            console.log(`move to offset ${offset} not possible`);
-            return;
-        }
-        const bookChunkLoading = true;
-        const analyzing = true;
-        const lastEnteredPage = String(offset + 1);
-        this.setState({ analyzing, bookChunkLoading, offset, lastEnteredPage });
-        const newUrl = buildTextAnalyzerBookUrl(1001, offset, 1, this.props.lang);
-        window.history.pushState(null, "", newUrl);
-        this.startBookLoad(this.state.bookId, offset, 1);
-    }
-
-    bookPage(move) {
-        const offset = this.state.offset + move;
-        this.moveBookToOffset(offset);
-    }
-
-    onPageNumberChange(event) {
-        const lastEnteredPage = event.target.value;
-        this.setState({ lastEnteredPage });
-    }
-
-    onPageNumberSubmit(event) {
-        event.preventDefault();
-        const number = Number(this.state.lastEnteredPage);
-        const offset = number - 1;
-        this.moveBookToOffset(offset);
-    }
 
     onHintClick(popupCue) {
         this.setState({ popupCue });
@@ -1085,75 +784,23 @@ class AnalyzerApp extends React.Component {
             }
         }
 
-        const addBookTitle = function() {
-            row.push(
-                <div key="only" className="w-full my-2 text-4xl italic text-gray-500 text-center">
-                    {BOOK_TITLE}
-                </div>
-            );
-            flushRow();
-        };
-
-        const addPagination = function(app) {
-            const offset = app.state.offset;
-            const prevColor = (
-                offset > 0
-                ? "text-gray-500 cursor-pointer hover:bg-gray-200"
-                : "text-gray-300"
-            );
-            const nextColor = (
-                (offset + 1 < BOOK101_LEN)
-                ? "text-gray-500 cursor-pointer hover:bg-gray-200"
-                : "text-gray-300"
-            );
-            row.push(
-                <div key="only" className={`my-4 flex flex-row text-5xl w-full ${rowVisibility}`}>
-                    <div
-                        onClick={ (e) => app.bookPage(-1) }
-                        className={`text-right px-10 bg-gradient-to-l from-gray-100 w-1/2 select-none ${prevColor}`}>←</div>
-                    <form
-                        onSubmit={app.onPageNumberSubmit}
-                        className="flex flex-row text-2xl bg-gray-100 p-3">
-                        <input type="text" size="4" maxLength="5" pattern="\d{1,5}" value={app.state.lastEnteredPage}
-                            onChange={app.onPageNumberChange}
-                            className="shadow appearance-none border rounded px-2 text-center focus:outline-none focus:shadow-outline" />
-                        <span className="p-2">
-                            {app.i18n("ofTotal")}&nbsp;{BOOK101_LEN}
-                        </span>
-                    </form>
-                    <div
-                        onClick={ (e) => app.bookPage(1) }
-                        className={`px-10 bg-gradient-to-r from-gray-100 w-1/2 select-none ${nextColor}`}>→</div>
-                </div>
-            );
-            flushRow();
-        }
-
-        const bookId = this.state.bookId;
         const grammar = this.state.grammar;
         const translations = this.state.translations;
 
-        if (bookId > 0) {
-            addBookTitle();
-            addPagination(this);
-        }
-
         const parts = this.state.breakdown
-        const partIndex = this.state.partIndex;
         for (const index in parts) {
             const part = parts[index];
             if (part.detectedForms.length == 0 && part.token == "\n") {
                 flushRow();
                 continue;
             }
-            const highlight = (index == partIndex);
             row.push(
                 <AnalyzedPartView
                     key={row.length}
                     analyzedPart={part}
                     grammar={grammar}
                     translations={translations}
-                    highlight={highlight}
+                    highlight={false}
                     hintCallback={this.onHintClick}
                     verbFormsCallback={this.onVerbFormsClick}
                     lang={this.props.lang}
@@ -1167,9 +814,6 @@ class AnalyzerApp extends React.Component {
                     {this.renderVerbFormsPanel()}
                 </div>
             );
-        }
-        if (bookId > 0) {
-            addPagination(this);
         }
         return (
             <div className="m-4 flex flex-col">
@@ -1191,224 +835,8 @@ class AnalyzerApp extends React.Component {
                 {this.renderKeyboard()}
                 {this.renderBreakdown()}
                 {this.renderAppStatus()}
-                {this.renderLibEntry()}
             </div>
         );
-    }
-
-    startSubAnalysis(subIndex, wordsRawBody) {
-        makeAnalyzeSubRequest(
-            wordsRawBody,
-            this.handleAnalyzeResponse,
-            this.handleAnalyzeError,
-            { subIndex }
-        );
-    }
-
-    async handleSubtitlesResponse(context, responseJsonPromise) {
-        const response = await responseJsonPromise;
-        const subtitles = response.subtitles;
-
-        const subStartMs = context.startMs;
-        let subEndMs = context.endMs;
-        if (subtitles.length >= 100) {
-            subEndMs = subtitles[subtitles.length - 1].end_ms;
-        }
-        const subtitlesLoading = false;
-        let subIndex = -1;
-        let lastEntered = "";
-        let words = null;
-        const posMs = this.state.videoPosMs;
-        for (const index in subtitles) {
-            const sub = subtitles[index];
-            if (sub.start_ms <= posMs && posMs <= sub.end_ms) {
-                subIndex = index;
-                lastEntered = sub.content;
-                words = sub.words;
-                break;
-            }
-        }
-        const error = false;
-
-        console.log(`Loaded ${subtitles.length} subtitles covering [${subStartMs}, ${subEndMs}], cur subIndex ${subIndex}`);
-        this.setState(
-            {
-                lastEntered,
-                error,
-                subtitlesLoading,
-                subStartMs,
-                subEndMs,
-                subtitles,
-                subIndex,
-            }
-        );
-        if (lastEntered.length > 0) {
-            this.startSubAnalysis(subIndex, words);
-        }
-    }
-
-    async handleSubtitlesError(context, responseTextPromise) {
-        let responseText = await responseTextPromise;
-        console.log(`Got error from /get_video_subtitles: ${responseText}, range [${context.startMs}, ${context.endMs}]`);
-        this.setState({ analyzing: false, subtitlesLoading: false, error: true, subStartMs: context.startMs, subEndMs: context.endMs });
-    }
-
-    loadSubtitlesIfNeeded(positionMs) {
-        const loadedStart = this.state.subStartMs;
-        const loadedEnd = this.state.subEndMs;
-        if (loadedStart <= positionMs && positionMs <= loadedEnd) {
-            // no need to load if we have subtitles for the next 10 seconds
-            if (positionMs + 10000 < loadedEnd) {
-                return;
-            }
-        }
-        const startMs = positionMs;
-        const endMs = positionMs + 60000;  // load next 60 seconds
-        this.setState({ subtitlesLoading: true });
-        gcGetVideoSubtitles(
-            this.state.videoId,
-            startMs,
-            endMs,
-            this.handleSubtitlesResponse, // TODO
-            this.handleSubtitlesError,
-            { startMs, endMs }
-        );
-    }
-
-    advanceSubtitle() {
-        const state = this.player.getPlayerState();
-        const positionSeconds = this.player.getCurrentTime();
-        const positionMs = Math.floor(positionSeconds * 1000);
-
-        const curIndex = this.state.subIndex;
-        const subtitles = this.state.subtitles;
-        for (let index = curIndex + 1; index < subtitles.length; ++index) {
-            const sub = subtitles[index];
-            if (sub.start_ms > positionMs) {  // time of this subtitle has not come yet
-                break;
-            }
-            if (sub.end_ms >= positionMs) {   // this subtitle has started but has not finished yet
-                const lastEntered = sub.content;
-                const subIndex = index;
-                const partIndex = -1;
-                console.log(`Advance sub to ${positionMs} ms: ${curIndex} -> ${subIndex}`);
-                this.setState(
-                    {
-                        lastEntered,
-                        subIndex,
-                        partIndex,
-                    }
-                );
-                if (lastEntered.length > 0) {
-                    this.startSubAnalysis(subIndex, sub.words);
-                }
-                break;
-            }
-        }
-
-        if (state == VIDEO_PLAYING) {
-            setTimeout(() => {
-                this.advanceSubtitle();
-            }, 500);
-        }
-    }
-
-    advancePart(subIndex, breakdown, curPartIndex) {
-        if (this.state.subIndex != subIndex) {
-            console.log(`Stop advancing through sub ${subIndex}: cur sub ${this.state.subIndex}`);
-            return;
-        }
-
-        const positionSeconds = this.player.getCurrentTime();
-        const positionMs = Math.floor(positionSeconds * 1000);
-
-        let delayMs = 100;
-        let nextPartIndex = curPartIndex;
-        for (let index = curPartIndex + 1; index < breakdown.length; ++index) {
-            const part = breakdown[index];
-            if (part.startTime > positionMs) {  // time of this part has not come yet
-                break;
-            }
-            if (part.endTime >= positionMs) {  // this part has started but has not finished yet
-                const partIndex = index;
-                console.log(`Advance part to ${positionMs} ms: ${curPartIndex} -> ${partIndex}`);
-                this.setState({ partIndex });
-                delayMs = part.endTime - part.startTime;
-                nextPartIndex = partIndex;
-                break;
-            }
-        }
-
-
-        const state = this.player.getPlayerState();
-        if (state == VIDEO_PLAYING) {
-            console.log(`Next part advance after ${delayMs} ms`);
-            setTimeout(() => {
-                this.advancePart(subIndex, breakdown, nextPartIndex);
-            }, delayMs);
-        } else {
-            console.log(`Not scheduling next part advance`);
-        }
-    }
-
-    getPositionAndLoadSubtitlesIfNeeded() {
-        let videoState = this.player.getPlayerState();
-        if (videoState != this.state.videoState) {
-            this.setState({ videoState });
-        }
-        let positionSeconds = this.player.getCurrentTime();
-        let positionMs = Math.floor(positionSeconds * 1000);
-        // console.log(`YT: pos ${positionMs} ms`);
-        this.loadSubtitlesIfNeeded(positionMs);
-        if (videoState == VIDEO_PLAYING) {
-            // console.log(`setting timers for subtitles`);
-            setTimeout(() => {
-                this.getPositionAndLoadSubtitlesIfNeeded();
-            }, 10000);
-            setTimeout(() => {
-                this.advanceSubtitle();
-            }, 500);
-        }
-    }
-
-    onPlayerReady(event) {
-        console.log("YT: ready");
-    }
-
-    onPlayerStateChange(event) {
-        this.getPositionAndLoadSubtitlesIfNeeded();
-    }
-
-    loadVideo() {
-        const videoId = this.state.videoId;
-        console.log(`Creating YT player for ${videoId}`);
-        this.player = new window.YT.Player("player", {
-            videoId: videoId,
-            events: {
-                onReady: this.onPlayerReady,
-                onStateChange: this.onPlayerStateChange,
-            },
-        });
-    }
-
-    componentDidMount() {
-        if (this.state.videoId == null) {
-            return;
-        }
-
-        /* the code is from https://stackoverflow.com/a/54921282/2622071 */
-        if (!window.YT) {
-            console.log("Creating YT iFrame");
-            const tag = document.createElement('script');
-            tag.src = 'https://www.youtube.com/iframe_api';
-
-            window.onYouTubeIframeAPIReady = this.loadVideo;
-
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        } else {
-            this.loadVideo();
-        }
     }
 }
 
