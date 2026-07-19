@@ -147,6 +147,25 @@ function computeActivePartIndex(positionMs, breakdown) {
     return computeActiveIndex(positionMs, breakdown, (p) => p.startTime);
 }
 
+function wordClass(active) {
+    const base = "rounded px-0.5 cursor-pointer transition-colors duration-150";
+    return active ? `${base} bg-yellow-300` : `${base} hover:bg-yellow-100`;
+}
+
+const CLICK_SEEK_LEAD_MS = 500;
+
+// Where to jump when a word is clicked. Seeking exactly to a word's start tends
+// to clip its first phoneme, so back up a little - but never past the
+// predecessor, or the click would replay the word before the one asked for.
+// `prevBoundaryMs` is where the predecessor of the cue's first word ends.
+function computeSeekTargetMs(words, wordIndex, prevBoundaryMs) {
+    const word = words[wordIndex];
+    const prevEnd = wordIndex > 0 ? words[wordIndex - 1].end_ms : prevBoundaryMs;
+    // Timings can touch or overlap, so the gap needs a floor of zero.
+    const gap = Math.max(0, word.start_ms - prevEnd);
+    return Math.max(0, word.start_ms - Math.min(CLICK_SEEK_LEAD_MS, gap));
+}
+
 // Computes how long to wait before the next tick so it lands as close as
 // possible to the next event that could change what's displayed: the next
 // word's start (for word highlighting), the next cue's start (during a
@@ -233,6 +252,7 @@ class WatchApp extends React.Component {
         this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
+        this.onWordClick = this.onWordClick.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
@@ -689,6 +709,32 @@ class WatchApp extends React.Component {
             );
             this.tickTimer = setTimeout(() => this.tick(), delay);
         }
+    }
+
+    // Jumps playback to a word of the cue on screen. Leaves the player playing or
+    // paused as it was: a click while paused should scrub, not start playback.
+    onWordClick(wordIndex) {
+        if (!this.player || !this.playerReady) {
+            return;
+        }
+        const subtitles = this.state.subtitles || [];
+        const cueIndex = this.state.currentCueIndex;
+        if (cueIndex < 0 || cueIndex >= subtitles.length) {
+            return;
+        }
+        const words = subtitles[cueIndex].words || [];
+        if (wordIndex < 0 || wordIndex >= words.length) {
+            return;
+        }
+        // Fall back to 0 when the preceding cue isn't loaded (right after a jump)
+        // or doesn't exist - then the lead is capped by the video start instead.
+        const prevBoundaryMs = cueIndex > 0 ? subtitles[cueIndex - 1].end_ms : 0;
+        const targetMs = computeSeekTargetMs(words, wordIndex, prevBoundaryMs);
+        this.player.seekTo(targetMs / 1000, true);
+        // getCurrentTime() can still report the pre-seek position for a moment, so
+        // drive the UI from the target we asked for; the tick corrects any drift.
+        this.updateCurrentCue(targetMs);
+        this.tick();
     }
 
     updateCurrentCue(positionMs) {
@@ -1225,11 +1271,16 @@ class WatchApp extends React.Component {
                 <span className={stampClass}>{formatCueTimestamp(sub.start_ms)}</span>
                 <span className={textClass}>
                     {sub.words.map((w, i) => (
-                        <span
-                            key={i}
-                            className={i === activeWordIndex ? "bg-yellow-300 rounded px-0.5 transition-colors duration-150" : ""}>
-                            {w.word}{" "}
-                        </span>
+                        // The separating space stays outside the span so only the
+                        // word itself is a click target.
+                        <React.Fragment key={i}>
+                            <span
+                                className={wordClass(i === activeWordIndex)}
+                                onClick={() => this.onWordClick(i)}>
+                                {w.word}
+                            </span>
+                            {" "}
+                        </React.Fragment>
                     ))}
                 </span>
             </div>
