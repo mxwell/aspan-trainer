@@ -1195,9 +1195,9 @@ class WatchApp extends React.Component {
             //console.log(`upcoming: positionMs ${positionMs}, gapStart ${gapStart}, gapEnd ${gapEnd}, pct ${pct}`)
         }
         let progressBar = (
-            <div className="mt-2 h-4 w-32 rounded bg-gray-300 overflow-hidden">
+            <div className="mt-2 h-4 w-20 rounded bg-yellow-300 overflow-hidden">
                 <div
-                    className="h-4 bg-blue-500"
+                    className="h-4 bg-white"
                     style={{ width: gapProgressPct + "%", transition: "width 0.5s linear" }}>
                 </div>
             </div>
