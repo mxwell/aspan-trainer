@@ -234,6 +234,7 @@ class WatchApp extends React.Component {
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
+        this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
 
@@ -259,6 +260,7 @@ class WatchApp extends React.Component {
             videoId: videoId || null,
             suggestedVideos: [],
             grammar: false,
+            translations: false,
             breakdown: [],
             breakdownCueIndex: -1,
             analyzing: false,
@@ -312,7 +314,10 @@ class WatchApp extends React.Component {
         const curPositionMs = this.state.positionMs;
         const index = computeActivePartIndex(curPositionMs || 0, breakdown);
         const prevIndex = computeActivePartIndex(prevState.positionMs || 0, prevState.breakdown || []);
-        if (index === -1 || (index === prevIndex && prevState.breakdownCueIndex === this.state.breakdownCueIndex)) {
+        // Toggling translations resizes every card, so the offset we scrolled to
+        // before no longer centers the active one - recompute it.
+        const resized = prevState.translations !== this.state.translations;
+        if (index === -1 || (!resized && index === prevIndex && prevState.breakdownCueIndex === this.state.breakdownCueIndex)) {
             return;
         }
         const row = container.firstChild;
@@ -838,6 +843,12 @@ class WatchApp extends React.Component {
         }
     }
 
+    // Glosses arrive with the analysis, so this only changes what the cards show -
+    // no re-analysis needed.
+    onTranslationsToggle() {
+        this.setState({ translations: !this.state.translations });
+    }
+
     startSubAnalysisIfNeeded(cueIndex, cue) {
         if (!this.state.grammar || this.analysisCueIndex === cueIndex) {
             return;
@@ -1144,7 +1155,10 @@ class WatchApp extends React.Component {
                 )}
                 <div className="w-full max-w-2xl px-4 py-2">
                     <div className="flex flex-row justify-end">
-                        {this.renderGrammarToggler()}
+                        {/* Translations live inside the grammar cards, so the toggler
+                            would do nothing visible while grammar is off. */}
+                        {this.state.grammar && this.renderToggler(this.state.translations, this.onTranslationsToggle, "toggleTranslations")}
+                        {this.renderToggler(this.state.grammar, this.onGrammarToggle, "toggleGrammar")}
                     </div>
                     {this.renderSubtitles()}
                     {this.renderBreakdown()}
@@ -1222,16 +1236,16 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderGrammarToggler() {
+    renderToggler(on, handler, labelKey) {
         return (
             <div
                 className="mx-4 rounded flex flex-row cursor-pointer select-none"
-                onClick={this.onGrammarToggle}>
+                onClick={handler}>
                 <img
                     className="mx-2 h-8"
-                    src={this.state.grammar ? "/toggle_on.svg" : "/toggle_off.svg"}
+                    src={on ? "/toggle_on.svg" : "/toggle_off.svg"}
                 />
-                <span className="text-xl">{this.i18n("toggleGrammar")}</span>
+                <span className="text-xl">{this.i18n(labelKey)}</span>
             </div>
         );
     }
@@ -1264,7 +1278,7 @@ class WatchApp extends React.Component {
                             <AnalyzedPartView
                                 analyzedPart={part}
                                 grammar={true}
-                                translations={false}
+                                translations={this.state.translations}
                                 highlight={i === activePartIndex}
                                 hintCallback={null}
                                 verbFormsCallback={null}
