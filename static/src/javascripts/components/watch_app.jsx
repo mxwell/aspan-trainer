@@ -221,6 +221,7 @@ class WatchApp extends React.Component {
 
         this.inputRef = React.createRef();
         this.breakdownRef = React.createRef();
+        this.menuRef = React.createRef();
         this.onSubmit = this.onSubmit.bind(this);
         this.startProbe = this.startProbe.bind(this);
         this.handleProbeSuccess = this.handleProbeSuccess.bind(this);
@@ -257,6 +258,9 @@ class WatchApp extends React.Component {
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
         this.handleAnalyzeResponse = this.handleAnalyzeResponse.bind(this);
         this.handleAnalyzeError = this.handleAnalyzeError.bind(this);
+        this.onMenuToggle = this.onMenuToggle.bind(this);
+        this.closeMenu = this.closeMenu.bind(this);
+        this.onDocumentClick = this.onDocumentClick.bind(this);
 
         this.player = null;
         this.playerReady = false;
@@ -284,6 +288,7 @@ class WatchApp extends React.Component {
             breakdown: [],
             breakdownCueIndex: -1,
             analyzing: false,
+            menuOpen: false,
         }
     }
 
@@ -297,6 +302,7 @@ class WatchApp extends React.Component {
 
     componentDidMount() {
         window.addEventListener("popstate", this.onPopState);
+        document.addEventListener("click", this.onDocumentClick);
         if (this.state.videoId) {
             this.probeById(this.state.videoId);
         } else {
@@ -353,6 +359,7 @@ class WatchApp extends React.Component {
 
     componentWillUnmount() {
         window.removeEventListener("popstate", this.onPopState);
+        document.removeEventListener("click", this.onDocumentClick);
         this.stopProcessingPoll();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
@@ -503,6 +510,7 @@ class WatchApp extends React.Component {
             breakdown: [],
             breakdownCueIndex: -1,
             analyzing: false,
+            menuOpen: false,
         });
     }
 
@@ -622,7 +630,7 @@ class WatchApp extends React.Component {
         this.analysisCueIndex = -1;
         this.setState({
             subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0,
-            breakdown: [], breakdownCueIndex: -1, analyzing: false,
+            breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
         });
 
         if (this.transcriptionId != null) {
@@ -735,6 +743,26 @@ class WatchApp extends React.Component {
         // drive the UI from the target we asked for; the tick corrects any drift.
         this.updateCurrentCue(targetMs);
         this.tick();
+    }
+
+    onMenuToggle(e) {
+        e.stopPropagation();
+        this.setState((prevState) => ({ menuOpen: !prevState.menuOpen }));
+    }
+
+    closeMenu() {
+        this.setState({ menuOpen: false });
+    }
+
+    // Closes the "..." menu on a click outside it; the button itself toggles
+    // via onMenuToggle, so this only needs to handle everything else.
+    onDocumentClick(e) {
+        if (!this.state.menuOpen) {
+            return;
+        }
+        if (this.menuRef.current && !this.menuRef.current.contains(e.target)) {
+            this.closeMenu();
+        }
     }
 
     updateCurrentCue(positionMs) {
@@ -1194,9 +1222,12 @@ class WatchApp extends React.Component {
                     <div id="watch_player"></div>
                 </div>
                 {info && (
-                    <div className="text-center px-4">
-                        <div className="text-xl font-medium text-gray-800">{info.title}</div>
-                        <div className="text-gray-600">{info.channel_title}</div>
+                    <div className="w-full max-w-2xl flex flex-row items-start justify-between px-4">
+                        <div className="text-left">
+                            <div className="text-xl font-medium text-gray-800">{info.title}</div>
+                            <div className="text-gray-600">{info.channel_title}</div>
+                        </div>
+                        {this.renderVideoMenu()}
                     </div>
                 )}
                 <div className="w-full max-w-2xl px-4 py-2">
@@ -1283,6 +1314,33 @@ class WatchApp extends React.Component {
                         </React.Fragment>
                     ))}
                 </span>
+            </div>
+        );
+    }
+
+    renderVideoMenu() {
+        if (this.transcriptionId == null) {
+            return null;
+        }
+        return (
+            <div ref={this.menuRef} className="relative ml-2 flex-shrink-0">
+                <button
+                    type="button"
+                    onClick={this.onMenuToggle}
+                    aria-label={this.i18n("videoMenu")}
+                    className="px-2 text-2xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
+                    ···
+                </button>
+                {this.state.menuOpen && (
+                    <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded shadow-md z-10">
+                        <a
+                            href={`/qarauapi/v1/export/${this.transcriptionId}`}
+                            onClick={this.closeMenu}
+                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap">
+                            {this.i18n("downloadSubtitles")}
+                        </a>
+                    </div>
+                )}
             </div>
         );
     }

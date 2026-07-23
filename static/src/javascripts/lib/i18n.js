@@ -1760,6 +1760,14 @@ function prepareWatchOnlyTranslations(map) {
         "Suggested videos",
         "Рекомендуемые видео",
     );
+    setEnRu(map, "videoMenu",
+        "More options",
+        "Дополнительные действия",
+    );
+    setEnRu(map, "downloadSubtitles",
+        "Download subtitles",
+        "Скачать субтитры",
+    );
 }
 
 function prepareTranslations() {
