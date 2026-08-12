@@ -1756,9 +1756,25 @@ function prepareWatchOnlyTranslations(map) {
         "No subtitles available",
         "Субтитры отсутствуют",
     );
-    setEnRu(map, "suggestedVideosTitle",
-        "Suggested videos",
-        "Рекомендуемые видео",
+    setEnRu(map, "tabRandomClips",
+        "Random clips",
+        "Случайные ролики",
+    );
+    setEnRu(map, "tabPlaylists",
+        "Playlists",
+        "Плейлисты",
+    );
+    setEnRu(map, "tabHistory",
+        "History",
+        "История",
+    );
+    setEnRu(map, "playlistsComingSoon",
+        "Playlists are coming soon",
+        "Плейлисты скоро появятся",
+    );
+    setEnRu(map, "historyComingSoon",
+        "History is coming soon",
+        "История скоро появится",
     );
     setEnRu(map, "videoMenu",
         "More options",

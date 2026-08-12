@@ -14,6 +14,10 @@ const APP_MODE_PROBING = 6;
 
 const VIDEO_PLAYING = 1;
 
+const PROMPT_TAB_RANDOM = "random";
+const PROMPT_TAB_PLAYLISTS = "playlists";
+const PROMPT_TAB_HISTORY = "history";
+
 const SUBTITLE_BUFFER_MS = 10000;
 const SUBTITLE_WORD_COUNT = 150;
 const TICK_MS = 500;
@@ -253,6 +257,7 @@ class WatchApp extends React.Component {
         this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
+        this.onPromptTabClick = this.onPromptTabClick.bind(this);
         this.onWordClick = this.onWordClick.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
@@ -282,6 +287,7 @@ class WatchApp extends React.Component {
         return {
             appMode: appMode,
             videoId: videoId || null,
+            promptTab: PROMPT_TAB_RANDOM,
             suggestedVideos: [],
             grammar: false,
             translations: false,
@@ -1005,6 +1011,10 @@ class WatchApp extends React.Component {
         this.probeById(videoId);
     }
 
+    onPromptTabClick(tab) {
+        this.setState({ promptTab: tab });
+    }
+
     renderPromptForm() {
         return (
             <div>
@@ -1030,7 +1040,56 @@ class WatchApp extends React.Component {
                         <div className="mt-2 text-red-600 text-2xl lg:text-xl">{this.state.promptError}</div>
                     )}
                 </form>
-                {this.renderSuggestedVideos()}
+                {this.renderPromptTabs()}
+                {this.renderPromptTabContent()}
+            </div>
+        );
+    }
+
+    renderPromptTabs() {
+        const tabs = [
+            { key: PROMPT_TAB_RANDOM, labelKey: "tabRandomClips" },
+            { key: PROMPT_TAB_PLAYLISTS, labelKey: "tabPlaylists" },
+            { key: PROMPT_TAB_HISTORY, labelKey: "tabHistory" },
+        ];
+        const activeTab = this.state.promptTab;
+        return (
+            <div className="mt-4 px-3 flex flex-row justify-center gap-4">
+                {tabs.map((tab) => {
+                    const active = tab.key === activeTab;
+                    const className = active
+                        ? "px-8 py-3 rounded-full text-lg font-medium bg-blue-500 text-white focus:outline-none"
+                        : "px-8 py-3 rounded-full text-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none";
+                    return (
+                        <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => this.onPromptTabClick(tab.key)}
+                            className={className}>
+                            {this.i18n(tab.labelKey)}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    renderPromptTabContent() {
+        switch (this.state.promptTab) {
+            case PROMPT_TAB_PLAYLISTS:
+                return this.renderComingSoon("playlistsComingSoon");
+            case PROMPT_TAB_HISTORY:
+                return this.renderComingSoon("historyComingSoon");
+            case PROMPT_TAB_RANDOM:
+            default:
+                return this.renderSuggestedVideos();
+        }
+    }
+
+    renderComingSoon(labelKey) {
+        return (
+            <div className="mt-6 px-3 text-center text-gray-500">
+                {this.i18n(labelKey)}
             </div>
         );
     }
@@ -1041,8 +1100,7 @@ class WatchApp extends React.Component {
             return null;
         }
         return (
-            <div className="mt-6 px-3">
-                <div className="text-xl font-medium text-gray-700 mb-2">{this.i18n("suggestedVideosTitle")}</div>
+            <div className="mt-4 px-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                     {videos.map((v) => (
                         <div
