@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, makeAnalyzeSubRequest } from "../lib/requests";
+import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, makeAnalyzeSubRequest } from "../lib/requests";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 
@@ -258,6 +258,9 @@ class WatchApp extends React.Component {
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
         this.onPromptTabClick = this.onPromptTabClick.bind(this);
+        this.handleSuggestedPlaylistsSuccess = this.handleSuggestedPlaylistsSuccess.bind(this);
+        this.handleSuggestedPlaylistsError = this.handleSuggestedPlaylistsError.bind(this);
+        this.onLoadMorePlaylistsClick = this.onLoadMorePlaylistsClick.bind(this);
         this.onWordClick = this.onWordClick.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
         this.onTranslationsToggle = this.onTranslationsToggle.bind(this);
@@ -289,6 +292,12 @@ class WatchApp extends React.Component {
             videoId: videoId || null,
             promptTab: PROMPT_TAB_RANDOM,
             suggestedVideos: [],
+            playlists: [],
+            playlistsLoading: false,
+            playlistsLoadingMore: false,
+            playlistsError: false,
+            playlistsRequested: false,
+            playlistsNextCursor: null,
             grammar: false,
             translations: false,
             breakdown: [],
@@ -1013,6 +1022,46 @@ class WatchApp extends React.Component {
 
     onPromptTabClick(tab) {
         this.setState({ promptTab: tab });
+        if (tab === PROMPT_TAB_PLAYLISTS && !this.state.playlistsRequested) {
+            this.setState({ playlistsRequested: true, playlistsLoading: true });
+            loadSuggestedPlaylists("", this.handleSuggestedPlaylistsSuccess, this.handleSuggestedPlaylistsError, { append: false });
+        }
+    }
+
+    async handleSuggestedPlaylistsSuccess(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        const items = (resp && resp.playlists) || [];
+        const nextCursor = (resp && typeof resp.next_cursor === "number") ? resp.next_cursor : null;
+        if (!context.append && items.length === 0) {
+            this.setState({ playlistsError: true, playlistsLoading: false, playlistsLoadingMore: false });
+            return;
+        }
+        this.setState((prevState) => ({
+            playlists: context.append ? prevState.playlists.concat(items) : items,
+            playlistsNextCursor: nextCursor,
+            playlistsLoading: false,
+            playlistsLoadingMore: false,
+            playlistsError: false,
+        }));
+    }
+
+    async handleSuggestedPlaylistsError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("suggested playlists error:", text);
+        if (context.append) {
+            this.setState({ playlistsLoadingMore: false });
+        } else {
+            this.setState({ playlistsError: true, playlistsLoading: false });
+        }
+    }
+
+    onLoadMorePlaylistsClick() {
+        const cursor = this.state.playlistsNextCursor;
+        if (cursor == null || this.state.playlistsLoadingMore) {
+            return;
+        }
+        this.setState({ playlistsLoadingMore: true });
+        loadSuggestedPlaylists(`${cursor}`, this.handleSuggestedPlaylistsSuccess, this.handleSuggestedPlaylistsError, { append: true });
     }
 
     renderPromptForm() {
@@ -1077,7 +1126,7 @@ class WatchApp extends React.Component {
     renderPromptTabContent() {
         switch (this.state.promptTab) {
             case PROMPT_TAB_PLAYLISTS:
-                return this.renderComingSoon("playlistsComingSoon");
+                return this.renderPlaylists();
             case PROMPT_TAB_HISTORY:
                 return this.renderComingSoon("historyComingSoon");
             case PROMPT_TAB_RANDOM:
@@ -1125,6 +1174,71 @@ class WatchApp extends React.Component {
                         </div>
                     ))}
                 </div>
+            </div>
+        );
+    }
+
+    renderSpinner(className) {
+        return (
+            <div
+                className={className}
+                style={{ borderTopColor: "#3b82f6", borderRightColor: "#3b82f6" }}>
+            </div>
+        );
+    }
+
+    renderPlaylists() {
+        if (this.state.playlistsLoading) {
+            return (
+                <div className="flex justify-center py-4">
+                    {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200")}
+                </div>
+            );
+        }
+        if (this.state.playlistsError) {
+            return (
+                <div className="mt-6 px-3 text-center text-red-600">
+                    {this.i18n("playlistsLoadError")}
+                </div>
+            );
+        }
+        const playlists = this.state.playlists || [];
+        return (
+            <div className="mt-4 px-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {playlists.map((p) => (
+                        <div
+                            key={p.online_playlist_id}
+                            className="flex flex-col rounded-lg overflow-hidden border border-gray-200">
+                            <div className="relative" style={{ paddingBottom: "75%" }}>
+                                <img
+                                    src={p.thumbnail_url}
+                                    alt={p.title}
+                                    width={p.thumbnail_width}
+                                    height={p.thumbnail_height}
+                                    className="absolute inset-0 w-full h-full object-cover" />
+                                <span className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-sm px-1 rounded">
+                                    {this.i18n("playlistItemCountTempl")(p.item_count)}
+                                </span>
+                            </div>
+                            <div className="p-2">
+                                <div className="text-sm font-medium text-gray-800 truncate" title={p.title}>{p.title}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {this.state.playlistsNextCursor != null && (
+                    <div className="mt-4 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={this.onLoadMorePlaylistsClick}
+                            disabled={this.state.playlistsLoadingMore}
+                            className="flex flex-row items-center bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium py-2 px-4 rounded focus:outline-none">
+                            {this.state.playlistsLoadingMore && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
+                            {this.i18n("loadMorePlaylists")}
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }

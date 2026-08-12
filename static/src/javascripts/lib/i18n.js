@@ -1768,13 +1768,21 @@ function prepareWatchOnlyTranslations(map) {
         "History",
         "История",
     );
-    setEnRu(map, "playlistsComingSoon",
-        "Playlists are coming soon",
-        "Плейлисты скоро появятся",
-    );
     setEnRu(map, "historyComingSoon",
         "History is coming soon",
         "История скоро появится",
+    );
+    setEnRu(map, "playlistsLoadError",
+        "Failed to load playlists",
+        "Не удалось загрузить плейлисты",
+    );
+    setEnRu(map, "playlistItemCountTempl",
+        (n) => `${n} videos`,
+        (n) => `${n} видео`,
+    );
+    setEnRu(map, "loadMorePlaylists",
+        "Load more",
+        "Показать ещё",
     );
     setEnRu(map, "videoMenu",
         "More options",
