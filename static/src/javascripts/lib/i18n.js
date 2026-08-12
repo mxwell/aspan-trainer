@@ -1768,9 +1768,9 @@ function prepareWatchOnlyTranslations(map) {
         "History",
         "История",
     );
-    setEnRu(map, "historyComingSoon",
-        "History is coming soon",
-        "История скоро появится",
+    setEnRu(map, "historyEmpty",
+        "No watched videos yet",
+        "Вы ещё не смотрели ни одного видео",
     );
     setEnRu(map, "playlistsLoadError",
         "Failed to load playlists",

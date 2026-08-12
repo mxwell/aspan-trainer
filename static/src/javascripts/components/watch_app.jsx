@@ -2,7 +2,7 @@ import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, makeAnalyzeSubRequest } from "../lib/requests";
-import { saveWatchHistoryEntry } from "../lib/history";
+import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 
@@ -258,7 +258,7 @@ class WatchApp extends React.Component {
         this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
         this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
         this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
-        this.onSuggestedVideoClick = this.onSuggestedVideoClick.bind(this);
+        this.onVideoCardClick = this.onVideoCardClick.bind(this);
         this.onPromptTabClick = this.onPromptTabClick.bind(this);
         this.handleSuggestedPlaylistsSuccess = this.handleSuggestedPlaylistsSuccess.bind(this);
         this.handleSuggestedPlaylistsError = this.handleSuggestedPlaylistsError.bind(this);
@@ -1074,7 +1074,7 @@ class WatchApp extends React.Component {
         console.log("suggested videos error:", text);
     }
 
-    onSuggestedVideoClick(videoId) {
+    onVideoCardClick(videoId) {
         this.probeById(videoId);
     }
 
@@ -1186,7 +1186,7 @@ class WatchApp extends React.Component {
             case PROMPT_TAB_PLAYLISTS:
                 return this.renderPlaylists();
             case PROMPT_TAB_HISTORY:
-                return this.renderComingSoon("historyComingSoon");
+                return this.renderHistory();
             case PROMPT_TAB_RANDOM:
             default:
                 return this.renderSuggestedVideos();
@@ -1206,32 +1206,83 @@ class WatchApp extends React.Component {
         if (videos.length === 0) {
             return null;
         }
+        const items = videos.map((v) => ({
+            id: v.online_video_id,
+            title: v.title,
+            channelTitle: v.channel_title,
+            thumbnailUrl: v.thumbnail_url,
+            thumbnailWidth: v.thumbnail_width,
+            thumbnailHeight: v.thumbnail_height,
+            durationSecs: v.duration_secs,
+        }));
+        return this.renderVideoGrid(items);
+    }
+
+    renderHistory() {
+        const history = loadWatchHistory();
+        if (history.length === 0) {
+            return this.renderComingSoon("historyEmpty");
+        }
+        const items = history.map((h) => ({
+            id: h.videoId,
+            title: h.title,
+            channelTitle: h.channelTitle,
+            thumbnailUrl: h.thumbnailUrl,
+            thumbnailWidth: h.thumbnailWidth,
+            thumbnailHeight: h.thumbnailHeight,
+            durationSecs: h.durationSecs,
+            positionMs: h.positionMs,
+        }));
+        return this.renderVideoGrid(items);
+    }
+
+    // Shared grid for any list of {id, title, channelTitle, thumbnailUrl,
+    // thumbnailWidth, thumbnailHeight, durationSecs, positionMs?} items.
+    // positionMs is optional - when present, a YouTube-style watched-progress
+    // strip is drawn along the bottom edge of the thumbnail.
+    renderVideoGrid(items) {
         return (
             <div className="mt-4 px-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {videos.map((v) => (
+                    {items.map((item) => (
                         <div
-                            key={v.online_video_id}
-                            onClick={() => this.onSuggestedVideoClick(v.online_video_id)}
+                            key={item.id}
+                            onClick={() => this.onVideoCardClick(item.id)}
                             className="cursor-pointer flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
                             <div className="relative" style={{ paddingBottom: "75%" }}>
                                 <img
-                                    src={v.thumbnail_url}
-                                    alt={v.title}
-                                    width={v.thumbnail_width}
-                                    height={v.thumbnail_height}
+                                    src={item.thumbnailUrl}
+                                    alt={item.title}
+                                    width={item.thumbnailWidth}
+                                    height={item.thumbnailHeight}
                                     className="absolute inset-0 w-full h-full object-cover" />
                                 <span className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-sm px-1 rounded">
-                                    {formatDuration(v.duration_secs)}
+                                    {formatDuration(item.durationSecs)}
                                 </span>
+                                {item.positionMs != null && this.renderWatchProgress(item.positionMs, item.durationSecs)}
                             </div>
                             <div className="p-2">
-                                <div className="text-sm font-medium text-gray-800 truncate" title={v.title}>{v.title}</div>
-                                <div className="text-xs text-gray-500 mt-1">{v.channel_title}</div>
+                                <div className="text-sm font-medium text-gray-800 truncate" title={item.title}>{item.title}</div>
+                                <div className="text-xs text-gray-500 mt-1">{item.channelTitle}</div>
                             </div>
                         </div>
                     ))}
                 </div>
+            </div>
+        );
+    }
+
+    renderWatchProgress(positionMs, durationSecs) {
+        const durationMs = durationSecs * 1000;
+        const pct = durationMs > 0 ? Math.min(100, Math.round((positionMs / durationMs) * 100)) : 0;
+        // Floor the visible width so even a few seconds into a long video shows
+        // as a sliver rather than disappearing under rounding - both as a percent
+        // (pct itself can round to 0 for small-but-real progress) and in pixels
+        // (1% of a narrow card can round below a device pixel).
+        const displayPct = positionMs > 0 ? Math.max(1, pct) : 0;
+        return (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300 bg-opacity-75">
+                <div className="h-1 bg-red-600" style={{ width: displayPct + "%", minWidth: displayPct > 0 ? "2px" : 0 }}></div>
             </div>
         );
     }
