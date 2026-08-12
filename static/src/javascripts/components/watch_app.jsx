@@ -2,6 +2,7 @@ import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, makeAnalyzeSubRequest } from "../lib/requests";
+import { saveWatchHistoryEntry } from "../lib/history";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 
@@ -23,6 +24,7 @@ const SUBTITLE_WORD_COUNT = 150;
 const TICK_MS = 500;
 const MIN_TICK_MS = 50;
 const PROCESSING_POLL_MS = 10000;
+const HISTORY_SAVE_INTERVAL_MS = 45000;
 
 function isValidYouTubeVideoId(id) {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
@@ -284,6 +286,10 @@ class WatchApp extends React.Component {
         // outside state so back-to-back ticks can't re-issue the same request while
         // the response - and the state update it carries - is still pending.
         this.analysisCueIndex = -1;
+        // Tracks history saves for the current video: whether the initial save has
+        // fired yet, and the wall-clock time of the last save (for the 45s cadence).
+        this.historyInitialSaved = false;
+        this.lastHistorySaveMs = 0;
     }
 
     makeState(appMode, videoId) {
@@ -375,6 +381,11 @@ class WatchApp extends React.Component {
     componentWillUnmount() {
         window.removeEventListener("popstate", this.onPopState);
         document.removeEventListener("click", this.onDocumentClick);
+        // Best-effort: capture the position reached since the last periodic save
+        // (up to HISTORY_SAVE_INTERVAL_MS of drift) before the player is gone.
+        if (this.historyInitialSaved) {
+            this.saveHistoryProgress(this.lastPositionMs);
+        }
         this.stopProcessingPoll();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
@@ -481,6 +492,11 @@ class WatchApp extends React.Component {
     // and returns to a clean APP_MODE_PROMPT, e.g. after navigating back past the
     // point where a video id first entered the URL.
     resetToPrompt() {
+        // Best-effort: capture the position reached since the last periodic save
+        // before the player is torn down and probe/position state is cleared.
+        if (this.historyInitialSaved) {
+            this.saveHistoryProgress(this.lastPositionMs);
+        }
         this.stopProcessingPoll();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
@@ -501,6 +517,8 @@ class WatchApp extends React.Component {
         this.lastPositionMs = 0;
         this.analysisToken = 0;
         this.analysisCueIndex = -1;
+        this.historyInitialSaved = false;
+        this.lastHistorySaveMs = 0;
         if (this.inputRef.current) {
             this.inputRef.current.value = "";
         }
@@ -643,6 +661,8 @@ class WatchApp extends React.Component {
         this.lastPositionMs = 0;
         this.analysisToken = 0;
         this.analysisCueIndex = -1;
+        this.historyInitialSaved = false;
+        this.lastHistorySaveMs = 0;
         this.setState({
             subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0,
             breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
@@ -727,11 +747,49 @@ class WatchApp extends React.Component {
         const { index, upcoming, activeWordIndex } = this.updateCurrentCue(positionMs);
         this.loadSubtitlesIfNeeded(positionMs);
         if (this.player.getPlayerState() === VIDEO_PLAYING) {
+            this.maybeSaveHistoryProgress(positionMs);
             const delay = computeNextTickDelayMs(
                 positionMs, this.player.getPlaybackRate(), this.state.subtitles || [], index, upcoming, activeWordIndex
             );
             this.tickTimer = setTimeout(() => this.tick(), delay);
         }
+    }
+
+    // ===== Watch history: local-storage-backed, most-recent-10 list =====
+
+    // Called every tick while the player is actually playing. Saves once
+    // immediately the first time playback is observed (the "initial progress"
+    // save), then at most once per HISTORY_SAVE_INTERVAL_MS after that.
+    maybeSaveHistoryProgress(positionMs) {
+        const now = Date.now();
+        if (!this.historyInitialSaved) {
+            this.saveHistoryProgress(positionMs);
+            this.historyInitialSaved = true;
+            this.lastHistorySaveMs = now;
+            return;
+        }
+        if (now - this.lastHistorySaveMs >= HISTORY_SAVE_INTERVAL_MS) {
+            this.saveHistoryProgress(positionMs);
+            this.lastHistorySaveMs = now;
+        }
+    }
+
+    saveHistoryProgress(positionMs) {
+        const info = this.state.probe && this.state.probe.info;
+        if (!info || !info.online_video_id) {
+            return;
+        }
+        saveWatchHistoryEntry({
+            videoId: info.online_video_id,
+            title: info.title,
+            channelTitle: info.channel_title,
+            thumbnailUrl: info.thumbnail_url,
+            thumbnailWidth: info.thumbnail_width,
+            thumbnailHeight: info.thumbnail_height,
+            durationSecs: info.duration_secs,
+            positionMs,
+            updatedAt: Date.now(),
+        });
     }
 
     // Jumps playback to a word of the cue on screen. Leaves the player playing or
