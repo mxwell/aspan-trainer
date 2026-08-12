@@ -151,6 +151,8 @@ function loadSuggestedPlaylists(cursor, successCallback, errorCallback, context)
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+// `videoId` is optional: without it the response carries just the page of items
+// and its paging tokens (no cur_video)
 function loadPlaylistPage(playlistId, videoId, pageToken, successCallback, errorCallback, context) {
     const query = encodeQueryData({ v: videoId, page: pageToken });
     const url = `/qarauapi/v1/playlist/${playlistId}?${query}`;

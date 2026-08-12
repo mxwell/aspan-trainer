@@ -12,6 +12,7 @@ const APP_MODE_WATCH = 3;
 const APP_MODE_ERROR = 4;
 const APP_MODE_PREVIEW = 5;
 const APP_MODE_PROBING = 6;
+const APP_MODE_PLAYLIST = 7;
 
 const VIDEO_PLAYING = 1;
 
@@ -236,6 +237,11 @@ class WatchApp extends React.Component {
         this.handleProbeError = this.handleProbeError.bind(this);
         this.handlePlaylistProbeSuccess = this.handlePlaylistProbeSuccess.bind(this);
         this.handlePlaylistProbeError = this.handlePlaylistProbeError.bind(this);
+        this.enterPlaylistMode = this.enterPlaylistMode.bind(this);
+        this.openPlaylist = this.openPlaylist.bind(this);
+        this.requestPlaylistOverview = this.requestPlaylistOverview.bind(this);
+        this.handlePlaylistOverviewSuccess = this.handlePlaylistOverviewSuccess.bind(this);
+        this.handlePlaylistOverviewError = this.handlePlaylistOverviewError.bind(this);
         this.onPlaylistItemClick = this.onPlaylistItemClick.bind(this);
         this.requestPlaylistPage = this.requestPlaylistPage.bind(this);
         this.onPlaylistPrevPageClick = this.onPlaylistPrevPageClick.bind(this);
@@ -272,6 +278,7 @@ class WatchApp extends React.Component {
         this.onPromptTabClick = this.onPromptTabClick.bind(this);
         this.handleSuggestedPlaylistsSuccess = this.handleSuggestedPlaylistsSuccess.bind(this);
         this.handleSuggestedPlaylistsError = this.handleSuggestedPlaylistsError.bind(this);
+        this.onPlaylistCardClick = this.onPlaylistCardClick.bind(this);
         this.onLoadMorePlaylistsClick = this.onLoadMorePlaylistsClick.bind(this);
         this.onWordClick = this.onWordClick.bind(this);
         this.onGrammarToggle = this.onGrammarToggle.bind(this);
@@ -321,6 +328,8 @@ class WatchApp extends React.Component {
             playlistNextPageToken: null,
             playlistLoadingPrev: false,
             playlistLoadingNext: false,
+            playlistLoading: false,
+            playlistError: false,
             grammar: false,
             translations: false,
             breakdown: [],
@@ -343,6 +352,14 @@ class WatchApp extends React.Component {
             }
             return state;
         }
+        // `list` without a `v`: the playlist overview rather than a video in it.
+        if (params.list) {
+            const state = this.makeState(APP_MODE_PLAYLIST, null);
+            state.playlistId = params.list;
+            state.playlistPageToken = params.page || "";
+            state.playlistLoading = true;
+            return state;
+        }
         return this.makeState(APP_MODE_PROMPT, null);
     }
 
@@ -355,6 +372,8 @@ class WatchApp extends React.Component {
             } else {
                 this.probeById(this.state.videoId);
             }
+        } else if (this.state.playlistId) {
+            this.requestPlaylistOverview(this.state.playlistId, this.state.playlistPageToken);
         } else {
             loadSuggestedVideos(this.handleSuggestedVideosSuccess, this.handleSuggestedVideosError);
         }
@@ -488,6 +507,8 @@ class WatchApp extends React.Component {
             playlistNextPageToken: null,
             playlistLoadingPrev: false,
             playlistLoadingNext: false,
+            playlistLoading: false,
+            playlistError: false,
         });
         probeVideo(id, this.handleProbeSuccess, this.handleProbeError);
     }
@@ -511,6 +532,8 @@ class WatchApp extends React.Component {
             playlistPageToken: token,
             playlistLoadingPrev: false,
             playlistLoadingNext: false,
+            playlistLoading: false,
+            playlistError: false,
         });
         loadPlaylistPage(playlistId, videoId, token, this.handlePlaylistProbeSuccess, this.handlePlaylistProbeError, { pageToken: token });
     }
@@ -573,6 +596,23 @@ class WatchApp extends React.Component {
         window.history.pushState(null, "", url);
     }
 
+    // The playlist overview's URL: `list` alone, with `page` only when the window
+    // isn't the default one. No `v` - that's what distinguishes it from a video
+    // being watched within a playlist.
+    pushPlaylistUrl(playlistId, pageToken) {
+        const params = parseParams();
+        const token = pageToken || "";
+        if (!params.v && params.list === playlistId && (params.page || "") === token) {
+            return;
+        }
+        const urlParams = [`list=${encodeURI(playlistId)}`];
+        if (token) {
+            urlParams.push(`page=${encodeURI(token)}`);
+        }
+        const url = buildWatchUrl(urlParams, this.props.lang);
+        window.history.pushState(null, "", url);
+    }
+
     // Fires on browser back/forward. Re-derive intent from the URL rather than
     // trusting event.state, since we never push a state object.
     onPopState() {
@@ -590,6 +630,14 @@ class WatchApp extends React.Component {
                 } else {
                     this.probeById(videoId);
                 }
+            }
+        } else if (params.list) {
+            const playlistId = params.list;
+            const pageToken = params.page || "";
+            if (this.state.appMode !== APP_MODE_PLAYLIST
+                || playlistId !== this.state.playlistId
+                || pageToken !== (this.state.playlistPageToken || "")) {
+                this.openPlaylist(playlistId, pageToken);
             }
         } else {
             this.resetToPrompt();
@@ -622,6 +670,8 @@ class WatchApp extends React.Component {
             playlistNextPageToken: null,
             playlistLoadingPrev: false,
             playlistLoadingNext: false,
+            playlistLoading: false,
+            playlistError: false,
             subtitles: [],
             next: null,
             currentCueIndex: -1,
@@ -668,6 +718,79 @@ class WatchApp extends React.Component {
         this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text), proceeding: false });
     }
 
+    // ===== APP_MODE_PLAYLIST: overview of a playlist, no video selected =====
+
+    // Enters the overview and pushes its URL. Called when a playlist card is
+    // clicked; the URL-driven paths (initial mount, popstate) go straight to
+    // requestPlaylistOverview() instead, since the URL already says so.
+    enterPlaylistMode(playlistId, pageToken) {
+        const token = pageToken || "";
+        this.pushPlaylistUrl(playlistId, token);
+        this.openPlaylist(playlistId, token);
+    }
+
+    // Leaves whatever mode we were in - player, polling, probed video - and loads
+    // the overview. Doesn't touch the URL: callers that navigate push it first.
+    openPlaylist(playlistId, pageToken) {
+        this.teardownPlayer();  // just in case
+        // appMode has to switch in the SAME setState that drops the probe: React
+        // doesn't batch updates made outside its own event handlers (popstate,
+        // for one), so a separate mode update would render the previous mode -
+        // e.g. renderPreviewForm() - against a probe that's already null.
+        this.setState({
+            appMode: APP_MODE_PLAYLIST,
+            playlistLoading: true,
+            playlistError: false,
+            videoId: null,
+            probe: null,
+            process: null,
+            processStartedAt: null,
+            processUpdatedAt: null,
+            errorMessage: null,
+            menuOpen: false,
+        });
+        this.requestPlaylistOverview(playlistId, pageToken || "");
+    }
+
+    requestPlaylistOverview(playlistId, pageToken) {
+        const token = pageToken || "";
+        this.setState({
+            appMode: APP_MODE_PLAYLIST,
+            playlistId,
+            playlistPageToken: token,
+            playlistItems: [],
+            playlistPrevPageToken: null,
+            playlistNextPageToken: null,
+            playlistLoadingPrev: false,
+            playlistLoadingNext: false,
+            playlistLoading: true,
+            playlistError: false,
+        });
+        // No video id: the response carries the page of items and its paging
+        // tokens, but no cur_video to route on.
+        loadPlaylistPage(playlistId, "", token, this.handlePlaylistOverviewSuccess, this.handlePlaylistOverviewError, { pageToken: token });
+    }
+
+    async handlePlaylistOverviewSuccess(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        console.log("playlist overview result", resp);
+        const pageToken = context.pageToken || "";
+        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { pageToken }));
+        this.setState({
+            playlistItems: items,
+            playlistPrevPageToken: (resp && resp.prev_page_token) || null,
+            playlistNextPageToken: (resp && resp.next_page_token) || null,
+            playlistLoading: false,
+            playlistError: false,
+        });
+    }
+
+    async handlePlaylistOverviewError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("playlist overview error:", text);
+        this.setState({ playlistLoading: false, playlistError: true });
+    }
+
     // ===== Playlist panel: browse and page through the active playlist =====
 
     // Switches to another video within the same playlist, keeping `list` in the
@@ -682,8 +805,9 @@ class WatchApp extends React.Component {
 
     requestPlaylistPage(pageToken, direction) {
         const playlistId = this.state.playlistId;
-        const videoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
-        if (!playlistId || !videoId || !pageToken) {
+        // Empty in APP_MODE_PLAYLIST, where no video is selected yet.
+        const videoId = (this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id) || "";
+        if (!playlistId || !pageToken) {
             return;
         }
         this.setState(direction === "next" ? { playlistLoadingNext: true } : { playlistLoadingPrev: true });
@@ -1285,6 +1409,12 @@ class WatchApp extends React.Component {
         }
     }
 
+    // Opens the playlist overview at its default window - a card carries no page
+    // token, so the API picks the first page.
+    onPlaylistCardClick(playlistId) {
+        this.enterPlaylistMode(playlistId, "");
+    }
+
     onLoadMorePlaylistsClick() {
         const cursor = this.state.playlistsNextCursor;
         if (cursor == null || this.state.playlistsLoadingMore) {
@@ -1490,7 +1620,8 @@ class WatchApp extends React.Component {
                     {playlists.map((p) => (
                         <div
                             key={p.online_playlist_id}
-                            className="flex flex-col rounded-lg overflow-hidden border border-gray-200">
+                            onClick={() => this.onPlaylistCardClick(p.online_playlist_id)}
+                            className="cursor-pointer flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
                             <div className="relative" style={{ paddingBottom: "75%" }}>
                                 <img
                                     src={p.thumbnail_url}
@@ -1700,16 +1831,24 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderPlaylistPanel() {
+    // The playlist as a list of clickable items with its prev/next paging
+    // controls. Shared by the panel under a video (a bounded, scrollable strip)
+    // and by APP_MODE_PLAYLIST, which is nothing but this list - hence
+    // `opts.listClass`, which lets the overview drop the height cap and let the
+    // page itself scroll.
+    renderPlaylistPanel(opts) {
+        const listClass = (opts && opts.listClass) || "max-h-96 overflow-y-auto border border-gray-200 rounded-lg";
         const items = this.state.playlistItems || [];
         if (items.length === 0) {
             return null;
         }
+        // Undefined in the overview, where no video is selected - so no row
+        // comes out highlighted, which is what we want there.
         const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
         return (
             <div className="w-full max-w-2xl px-4 py-2">
                 <div className="text-lg font-medium text-gray-800 mb-2">{this.i18n("watchPlaylistHeading")}</div>
-                <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                <div className={listClass}>
                     {this.state.playlistPrevPageToken != null && (
                         <div className="flex justify-center py-2 border-b border-gray-100">
                             <button
@@ -1761,6 +1900,40 @@ class WatchApp extends React.Component {
                 </div>
             </div>
         );
+    }
+
+    // APP_MODE_PLAYLIST: the playlist on its own, before any video is picked.
+    renderPlaylistView() {
+        return (
+            <div className="flex flex-col items-center w-full">
+                {this.renderPlaylistViewBody()}
+            </div>
+        );
+    }
+
+    renderPlaylistViewBody() {
+        if (this.state.playlistLoading) {
+            return (
+                <div className="flex justify-center py-4">
+                    {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200")}
+                </div>
+            );
+        }
+        if (this.state.playlistError) {
+            return (
+                <div className="mt-6 px-3 text-center text-red-600">
+                    {this.i18n("playlistsLoadError")}
+                </div>
+            );
+        }
+        if ((this.state.playlistItems || []).length === 0) {
+            return (
+                <div className="mt-6 px-3 text-center text-gray-500">
+                    {this.i18n("playlistEmpty")}
+                </div>
+            );
+        }
+        return this.renderPlaylistPanel({ listClass: "border border-gray-200 rounded-lg" });
     }
 
     renderSubtitles() {
@@ -1930,6 +2103,8 @@ class WatchApp extends React.Component {
             return this.renderPreviewForm();
         } else if (appMode == APP_MODE_WATCH) {
             return this.renderWatchView();
+        } else if (appMode == APP_MODE_PLAYLIST) {
+            return this.renderPlaylistView();
         } else if (appMode == APP_MODE_ERROR) {
             return this.renderErrorForm();
         } else {

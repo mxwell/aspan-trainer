@@ -1804,6 +1804,10 @@ function prepareWatchOnlyTranslations(map) {
         "Load more",
         "Показать ещё",
     );
+    setEnRu(map, "playlistEmpty",
+        "This playlist is empty",
+        "Этот плейлист пуст",
+    );
 }
 
 function prepareTranslations() {
