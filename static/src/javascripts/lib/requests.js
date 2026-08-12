@@ -151,6 +151,12 @@ function loadSuggestedPlaylists(cursor, successCallback, errorCallback, context)
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function loadPlaylistPage(playlistId, videoId, pageToken, successCallback, errorCallback, context) {
+    const query = encodeQueryData({ v: videoId, page: pageToken });
+    const url = `/qarauapi/v1/playlist/${playlistId}?${query}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 export {
     InvalidAuthTokenException,
     makeGetApiRequest,
@@ -167,4 +173,5 @@ export {
     loadSubtitles,
     loadSuggestedVideos,
     loadSuggestedPlaylists,
+    loadPlaylistPage,
 };

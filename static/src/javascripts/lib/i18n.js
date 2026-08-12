@@ -1792,6 +1792,18 @@ function prepareWatchOnlyTranslations(map) {
         "Download subtitles",
         "Скачать субтитры",
     );
+    setEnRu(map, "watchPlaylistHeading",
+        "Playlist",
+        "Плейлист",
+    );
+    setEnRu(map, "watchPlaylistLoadPrevious",
+        "Show previous",
+        "Показать предыдущие",
+    );
+    setEnRu(map, "watchPlaylistLoadMore",
+        "Load more",
+        "Показать ещё",
+    );
 }
 
 function prepareTranslations() {

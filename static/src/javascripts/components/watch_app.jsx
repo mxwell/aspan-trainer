@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, makeAnalyzeSubRequest } from "../lib/requests";
+import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
@@ -230,8 +230,18 @@ class WatchApp extends React.Component {
         this.menuRef = React.createRef();
         this.onSubmit = this.onSubmit.bind(this);
         this.startProbe = this.startProbe.bind(this);
+        this.probePlaylist = this.probePlaylist.bind(this);
+        this.applyProbeResult = this.applyProbeResult.bind(this);
         this.handleProbeSuccess = this.handleProbeSuccess.bind(this);
         this.handleProbeError = this.handleProbeError.bind(this);
+        this.handlePlaylistProbeSuccess = this.handlePlaylistProbeSuccess.bind(this);
+        this.handlePlaylistProbeError = this.handlePlaylistProbeError.bind(this);
+        this.onPlaylistItemClick = this.onPlaylistItemClick.bind(this);
+        this.requestPlaylistPage = this.requestPlaylistPage.bind(this);
+        this.onPlaylistPrevPageClick = this.onPlaylistPrevPageClick.bind(this);
+        this.onPlaylistNextPageClick = this.onPlaylistNextPageClick.bind(this);
+        this.handlePlaylistPageSuccess = this.handlePlaylistPageSuccess.bind(this);
+        this.handlePlaylistPageError = this.handlePlaylistPageError.bind(this);
         this.handleFetchSuccess = this.handleFetchSuccess.bind(this);
         this.handleFetchError = this.handleFetchError.bind(this);
         this.onGenerateClick = this.onGenerateClick.bind(this);
@@ -304,6 +314,13 @@ class WatchApp extends React.Component {
             playlistsError: false,
             playlistsRequested: false,
             playlistsNextCursor: null,
+            playlistId: null,
+            playlistPageToken: "",
+            playlistItems: [],
+            playlistPrevPageToken: null,
+            playlistNextPageToken: null,
+            playlistLoadingPrev: false,
+            playlistLoadingNext: false,
             grammar: false,
             translations: false,
             breakdown: [],
@@ -314,9 +331,17 @@ class WatchApp extends React.Component {
     }
 
     readUrlState() {
-        const videoId = parseParams().v;
+        const params = parseParams();
+        const videoId = params.v;
         if (videoId && isValidYouTubeVideoId(videoId)) {
-            return this.makeState(APP_MODE_PROBING, videoId);
+            const state = this.makeState(APP_MODE_PROBING, videoId);
+            if (params.list) {
+                state.playlistId = params.list;
+                if (params.page) {
+                    state.playlistPageToken = params.page;
+                }
+            }
+            return state;
         }
         return this.makeState(APP_MODE_PROMPT, null);
     }
@@ -325,7 +350,11 @@ class WatchApp extends React.Component {
         window.addEventListener("popstate", this.onPopState);
         document.addEventListener("click", this.onDocumentClick);
         if (this.state.videoId) {
-            this.probeById(this.state.videoId);
+            if (this.state.playlistId) {
+                this.probePlaylist(this.state.videoId, this.state.playlistId, this.state.playlistPageToken);
+            } else {
+                this.probeById(this.state.videoId);
+            }
         } else {
             loadSuggestedVideos(this.handleSuggestedVideosSuccess, this.handleSuggestedVideosError);
         }
@@ -381,6 +410,18 @@ class WatchApp extends React.Component {
     componentWillUnmount() {
         window.removeEventListener("popstate", this.onPopState);
         document.removeEventListener("click", this.onDocumentClick);
+        this.teardownPlayer();
+        if (window.onYouTubeIframeAPIReady === this.loadVideo) {
+            window.onYouTubeIframeAPIReady = null;
+        }
+    }
+
+    // Tears down the YT player, its timers/polls, and per-video tracking state.
+    // Must run - and, critically, must destroy the player - BEFORE any setState
+    // that unmounts <div id="watch_player">: the IFrame API replaces that div's
+    // content outside React's knowledge, and React trying to remove a child it
+    // never rendered throws "Node.removeChild: node is not a child of this node".
+    teardownPlayer() {
         // Best-effort: capture the position reached since the last periodic save
         // (up to HISTORY_SAVE_INTERVAL_MS of drift) before the player is gone.
         if (this.historyInitialSaved) {
@@ -400,9 +441,14 @@ class WatchApp extends React.Component {
             this.player = null;
         }
         this.playerReady = false;
-        if (window.onYouTubeIframeAPIReady === this.loadVideo) {
-            window.onYouTubeIframeAPIReady = null;
-        }
+        this.transcriptionId = null;
+        this.subtitlesEndMs = null;
+        this.subLoadToken = 0;
+        this.lastPositionMs = 0;
+        this.analysisToken = 0;
+        this.analysisCueIndex = -1;
+        this.historyInitialSaved = false;
+        this.lastHistorySaveMs = 0;
     }
 
     i18n(key) {
@@ -432,8 +478,41 @@ class WatchApp extends React.Component {
             return;
         }
 
-        this.setState({ appMode: APP_MODE_PROBING });
+        this.teardownPlayer();
+        this.setState({
+            appMode: APP_MODE_PROBING,
+            playlistId: null,
+            playlistPageToken: "",
+            playlistItems: [],
+            playlistPrevPageToken: null,
+            playlistNextPageToken: null,
+            playlistLoadingPrev: false,
+            playlistLoadingNext: false,
+        });
         probeVideo(id, this.handleProbeSuccess, this.handleProbeError);
+    }
+
+    // `list` only makes sense alongside a `v`: probes the video within the
+    // playlist so the response carries both the video's own probe data
+    // (under cur_video) and the playlist's items/paging tokens. `pageToken`
+    // pins the request to the same window an item was loaded under - e.g. when
+    // navigating to it from a playlist item further down the loaded list.
+    probePlaylist(videoId, playlistId, pageToken) {
+        if (!isValidYouTubeVideoId(videoId)) {
+            console.warn("not a valid YouTube video id:", videoId);
+            return;
+        }
+
+        const token = pageToken || "";
+        this.teardownPlayer();
+        this.setState({
+            appMode: APP_MODE_PROBING,
+            playlistId,
+            playlistPageToken: token,
+            playlistLoadingPrev: false,
+            playlistLoadingNext: false,
+        });
+        loadPlaylistPage(playlistId, videoId, token, this.handlePlaylistProbeSuccess, this.handlePlaylistProbeError, { pageToken: token });
     }
 
     onSubmit(e) {
@@ -446,17 +525,25 @@ class WatchApp extends React.Component {
     async handleProbeSuccess(context, responseJsonPromise) {
         const probe = await responseJsonPromise;
         console.log("probe result", probe);
+        this.applyProbeResult(probe);
+    }
 
+    // Shared by a plain probe and a playlist probe's cur_video: routes to
+    // PREVIEW/WATCH/PROCESSING/ERROR based on process state and pushes the
+    // resulting video into the URL. `extraState` merges in fields (e.g.
+    // playlist data) that only a playlist probe carries.
+    applyProbeResult(probe, extraState) {
+        const base = extraState || {};
         const processState = probe.process && probe.process.state;
 
         if (processState === "new") {
-            this.setState({ appMode: APP_MODE_PREVIEW, probe, proceeding: false });
+            this.setState(Object.assign({}, base, { appMode: APP_MODE_PREVIEW, probe, proceeding: false }));
             this.pushVideoUrl(probe.info.online_video_id);
         } else if (processState === "done") {
-            this.setState({ appMode: APP_MODE_WATCH, probe, proceeding: false, subtitlesLoading: true });
+            this.setState(Object.assign({}, base, { appMode: APP_MODE_WATCH, probe, proceeding: false, subtitlesLoading: true }));
             this.pushVideoUrl(probe.info.online_video_id);
         } else if (isProcessingState(processState)) {
-            this.setState({ appMode: APP_MODE_PROCESSING, probe, process: probe.process, processUpdatedAt: Date.now(), proceeding: false });
+            this.setState(Object.assign({}, base, { appMode: APP_MODE_PROCESSING, probe, process: probe.process, processUpdatedAt: Date.now(), proceeding: false }));
             this.pushVideoUrl(probe.info.online_video_id);
         } else if (processState === "failed") {
             const errorMessage = (probe.process && probe.process.error_message) || this.i18n("service_error");
@@ -467,21 +554,42 @@ class WatchApp extends React.Component {
     }
 
     pushVideoUrl(videoId) {
-        if (parseParams().v === videoId) {
+        const params = parseParams();
+        const playlistId = this.state.playlistId || null;
+        // Omitted and empty `page` are equivalent (both mean "the default
+        // window"), so normalize both to "" before comparing/pushing.
+        const pageToken = this.state.playlistPageToken || "";
+        if (params.v === videoId && (params.list || null) === playlistId && (params.page || "") === pageToken) {
             return;
         }
-        const url = buildWatchUrl([`v=${encodeURI(videoId)}`], this.props.lang);
+        const urlParams = [`v=${encodeURI(videoId)}`];
+        if (playlistId) {
+            urlParams.push(`list=${encodeURI(playlistId)}`);
+            if (pageToken) {
+                urlParams.push(`page=${encodeURI(pageToken)}`);
+            }
+        }
+        const url = buildWatchUrl(urlParams, this.props.lang);
         window.history.pushState(null, "", url);
     }
 
     // Fires on browser back/forward. Re-derive intent from the URL rather than
     // trusting event.state, since we never push a state object.
     onPopState() {
-        const videoId = parseParams().v;
+        const params = parseParams();
+        const videoId = params.v;
         if (videoId && isValidYouTubeVideoId(videoId)) {
+            const playlistId = params.list || null;
+            const pageToken = params.page || "";
             const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
-            if (videoId !== currentVideoId) {
-                this.probeById(videoId);
+            const currentPlaylistId = this.state.playlistId || null;
+            const currentPageToken = this.state.playlistPageToken || "";
+            if (videoId !== currentVideoId || playlistId !== currentPlaylistId || pageToken !== currentPageToken) {
+                if (playlistId) {
+                    this.probePlaylist(videoId, playlistId, pageToken);
+                } else {
+                    this.probeById(videoId);
+                }
             }
         } else {
             this.resetToPrompt();
@@ -492,33 +600,7 @@ class WatchApp extends React.Component {
     // and returns to a clean APP_MODE_PROMPT, e.g. after navigating back past the
     // point where a video id first entered the URL.
     resetToPrompt() {
-        // Best-effort: capture the position reached since the last periodic save
-        // before the player is torn down and probe/position state is cleared.
-        if (this.historyInitialSaved) {
-            this.saveHistoryProgress(this.lastPositionMs);
-        }
-        this.stopProcessingPoll();
-        if (this.tickTimer) {
-            clearTimeout(this.tickTimer);
-            this.tickTimer = null;
-        }
-        if (this.player) {
-            try {
-                this.player.destroy();
-            } catch (e) {
-                // ignore - player may already be gone
-            }
-            this.player = null;
-        }
-        this.playerReady = false;
-        this.transcriptionId = null;
-        this.subtitlesEndMs = null;
-        this.subLoadToken = 0;
-        this.lastPositionMs = 0;
-        this.analysisToken = 0;
-        this.analysisCueIndex = -1;
-        this.historyInitialSaved = false;
-        this.lastHistorySaveMs = 0;
+        this.teardownPlayer();
         if (this.inputRef.current) {
             this.inputRef.current.value = "";
         }
@@ -533,6 +615,13 @@ class WatchApp extends React.Component {
             errorMessage: null,
             refreshing: false,
             proceeding: false,
+            playlistId: null,
+            playlistPageToken: "",
+            playlistItems: [],
+            playlistPrevPageToken: null,
+            playlistNextPageToken: null,
+            playlistLoadingPrev: false,
+            playlistLoadingNext: false,
             subtitles: [],
             next: null,
             currentCueIndex: -1,
@@ -551,6 +640,89 @@ class WatchApp extends React.Component {
         const text = await responseTextPromise;
         console.log("probe error:", text);
         this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text), proceeding: false });
+    }
+
+    // cur_video in the playlist response is shaped like a plain /probe response;
+    // its absence means the video couldn't be probed within the playlist context.
+    async handlePlaylistProbeSuccess(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        console.log("playlist probe result", resp);
+
+        const curVideo = resp.cur_video;
+        if (!curVideo) {
+            this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.i18n("videoNotPreviewable"), proceeding: false });
+            return;
+        }
+        const pageToken = context.pageToken || "";
+        const items = (resp.items || []).map((item) => Object.assign({}, item, { pageToken }));
+        this.applyProbeResult(curVideo, {
+            playlistItems: items,
+            playlistPrevPageToken: resp.prev_page_token || null,
+            playlistNextPageToken: resp.next_page_token || null,
+        });
+    }
+
+    async handlePlaylistProbeError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("playlist probe error:", text);
+        this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.extractErrorMessage(text), proceeding: false });
+    }
+
+    // ===== Playlist panel: browse and page through the active playlist =====
+
+    // Switches to another video within the same playlist, keeping `list` in the
+    // URL - and `page` pinned to the token the clicked item was loaded under,
+    // so the resulting window still contains it.
+    onPlaylistItemClick(videoId, pageToken) {
+        if (!this.state.playlistId) {
+            return;
+        }
+        this.probePlaylist(videoId, this.state.playlistId, pageToken);
+    }
+
+    requestPlaylistPage(pageToken, direction) {
+        const playlistId = this.state.playlistId;
+        const videoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
+        if (!playlistId || !videoId || !pageToken) {
+            return;
+        }
+        this.setState(direction === "next" ? { playlistLoadingNext: true } : { playlistLoadingPrev: true });
+        loadPlaylistPage(playlistId, videoId, pageToken, this.handlePlaylistPageSuccess, this.handlePlaylistPageError, { direction, pageToken });
+    }
+
+    onPlaylistPrevPageClick() {
+        this.requestPlaylistPage(this.state.playlistPrevPageToken, "prev");
+    }
+
+    onPlaylistNextPageClick() {
+        this.requestPlaylistPage(this.state.playlistNextPageToken, "next");
+    }
+
+    async handlePlaylistPageSuccess(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        const pageToken = context.pageToken || "";
+        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { pageToken }));
+        const direction = context.direction;
+        this.setState((prevState) => {
+            const existing = prevState.playlistItems || [];
+            const merged = direction === "next" ? existing.concat(items) : items.concat(existing);
+            const update = { playlistItems: merged };
+            if (direction === "next") {
+                update.playlistNextPageToken = (resp && resp.next_page_token) || null;
+                update.playlistLoadingNext = false;
+            } else {
+                update.playlistPrevPageToken = (resp && resp.prev_page_token) || null;
+                update.playlistLoadingPrev = false;
+            }
+            return update;
+        });
+    }
+
+    async handlePlaylistPageError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log("playlist page error:", text);
+        const direction = context.direction;
+        this.setState(direction === "next" ? { playlistLoadingNext: false } : { playlistLoadingPrev: false });
     }
 
     extractErrorMessage(responseText) {
@@ -1386,6 +1558,7 @@ class WatchApp extends React.Component {
                         {this.i18n("cantGenerateSubtitles")}:&nbsp;{obstacle}
                     </div>
                 }
+                {this.renderPlaylistPanel()}
             </div>
         );
     }
@@ -1464,6 +1637,7 @@ class WatchApp extends React.Component {
                         </button>
                     )}
                 </div>
+                {this.renderPlaylistPanel()}
             </div>
         );
     }
@@ -1520,6 +1694,70 @@ class WatchApp extends React.Component {
                     </div>
                     {this.renderSubtitles()}
                     {this.renderBreakdown()}
+                </div>
+                {this.renderPlaylistPanel()}
+            </div>
+        );
+    }
+
+    renderPlaylistPanel() {
+        const items = this.state.playlistItems || [];
+        if (items.length === 0) {
+            return null;
+        }
+        const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
+        return (
+            <div className="w-full max-w-2xl px-4 py-2">
+                <div className="text-lg font-medium text-gray-800 mb-2">{this.i18n("watchPlaylistHeading")}</div>
+                <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                    {this.state.playlistPrevPageToken != null && (
+                        <div className="flex justify-center py-2 border-b border-gray-100">
+                            <button
+                                type="button"
+                                onClick={this.onPlaylistPrevPageClick}
+                                disabled={this.state.playlistLoadingPrev}
+                                className="flex flex-row items-center text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
+                                {this.state.playlistLoadingPrev && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
+                                {this.i18n("watchPlaylistLoadPrevious")}
+                            </button>
+                        </div>
+                    )}
+                    {items.map((item, i) => {
+                        const active = item.online_video_id === currentVideoId;
+                        const rowClass = active
+                            ? "flex flex-row items-center gap-2 p-2 cursor-pointer bg-blue-50"
+                            : "flex flex-row items-center gap-2 p-2 cursor-pointer hover:bg-gray-50";
+                        const titleClass = active
+                            ? "text-sm font-semibold text-blue-700 truncate"
+                            : "text-sm text-gray-800 truncate";
+                        return (
+                            <div
+                                key={`${item.online_video_id}-${i}`}
+                                onClick={() => this.onPlaylistItemClick(item.online_video_id, item.pageToken)}
+                                className={rowClass}>
+                                <img
+                                    src={item.thumbnail_url}
+                                    alt={item.title}
+                                    className="w-24 h-16 object-cover rounded flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                    <div className={titleClass} title={item.title}>{item.title}</div>
+                                    <div className="text-xs text-gray-500 truncate">{item.channel_title}</div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {this.state.playlistNextPageToken != null && (
+                        <div className="flex justify-center py-2 border-t border-gray-100">
+                            <button
+                                type="button"
+                                onClick={this.onPlaylistNextPageClick}
+                                disabled={this.state.playlistLoadingNext}
+                                className="flex flex-row items-center text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
+                                {this.state.playlistLoadingNext && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
+                                {this.i18n("watchPlaylistLoadMore")}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         );
