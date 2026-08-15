@@ -1445,8 +1445,42 @@ class WatchApp extends React.Component {
                         <div className="mt-2 text-red-600 text-2xl lg:text-xl">{this.state.promptError}</div>
                     )}
                 </form>
+                {this.renderIntro()}
                 {this.renderPromptTabs()}
                 {this.renderPromptTabContent()}
+            </div>
+        );
+    }
+
+    renderIntro() {
+        const steps = [
+            { titleKey: "watchStep1Title", bodyKey: "watchStep1Body" },
+            { titleKey: "watchStep2Title", bodyKey: "watchStep2Body" },
+            { titleKey: "watchStep3Title", bodyKey: "watchStep3Body" },
+            { titleKey: "watchStep4Title", bodyKey: "watchStep4Body" },
+        ];
+        return (
+            <div className="mt-8 mb-12 px-3 max-w-3xl mx-auto text-gray-700 text-2xl lg:text-lg">
+                <h2 className="text-3xl lg:text-2xl font-bold text-gray-800">
+                    {this.i18n("watchAboutHeading")}
+                </h2>
+                <p className="mt-3">{this.i18n("watchAboutIntro")}</p>
+                <p className="mt-3">{this.i18n("watchAboutFlow")}</p>
+                <p className="mt-3">{this.i18n("watchAboutNoSetup")}</p>
+
+                <h2 className="mt-8 text-3xl lg:text-2xl font-bold text-gray-800">
+                    {this.i18n("watchHowToHeading")}
+                </h2>
+                <ol className="mt-3 list-decimal list-outside pl-8">
+                    {steps.map((step) => (
+                        <li key={step.titleKey} className="mt-4">
+                            <h3 className="text-2xl lg:text-xl font-medium text-gray-800">
+                                {this.i18n(step.titleKey)}
+                            </h3>
+                            <p className="mt-1">{this.i18n(step.bodyKey)}</p>
+                        </li>
+                    ))}
+                </ol>
             </div>
         );
     }

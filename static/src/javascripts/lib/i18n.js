@@ -1808,6 +1808,58 @@ function prepareWatchOnlyTranslations(map) {
         "This playlist is empty",
         "Этот плейлист пуст",
     );
+    setEnRu(map, "watchAboutHeading",
+        "What is Subtitles for YouTube?",
+        "Что такое «Субтитры для YouTube»?",
+    );
+    setEnRu(map, "watchAboutIntro",
+        "Subtitles for YouTube is a subtitle generator for videos with Kazakh-language audio. It transcribes the audio and plays the subtitles back alongside the video.",
+        "«Субтитры для YouTube» — это генератор субтитров для видео с казахской речью. Сервис распознаёт аудио и воспроизводит субтитры вместе с видео.",
+    );
+    setEnRu(map, "watchAboutFlow",
+        "Paste a YouTube link, request generation, and the video is ready to watch with subtitles a few minutes later.",
+        "Вставьте ссылку на YouTube, запустите генерацию и через несколько минут видео можно смотреть с субтитрами.",
+    );
+    setEnRu(map, "watchAboutNoSetup",
+        "It runs entirely in your browser: no registration, no software to install.",
+        "Всё работает прямо в браузере: без регистрации и без установки программ.",
+    );
+    setEnRu(map, "watchHowToHeading",
+        "How to generate subtitles",
+        "Как сгенерировать субтитры",
+    );
+    setEnRu(map, "watchStep1Title",
+        "Copy the YouTube link",
+        "Скопируйте ссылку на YouTube",
+    );
+    setEnRu(map, "watchStep1Body",
+        "Open YouTube and copy the link to the video you want to transcribe.",
+        "Откройте YouTube и скопируйте ссылку на видео, которое хотите распознать.",
+    );
+    setEnRu(map, "watchStep2Title",
+        "Paste the link",
+        "Вставьте ссылку",
+    );
+    setEnRu(map, "watchStep2Body",
+        "Paste it into the input field above.",
+        "Вставьте её в поле ввода выше.",
+    );
+    setEnRu(map, "watchStep3Title",
+        "Request generation",
+        "Запустите генерацию",
+    );
+    setEnRu(map, "watchStep3Body",
+        "Once the video has been checked, click \"Generate subtitles\" to send it for processing.",
+        "После проверки видео нажмите «Сгенерировать субтитры», чтобы отправить его на обработку.",
+    );
+    setEnRu(map, "watchStep4Title",
+        "Watch with subtitles",
+        "Смотрите с субтитрами",
+    );
+    setEnRu(map, "watchStep4Body",
+        "When processing finishes, click \"Watch\". The player lets you jump to any position, and the subtitles appear under the video with word-level highlighting.",
+        "Когда обработка завершится, нажмите «Смотреть». В плеере можно перейти к любому моменту, а субтитры показываются под видео с подсветкой по словам.",
+    );
 }
 
 function prepareTranslations() {
