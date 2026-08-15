@@ -3,6 +3,7 @@ import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
+import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 
@@ -321,8 +322,7 @@ class WatchApp extends React.Component {
             playlistsError: false,
             playlistsRequested: false,
             playlistsNextCursor: null,
-            playlistId: null,
-            playlistPageToken: "",
+            playlist: null,
             playlistItems: [],
             playlistPrevPageToken: null,
             playlistNextPageToken: null,
@@ -341,22 +341,17 @@ class WatchApp extends React.Component {
 
     readUrlState() {
         const params = parseParams();
+        const playlist = PlaylistRef.fromParams(params);
         const videoId = params.v;
         if (videoId && isValidYouTubeVideoId(videoId)) {
             const state = this.makeState(APP_MODE_PROBING, videoId);
-            if (params.list) {
-                state.playlistId = params.list;
-                if (params.page) {
-                    state.playlistPageToken = params.page;
-                }
-            }
+            state.playlist = playlist;
             return state;
         }
         // `list` without a `v`: the playlist overview rather than a video in it.
-        if (params.list) {
+        if (playlist) {
             const state = this.makeState(APP_MODE_PLAYLIST, null);
-            state.playlistId = params.list;
-            state.playlistPageToken = params.page || "";
+            state.playlist = playlist;
             state.playlistLoading = true;
             return state;
         }
@@ -367,13 +362,13 @@ class WatchApp extends React.Component {
         window.addEventListener("popstate", this.onPopState);
         document.addEventListener("click", this.onDocumentClick);
         if (this.state.videoId) {
-            if (this.state.playlistId) {
-                this.probePlaylist(this.state.videoId, this.state.playlistId, this.state.playlistPageToken);
+            if (this.state.playlist) {
+                this.probePlaylist(this.state.videoId, this.state.playlist);
             } else {
                 this.probeById(this.state.videoId);
             }
-        } else if (this.state.playlistId) {
-            this.requestPlaylistOverview(this.state.playlistId, this.state.playlistPageToken);
+        } else if (this.state.playlist) {
+            this.requestPlaylistOverview(this.state.playlist);
         } else {
             loadSuggestedVideos(this.handleSuggestedVideosSuccess, this.handleSuggestedVideosError);
         }
@@ -500,8 +495,7 @@ class WatchApp extends React.Component {
         this.teardownPlayer();
         this.setState({
             appMode: APP_MODE_PROBING,
-            playlistId: null,
-            playlistPageToken: "",
+            playlist: null,
             playlistItems: [],
             playlistPrevPageToken: null,
             playlistNextPageToken: null,
@@ -515,27 +509,26 @@ class WatchApp extends React.Component {
 
     // `list` only makes sense alongside a `v`: probes the video within the
     // playlist so the response carries both the video's own probe data
-    // (under cur_video) and the playlist's items/paging tokens. `pageToken`
-    // pins the request to the same window an item was loaded under - e.g. when
-    // navigating to it from a playlist item further down the loaded list.
-    probePlaylist(videoId, playlistId, pageToken) {
+    // (under cur_video) and the playlist's items/paging tokens. The ref's
+    // page token pins the request to the same window an item was loaded under
+    // - e.g. when navigating to it from a playlist item further down the
+    // loaded list.
+    probePlaylist(videoId, playlist) {
         if (!isValidYouTubeVideoId(videoId)) {
             console.warn("not a valid YouTube video id:", videoId);
             return;
         }
 
-        const token = pageToken || "";
         this.teardownPlayer();
         this.setState({
             appMode: APP_MODE_PROBING,
-            playlistId,
-            playlistPageToken: token,
+            playlist,
             playlistLoadingPrev: false,
             playlistLoadingNext: false,
             playlistLoading: false,
             playlistError: false,
         });
-        loadPlaylistPage(playlistId, videoId, token, this.handlePlaylistProbeSuccess, this.handlePlaylistProbeError, { pageToken: token });
+        loadPlaylistPage(playlist.playlistId, videoId, playlist.pageToken, this.handlePlaylistProbeSuccess, this.handlePlaylistProbeError, { playlist });
     }
 
     onSubmit(e) {
@@ -578,19 +571,13 @@ class WatchApp extends React.Component {
 
     pushVideoUrl(videoId) {
         const params = parseParams();
-        const playlistId = this.state.playlistId || null;
-        // Omitted and empty `page` are equivalent (both mean "the default
-        // window"), so normalize both to "" before comparing/pushing.
-        const pageToken = this.state.playlistPageToken || "";
-        if (params.v === videoId && (params.list || null) === playlistId && (params.page || "") === pageToken) {
+        const playlist = this.state.playlist;
+        if (params.v === videoId && PlaylistRef.same(PlaylistRef.fromParams(params), playlist)) {
             return;
         }
         const urlParams = [`v=${encodeURI(videoId)}`];
-        if (playlistId) {
-            urlParams.push(`list=${encodeURI(playlistId)}`);
-            if (pageToken) {
-                urlParams.push(`page=${encodeURI(pageToken)}`);
-            }
+        if (playlist) {
+            urlParams.push(...playlist.toUrlParams());
         }
         const url = buildWatchUrl(urlParams, this.props.lang);
         window.history.pushState(null, "", url);
@@ -599,17 +586,12 @@ class WatchApp extends React.Component {
     // The playlist overview's URL: `list` alone, with `page` only when the window
     // isn't the default one. No `v` - that's what distinguishes it from a video
     // being watched within a playlist.
-    pushPlaylistUrl(playlistId, pageToken) {
+    pushPlaylistUrl(playlist) {
         const params = parseParams();
-        const token = pageToken || "";
-        if (!params.v && params.list === playlistId && (params.page || "") === token) {
+        if (!params.v && playlist.equals(PlaylistRef.fromParams(params))) {
             return;
         }
-        const urlParams = [`list=${encodeURI(playlistId)}`];
-        if (token) {
-            urlParams.push(`page=${encodeURI(token)}`);
-        }
-        const url = buildWatchUrl(urlParams, this.props.lang);
+        const url = buildWatchUrl(playlist.toUrlParams(), this.props.lang);
         window.history.pushState(null, "", url);
     }
 
@@ -617,27 +599,20 @@ class WatchApp extends React.Component {
     // trusting event.state, since we never push a state object.
     onPopState() {
         const params = parseParams();
+        const playlist = PlaylistRef.fromParams(params);
         const videoId = params.v;
         if (videoId && isValidYouTubeVideoId(videoId)) {
-            const playlistId = params.list || null;
-            const pageToken = params.page || "";
             const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
-            const currentPlaylistId = this.state.playlistId || null;
-            const currentPageToken = this.state.playlistPageToken || "";
-            if (videoId !== currentVideoId || playlistId !== currentPlaylistId || pageToken !== currentPageToken) {
-                if (playlistId) {
-                    this.probePlaylist(videoId, playlistId, pageToken);
+            if (videoId !== currentVideoId || !PlaylistRef.same(playlist, this.state.playlist)) {
+                if (playlist) {
+                    this.probePlaylist(videoId, playlist);
                 } else {
                     this.probeById(videoId);
                 }
             }
-        } else if (params.list) {
-            const playlistId = params.list;
-            const pageToken = params.page || "";
-            if (this.state.appMode !== APP_MODE_PLAYLIST
-                || playlistId !== this.state.playlistId
-                || pageToken !== (this.state.playlistPageToken || "")) {
-                this.openPlaylist(playlistId, pageToken);
+        } else if (playlist) {
+            if (this.state.appMode !== APP_MODE_PLAYLIST || !playlist.equals(this.state.playlist)) {
+                this.openPlaylist(playlist);
             }
         } else {
             this.resetToPrompt();
@@ -663,8 +638,7 @@ class WatchApp extends React.Component {
             errorMessage: null,
             refreshing: false,
             proceeding: false,
-            playlistId: null,
-            playlistPageToken: "",
+            playlist: null,
             playlistItems: [],
             playlistPrevPageToken: null,
             playlistNextPageToken: null,
@@ -703,8 +677,7 @@ class WatchApp extends React.Component {
             this.setState({ appMode: APP_MODE_ERROR, errorMessage: this.i18n("videoNotPreviewable"), proceeding: false });
             return;
         }
-        const pageToken = context.pageToken || "";
-        const items = (resp.items || []).map((item) => Object.assign({}, item, { pageToken }));
+        const items = (resp.items || []).map((item) => Object.assign({}, item, { playlist: context.playlist }));
         this.applyProbeResult(curVideo, {
             playlistItems: items,
             playlistPrevPageToken: resp.prev_page_token || null,
@@ -723,15 +696,14 @@ class WatchApp extends React.Component {
     // Enters the overview and pushes its URL. Called when a playlist card is
     // clicked; the URL-driven paths (initial mount, popstate) go straight to
     // requestPlaylistOverview() instead, since the URL already says so.
-    enterPlaylistMode(playlistId, pageToken) {
-        const token = pageToken || "";
-        this.pushPlaylistUrl(playlistId, token);
-        this.openPlaylist(playlistId, token);
+    enterPlaylistMode(playlist) {
+        this.pushPlaylistUrl(playlist);
+        this.openPlaylist(playlist);
     }
 
     // Leaves whatever mode we were in - player, polling, probed video - and loads
     // the overview. Doesn't touch the URL: callers that navigate push it first.
-    openPlaylist(playlistId, pageToken) {
+    openPlaylist(playlist) {
         this.teardownPlayer();  // just in case
         // appMode has to switch in the SAME setState that drops the probe: React
         // doesn't batch updates made outside its own event handlers (popstate,
@@ -749,15 +721,13 @@ class WatchApp extends React.Component {
             errorMessage: null,
             menuOpen: false,
         });
-        this.requestPlaylistOverview(playlistId, pageToken || "");
+        this.requestPlaylistOverview(playlist);
     }
 
-    requestPlaylistOverview(playlistId, pageToken) {
-        const token = pageToken || "";
+    requestPlaylistOverview(playlist) {
         this.setState({
             appMode: APP_MODE_PLAYLIST,
-            playlistId,
-            playlistPageToken: token,
+            playlist,
             playlistItems: [],
             playlistPrevPageToken: null,
             playlistNextPageToken: null,
@@ -768,14 +738,13 @@ class WatchApp extends React.Component {
         });
         // No video id: the response carries the page of items and its paging
         // tokens, but no cur_video to route on.
-        loadPlaylistPage(playlistId, "", token, this.handlePlaylistOverviewSuccess, this.handlePlaylistOverviewError, { pageToken: token });
+        loadPlaylistPage(playlist.playlistId, "", playlist.pageToken, this.handlePlaylistOverviewSuccess, this.handlePlaylistOverviewError, { playlist });
     }
 
     async handlePlaylistOverviewSuccess(context, responseJsonPromise) {
         const resp = await responseJsonPromise;
         console.log("playlist overview result", resp);
-        const pageToken = context.pageToken || "";
-        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { pageToken }));
+        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { playlist: context.playlist }));
         this.setState({
             playlistItems: items,
             playlistPrevPageToken: (resp && resp.prev_page_token) || null,
@@ -794,38 +763,47 @@ class WatchApp extends React.Component {
     // ===== Playlist panel: browse and page through the active playlist =====
 
     // Switches to another video within the same playlist, keeping `list` in the
-    // URL - and `page` pinned to the token the clicked item was loaded under,
-    // so the resulting window still contains it.
-    onPlaylistItemClick(videoId, pageToken) {
-        if (!this.state.playlistId) {
+    // URL - and `page` pinned to the window the clicked item was loaded under,
+    // so the resulting window still contains it. That's the ref each item was
+    // stamped with when its page arrived.
+    onPlaylistItemClick(videoId, playlist) {
+        if (!playlist) {
             return;
         }
-        this.probePlaylist(videoId, this.state.playlistId, pageToken);
+        this.probePlaylist(videoId, playlist);
     }
 
-    requestPlaylistPage(pageToken, direction) {
-        const playlistId = this.state.playlistId;
-        // Empty in APP_MODE_PLAYLIST, where no video is selected yet.
-        const videoId = (this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id) || "";
-        if (!playlistId || !pageToken) {
+    // The active playlist at another window - null when there's no playlist, or
+    // no token for that direction (i.e. no further page that way).
+    pageRef(pageToken) {
+        const playlist = this.state.playlist;
+        if (!playlist || !pageToken) {
+            return null;
+        }
+        return playlist.withPageToken(pageToken);
+    }
+
+    requestPlaylistPage(playlist, direction) {
+        if (!playlist) {
             return;
         }
+        // Empty in APP_MODE_PLAYLIST, where no video is selected yet.
+        const videoId = (this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id) || "";
         this.setState(direction === "next" ? { playlistLoadingNext: true } : { playlistLoadingPrev: true });
-        loadPlaylistPage(playlistId, videoId, pageToken, this.handlePlaylistPageSuccess, this.handlePlaylistPageError, { direction, pageToken });
+        loadPlaylistPage(playlist.playlistId, videoId, playlist.pageToken, this.handlePlaylistPageSuccess, this.handlePlaylistPageError, { direction, playlist });
     }
 
     onPlaylistPrevPageClick() {
-        this.requestPlaylistPage(this.state.playlistPrevPageToken, "prev");
+        this.requestPlaylistPage(this.pageRef(this.state.playlistPrevPageToken), "prev");
     }
 
     onPlaylistNextPageClick() {
-        this.requestPlaylistPage(this.state.playlistNextPageToken, "next");
+        this.requestPlaylistPage(this.pageRef(this.state.playlistNextPageToken), "next");
     }
 
     async handlePlaylistPageSuccess(context, responseJsonPromise) {
         const resp = await responseJsonPromise;
-        const pageToken = context.pageToken || "";
-        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { pageToken }));
+        const items = ((resp && resp.items) || []).map((item) => Object.assign({}, item, { playlist: context.playlist }));
         const direction = context.direction;
         this.setState((prevState) => {
             const existing = prevState.playlistItems || [];
@@ -1412,7 +1390,7 @@ class WatchApp extends React.Component {
     // Opens the playlist overview at its default window - a card carries no page
     // token, so the API picks the first page.
     onPlaylistCardClick(playlistId) {
-        this.enterPlaylistMode(playlistId, "");
+        this.enterPlaylistMode(new PlaylistRef(playlistId, ""));
     }
 
     onLoadMorePlaylistsClick() {
@@ -1872,7 +1850,7 @@ class WatchApp extends React.Component {
                         return (
                             <div
                                 key={`${item.online_video_id}-${i}`}
-                                onClick={() => this.onPlaylistItemClick(item.online_video_id, item.pageToken)}
+                                onClick={() => this.onPlaylistItemClick(item.online_video_id, item.playlist)}
                                 className={rowClass}>
                                 <img
                                     src={item.thumbnail_url}
