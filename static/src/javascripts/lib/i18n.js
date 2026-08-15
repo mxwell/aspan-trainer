@@ -1701,8 +1701,8 @@ function prepareWatchOnlyTranslations(map) {
         "Не удалось открыть это видео",
     );
     setEnRu(map, "invalidYtUrl",
-        "Please enter a valid YouTube video URL",
-        "Введите корректную ссылку на YouTube-видео",
+        "Please enter a valid YouTube video or playlist URL",
+        "Введите корректную ссылку на YouTube-видео или плейлист",
     );
     setEnRu(map, "statusQueueFull",
         "Processing queue is full, please try again later",

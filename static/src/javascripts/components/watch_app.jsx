@@ -32,29 +32,39 @@ function isValidYouTubeVideoId(id) {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
 }
 
-function extractYouTubeVideoId(url) {
+function isValidYouTubePlaylistId(id) {
+    return /^[a-zA-Z0-9_-]{2,64}$/.test(id);
+}
+
+// Supports both individual video and playlist URLs
+function parseYouTubeWatchUrl(url) {
+    const empty = { videoId: '', playlistId: '' };
+
     // Accept a bare 11-character video ID directly.
     if (isValidYouTubeVideoId(url)) {
-        return url;
+        return { videoId: url, playlistId: '' };
     }
 
     try {
         const parsed = new URL(url);
         const host = parsed.hostname.replace(/^www\./, '');
+        const list = parsed.searchParams.get('list') || '';
+        const playlistId = isValidYouTubePlaylistId(list) ? list : '';
 
+        // The path not checked
         if (host === 'youtube.com' || host === 'm.youtube.com') {
-            const id = parsed.searchParams.get('v');
-            return id && isValidYouTubeVideoId(id) ? id : '';
+            const id = parsed.searchParams.get('v') || '';
+            return { videoId: isValidYouTubeVideoId(id) ? id : '', playlistId };
         }
 
         if (host === 'youtu.be') {
             const id = parsed.pathname.slice(1); // remove leading "/"
-            return isValidYouTubeVideoId(id) ? id : '';
+            return { videoId: isValidYouTubeVideoId(id) ? id : '', playlistId };
         }
 
-        return '';
+        return empty;
     } catch (e) {
-        return '';
+        return empty;
     }
 }
 
@@ -469,15 +479,23 @@ class WatchApp extends React.Component {
         return i18n(key, this.props.lang);
     }
 
+    // Routes a pasted URL by what it names. A playlist from here always starts at
+    // the default window: YouTube's own URLs carry no `page` token of ours.
     startProbe(videoUrl) {
-        const id = extractYouTubeVideoId(videoUrl);
-        if (!id) {
-            this.setState({ promptError: this.i18n("invalidYtUrl") });
-            return;
-        }
+        const { videoId, playlistId } = parseYouTubeWatchUrl(videoUrl);
 
-        this.setState({ promptError: null });
-        this.probeById(id);
+        if (videoId && playlistId) {
+            this.setState({ promptError: null });
+            this.probePlaylist(videoId, new PlaylistRef(playlistId, ""));
+        } else if (videoId) {
+            this.setState({ promptError: null });
+            this.probeById(videoId);
+        } else if (playlistId) {
+            this.setState({ promptError: null });
+            this.enterPlaylistMode(new PlaylistRef(playlistId, ""));
+        } else {
+            this.setState({ promptError: this.i18n("invalidYtUrl") });
+        }
     }
 
     onInputChange() {
