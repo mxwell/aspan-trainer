@@ -79,3 +79,29 @@ footer > span {
 .wider-analyzed-part {
     min-width: 10em;
 }
+
+/**
+ * The YouTube player in the watch app: a 16:9 box that follows the column
+ * width, but never grows so tall that the subtitles under it need scrolling.
+ */
+.watch-video-box {
+    position: relative;
+    width: 100%;
+    max-width: calc(55vh * 16 / 9);
+}
+
+.watch-video-box::before {
+    content: "";
+    display: block;
+    padding-bottom: 56.25%;
+}
+
+/* The IFrame API replaces the div with an iframe carrying the same id, so
+   this rule covers the box before and after the player boots. */
+#watch_player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}

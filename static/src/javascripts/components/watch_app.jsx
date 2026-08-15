@@ -1834,26 +1834,26 @@ class WatchApp extends React.Component {
         const info = probe && probe.info;
         return (
             <div className="flex flex-col items-center w-full">
-                <div className="p-4">
-                    <div id="watch_player"></div>
-                </div>
-                {info && (
-                    <div className="w-full max-w-2xl flex flex-row items-start justify-between px-4">
-                        <div className="text-left">
-                            <div className="text-xl font-medium text-gray-800">{info.title}</div>
-                            <div className="text-gray-600">{info.channel_title}</div>
+                <div className="w-full max-w-3xl px-2">
+                    {info && (
+                        <div className="flex flex-row items-start justify-between py-1">
+                            <div className="min-w-0 flex-1 text-left">
+                                <div className="text-lg lg:text-base font-medium text-gray-800 truncate" title={info.title}>{info.title}</div>
+                                <div className="text-sm text-gray-500 truncate">{info.channel_title}</div>
+                            </div>
+                            {this.renderVideoMenu()}
                         </div>
-                        {this.renderVideoMenu()}
+                    )}
+                    <div className="watch-video-box mx-auto">
+                        <div id="watch_player"></div>
                     </div>
-                )}
-                <div className="w-full max-w-2xl px-4 py-2">
+                    {this.renderSubtitles()}
                     <div className="flex flex-row justify-end">
                         {/* Translations live inside the grammar cards, so the toggler
                             would do nothing visible while grammar is off. */}
                         {this.state.grammar && this.renderToggler(this.state.translations, this.onTranslationsToggle, "toggleTranslations")}
                         {this.renderToggler(this.state.grammar, this.onGrammarToggle, "toggleGrammar")}
                     </div>
-                    {this.renderSubtitles()}
                     {this.renderBreakdown()}
                 </div>
                 {this.renderPlaylistPanel()}
@@ -2050,7 +2050,7 @@ class WatchApp extends React.Component {
                     type="button"
                     onClick={this.onMenuToggle}
                     aria-label={this.i18n("videoMenu")}
-                    className="px-2 text-2xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
+                    className="px-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
                     ···
                 </button>
                 {this.state.menuOpen && (
@@ -2070,13 +2070,13 @@ class WatchApp extends React.Component {
     renderToggler(on, handler, labelKey) {
         return (
             <div
-                className="mx-4 rounded flex flex-row cursor-pointer select-none"
+                className="mx-2 rounded flex flex-row items-center cursor-pointer select-none"
                 onClick={handler}>
                 <img
-                    className="mx-2 h-8"
+                    className="mx-2 h-6"
                     src={on ? "/toggle_on.svg" : "/toggle_off.svg"}
                 />
-                <span className="text-xl">{this.i18n(labelKey)}</span>
+                <span className="text-lg lg:text-base">{this.i18n(labelKey)}</span>
             </div>
         );
     }
@@ -2143,9 +2143,12 @@ class WatchApp extends React.Component {
     }
 
     render() {
+        const titleClass = this.state.appMode === APP_MODE_WATCH
+            ? "text-center text-lg lg:text-base italic text-gray-600"
+            : "text-center text-2xl italic text-gray-600";
         return (
             <div className="flex flex-col w-full">
-                <h1 className="text-center text-4xl italic text-gray-600">
+                <h1 className={titleClass}>
                     <a href={buildWatchUrl([], this.props.lang)}>
                         {this.i18n("titleSubtitlesForYt")}
                     </a>
