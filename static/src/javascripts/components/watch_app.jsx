@@ -11,6 +11,7 @@ import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
+import { AiAnalysisSentences } from "./ai_analysis_sentences";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -2344,7 +2345,7 @@ class WatchApp extends React.Component {
         }
         const sentences = sentencesForRange(this.state.bdBatches || {}, cue.start_ms, cue.end_ms);
         if (sentences.length > 0) {
-            return this.renderAiAnalysisSentences(sentences);
+            return <AiAnalysisSentences sentences={sentences} />;
         }
         const active = this.state.bdActive;
         // Before the first response the batch bounds are unknown, so the job is
@@ -2400,44 +2401,6 @@ class WatchApp extends React.Component {
                         className="ml-2 px-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
                         ×
                     </button>
-                )}
-            </div>
-        );
-    }
-
-    renderAiAnalysisSentences(sentences) {
-        return (
-            <div className="my-2 p-3 rounded bg-gray-100">
-                {sentences.map((sentence) => (
-                    <div key={sentence.seq} className="mb-3">
-                        <div className="text-gray-800 text-xl">{sentence.text}</div>
-                        {(sentence.translations || []).map((translation, i) => (
-                            <div key={i} className="text-gray-600 text-lg">{translation}</div>
-                        ))}
-                        <div className="mt-2 flex flex-row flex-wrap">
-                            {(sentence.words || []).map((word, i) => this.renderAiAnalysisWord(word, i))}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    }
-
-    renderAiAnalysisWord(word, key) {
-        return (
-            <div key={key} className="m-1 p-2 rounded bg-white border border-gray-200">
-                <div className="font-medium text-gray-800">{word.word}</div>
-                {word.word_translation && (
-                    <div className="text-sm text-gray-700">{word.word_translation}</div>
-                )}
-                {word.base && word.base !== word.word && (
-                    <div className="text-sm text-gray-500">{word.base} - {word.base_translation}</div>
-                )}
-                {word.pos && (
-                    <div className="text-xs text-gray-400 italic">{word.pos}</div>
-                )}
-                {word.comment && (
-                    <div className="mt-1 text-xs text-gray-500">{word.comment}</div>
                 )}
             </div>
         );
