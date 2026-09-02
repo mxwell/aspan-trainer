@@ -1792,6 +1792,38 @@ function prepareWatchOnlyTranslations(map) {
         "Download subtitles",
         "Скачать субтитры",
     );
+    setEnRu(map, "aiAnalysis",
+        "AI analysis",
+        "Анализ с ИИ",
+    );
+    setEnRu(map, "aiAnalysisPreparing",
+        "Preparing the analysis…",
+        "Готовим анализ…",
+    );
+    setEnRu(map, "aiAnalysisSlow",
+        "Processing takes longer than usual",
+        "Обработка занимает больше времени, чем обычно",
+    );
+    setEnRu(map, "aiAnalysisTimeout",
+        "Processing timed out. The analysis may still finish on the server, try again in a minute.",
+        "Время обработки истекло. Анализ может завершиться на сервере, попробуйте ещё раз через минуту.",
+    );
+    setEnRu(map, "aiAnalysisNoQuota",
+        "The daily AI limit is exhausted. Please try again tomorrow.",
+        "Дневной лимит ИИ исчерпан. Пожалуйста, попробуйте завтра.",
+    );
+    setEnRu(map, "aiAnalysisFailed",
+        "Failed to prepare the analysis",
+        "Не удалось подготовить анализ",
+    );
+    setEnRu(map, "aiAnalysisNoSentences",
+        "Sentences are not generated for the video. Please contact support.",
+        "Предложения не сгенерированы для этого видео. Пожалуйста, обратитесь в поддержку.",
+    );
+    setEnRu(map, "aiAnalysisLangUnsupported",
+        "English is not supported yet for AI analysis",
+        "Английский пока не поддерживается для анализа с ИИ",
+    );
     setEnRu(map, "watchPlaylistHeading",
         "Playlist",
         "Плейлист",

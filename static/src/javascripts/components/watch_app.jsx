@@ -1,7 +1,12 @@
 import React from "react";
 import { buildWatchUrl, parseParams } from "../lib/url";
-import { i18n } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
+import { i18n, I18N_LANG_RU } from "../lib/i18n";
+import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
+import {
+    BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_DONE, BREAKDOWN_NO_SENTENCES,
+    ENQUEUE_NO_SENTENCES, ENQUEUE_NO_QUOTA, ENQUEUE_QUEUE_FULL,
+    batchSpan, spanContains, findBatch, sentencesForRange, putBatch,
+} from "../lib/breakdowns";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
@@ -27,6 +32,16 @@ const TICK_MS = 500;
 const MIN_TICK_MS = 50;
 const PROCESSING_POLL_MS = 10000;
 const HISTORY_SAVE_INTERVAL_MS = 45000;
+
+const BREAKDOWN_POLL_MS = 3000;
+const BREAKDOWN_SLOW_MS = 60000;
+const BREAKDOWN_TIMEOUT_MS = 120000;
+// "queue full" means the server declined to take the batch, so it doesn't count
+// against the cap - only enqueues that actually started (or restarted) a job do.
+const BREAKDOWN_QUEUE_FULL_RETRY_MS = 15000;
+// The GET can't tell "never generated" from "generation failed", so a failing
+// batch would otherwise be re-enqueued forever.
+const BREAKDOWN_MAX_ENQUEUES = 2;
 
 function isValidYouTubeVideoId(id) {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
@@ -299,6 +314,12 @@ class WatchApp extends React.Component {
         this.onMenuToggle = this.onMenuToggle.bind(this);
         this.closeMenu = this.closeMenu.bind(this);
         this.onDocumentClick = this.onDocumentClick.bind(this);
+        this.onAiAnalysisClick = this.onAiAnalysisClick.bind(this);
+        this.onAiAnalysisNoticeClose = this.onAiAnalysisNoticeClose.bind(this);
+        this.handleBreakdownsResponse = this.handleBreakdownsResponse.bind(this);
+        this.handleBreakdownsError = this.handleBreakdownsError.bind(this);
+        this.handleEnqueueResponse = this.handleEnqueueResponse.bind(this);
+        this.handleEnqueueError = this.handleEnqueueError.bind(this);
 
         this.player = null;
         this.playerReady = false;
@@ -318,6 +339,11 @@ class WatchApp extends React.Component {
         // fired yet, and the wall-clock time of the last save (for the 45s cadence).
         this.historyInitialSaved = false;
         this.lastHistorySaveMs = 0;
+        // At most one breakdown generation job runs at a time; the token discards
+        // responses of a job that was abandoned or belongs to a previous video.
+        this.bdToken = 0;
+        this.bdPollTimer = null;
+        this.bdTimeoutTimer = null;
     }
 
     makeState(appMode, videoId) {
@@ -346,6 +372,11 @@ class WatchApp extends React.Component {
             breakdownCueIndex: -1,
             analyzing: false,
             menuOpen: false,
+            bdBatches: {},
+            bdActive: null,
+            bdNotice: null,
+            bdUnavailable: false,
+            bdLangUnsupported: false,
         }
     }
 
@@ -452,6 +483,7 @@ class WatchApp extends React.Component {
             this.saveHistoryProgress(this.lastPositionMs);
         }
         this.stopProcessingPoll();
+        this.stopBreakdownJob();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
             this.tickTimer = null;
@@ -675,6 +707,11 @@ class WatchApp extends React.Component {
             breakdownCueIndex: -1,
             analyzing: false,
             menuOpen: false,
+            bdBatches: {},
+            bdActive: null,
+            bdNotice: null,
+            bdUnavailable: false,
+            bdLangUnsupported: false,
         });
     }
 
@@ -955,9 +992,11 @@ class WatchApp extends React.Component {
         this.analysisCueIndex = -1;
         this.historyInitialSaved = false;
         this.lastHistorySaveMs = 0;
+        this.stopBreakdownJob();
         this.setState({
             subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0,
             breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
+            bdBatches: {}, bdActive: null, bdNotice: null, bdUnavailable: false, bdLangUnsupported: false,
         });
 
         if (this.transcriptionId != null) {
@@ -1143,6 +1182,7 @@ class WatchApp extends React.Component {
         if (!upcoming && index !== -1) {
             this.startSubAnalysisIfNeeded(index, subtitles[index]);
         }
+        this.maybeAbandonBreakdownJob(index !== -1 ? subtitles[index] : null);
         return { index, upcoming, activeWordIndex };
     }
 
@@ -1351,6 +1391,253 @@ class WatchApp extends React.Component {
             this.analysisCueIndex = -1; // allow a retry when this cue comes around again
             this.setState({ analyzing: false });
         }
+    }
+
+    // ===== AI analysis: per-sentence breakdowns of the displayed cue =====
+
+    // The cue rendered by renderSubtitles(), or null when none is on screen.
+    displayedCue() {
+        const subtitles = this.state.subtitles || [];
+        const idx = this.state.currentCueIndex;
+        if (idx == null || idx < 0 || idx >= subtitles.length) {
+            return null;
+        }
+        return subtitles[idx];
+    }
+
+    // Ends whatever generation job is in flight. Bumping the token makes every
+    // response of that job - including one already awaiting its body - a no-op,
+    // so an abandoned job can't resurrect its state or fire an enqueue.
+    stopBreakdownJob() {
+        this.bdToken += 1;
+        if (this.bdPollTimer) {
+            clearTimeout(this.bdPollTimer);
+            this.bdPollTimer = null;
+        }
+        if (this.bdTimeoutTimer) {
+            clearTimeout(this.bdTimeoutTimer);
+            this.bdTimeoutTimer = null;
+        }
+    }
+
+    onAiAnalysisClick() {
+        if (this.props.lang !== I18N_LANG_RU) {
+            this.setState({ bdLangUnsupported: true });
+            return;
+        }
+        const cue = this.displayedCue();
+        if (cue == null || this.transcriptionId == null) {
+            return;
+        }
+        this.startBreakdownJob(cue.start_ms);
+    }
+
+    onAiAnalysisNoticeClose() {
+        this.setState({ bdNotice: null, bdLangUnsupported: false });
+    }
+
+    // Asking about the cue's own start (rather than the raw playhead) keeps the
+    // position inside a sentence, so the batch the server resolves always spans
+    // the position we'll later look the result up by.
+    startBreakdownJob(requestMs) {
+        this.stopBreakdownJob();
+        const token = this.bdToken;
+        this.bdTimeoutTimer = setTimeout(() => this.onBreakdownTimeout(token), BREAKDOWN_TIMEOUT_MS);
+        this.setState({
+            bdNotice: null,
+            bdActive: { requestMs, startMs: null, endMs: null, startedAt: Date.now(), enqueues: 0 },
+        });
+        this.requestBreakdowns(token, requestMs);
+    }
+
+    requestBreakdowns(token, requestMs) {
+        loadBreakdowns(
+            this.transcriptionId,
+            { start_ms: requestMs, lang: BREAKDOWN_LANG },
+            this.handleBreakdownsResponse,
+            this.handleBreakdownsError,
+            { token, requestMs },
+        );
+    }
+
+    scheduleBreakdownPoll(token, requestMs, delayMs) {
+        this.bdPollTimer = setTimeout(() => {
+            // Only clear the handle when it is still ours: a job started after
+            // this timer was scheduled owns the field by now.
+            if (token !== this.bdToken) {
+                return;
+            }
+            this.bdPollTimer = null;
+            this.requestBreakdowns(token, requestMs);
+        }, delayMs);
+    }
+
+    // Ends the job with a message the user can dismiss. The notice is anchored to
+    // the region it is about, so it doesn't follow the playhead into a part of the
+    // video it says nothing about.
+    failBreakdownJob(messageKey) {
+        const active = this.state.bdActive;
+        this.stopBreakdownJob();
+        if (active == null) {
+            return;
+        }
+        this.setState({
+            bdActive: null,
+            bdNotice: {
+                message: this.i18n(messageKey),
+                startMs: active.startMs != null ? active.startMs : active.requestMs,
+                endMs: active.endMs != null ? active.endMs : active.requestMs,
+            },
+        });
+    }
+
+    onBreakdownTimeout(token) {
+        if (token !== this.bdToken) {
+            return;
+        }
+        this.failBreakdownJob("aiAnalysisTimeout");
+    }
+
+    // Called every tick. Generation the user has moved away from is dropped
+    // wholesale - polling stops and the panel comes back. The server keeps
+    // working, so returning to the region and clicking again picks the result up.
+    maybeAbandonBreakdownJob(cue) {
+        const active = this.state.bdActive;
+        if (active == null || active.startMs == null || cue == null) {
+            return;
+        }
+        if (spanContains(active, cue.start_ms)) {
+            return;
+        }
+        this.stopBreakdownJob();
+        this.setState({ bdActive: null });
+    }
+
+    async handleBreakdownsResponse(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        if (context.token !== this.bdToken) {
+            console.log("ignore stale breakdowns response");
+            return;
+        }
+        const message = resp.message || "";
+        if (!resp.ok && message === BREAKDOWN_NO_SENTENCES) {
+            // batch_start/start_ms/end_ms are all 0 here, so there's no region to
+            // anchor to: this is about the transcription as a whole.
+            this.stopBreakdownJob();
+            this.setState({ bdActive: null, bdNotice: null, bdUnavailable: true });
+            return;
+        }
+
+        const span = batchSpan(resp, context.requestMs);
+        const cue = this.displayedCue();
+        // The playhead may have left the batch while this response was in flight.
+        if (cue == null || !spanContains(span, cue.start_ms)) {
+            this.stopBreakdownJob();
+            this.setState({ bdActive: null });
+            return;
+        }
+        const batchStart = resp.batch_start || 0;
+        const active = Object.assign({}, this.state.bdActive, span, { batchStart });
+
+        if (resp.ok) {
+            const breakdowns = resp.breakdowns || [];
+            if (breakdowns.length === 0) {
+                // Documented as impossible ("ok is true only when breakdowns is
+                // populated"), but caching it would make the panel un-clickable.
+                console.log(`breakdowns: ok with no rows for batch ${batchStart}`);
+                this.setState({ bdActive: active }, () => this.failBreakdownJob("aiAnalysisFailed"));
+                return;
+            }
+            this.stopBreakdownJob();
+            const entry = { batchStart, startMs: span.startMs, endMs: span.endMs, breakdowns };
+            this.setState((prevState) => ({
+                bdBatches: putBatch(prevState.bdBatches, entry),
+                bdActive: null,
+                bdNotice: null,
+            }));
+            return;
+        }
+
+        if (message === BREAKDOWN_PENDING) {
+            this.setState({ bdActive: active });
+            this.scheduleBreakdownPoll(context.token, context.requestMs, BREAKDOWN_POLL_MS);
+            return;
+        }
+        // "done" without rows behaves like "missing": a POST retries either one.
+        // Flipping back to "missing" after we enqueued means the job failed, which
+        // is why the attempts are capped.
+        if (message === BREAKDOWN_MISSING || message === BREAKDOWN_DONE) {
+            if (active.enqueues >= BREAKDOWN_MAX_ENQUEUES) {
+                console.log(`breakdowns: giving up on batch ${batchStart} after ${active.enqueues} enqueues`);
+                this.setState({ bdActive: active }, () => this.failBreakdownJob("aiAnalysisFailed"));
+                return;
+            }
+            active.enqueues += 1;
+            this.setState({ bdActive: active });
+            enqueueBreakdowns(
+                { transcription_id: this.transcriptionId, lang: BREAKDOWN_LANG, sent_seq: batchStart },
+                this.handleEnqueueResponse,
+                this.handleEnqueueError,
+                { token: context.token, requestMs: context.requestMs },
+            );
+            return;
+        }
+        console.log(`breakdowns: unexpected message "${message}"`);
+        this.setState({ bdActive: active }, () => this.failBreakdownJob("aiAnalysisFailed"));
+    }
+
+    async handleBreakdownsError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log(`breakdowns error: ${text}`);
+        if (context.token !== this.bdToken) {
+            return;
+        }
+        this.failBreakdownJob("aiAnalysisFailed");
+    }
+
+    async handleEnqueueResponse(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        if (context.token !== this.bdToken) {
+            console.log("ignore stale enqueue response");
+            return;
+        }
+        if (resp.proceed_to_polling) {
+            this.scheduleBreakdownPoll(context.token, context.requestMs, BREAKDOWN_POLL_MS);
+            return;
+        }
+        const message = resp.message || "";
+        if (message === ENQUEUE_NO_SENTENCES) {
+            this.stopBreakdownJob();
+            this.setState({ bdActive: null, bdNotice: null, bdUnavailable: true });
+            return;
+        }
+        if (message === ENQUEUE_NO_QUOTA) {
+            this.failBreakdownJob("aiAnalysisNoQuota");
+            return;
+        }
+        if (message === ENQUEUE_QUEUE_FULL) {
+            // Nothing was queued, so this attempt is given back. The in-flight
+            // batches of this transcription have to drain first; the job's own
+            // timeout bounds how long we wait for that.
+            this.setState((prevState) => ({
+                bdActive: prevState.bdActive == null
+                    ? null
+                    : Object.assign({}, prevState.bdActive, { enqueues: Math.max(0, prevState.bdActive.enqueues - 1) }),
+            }));
+            this.scheduleBreakdownPoll(context.token, context.requestMs, BREAKDOWN_QUEUE_FULL_RETRY_MS);
+            return;
+        }
+        console.log(`enqueue breakdowns: unexpected message "${message}"`);
+        this.failBreakdownJob("aiAnalysisFailed");
+    }
+
+    async handleEnqueueError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log(`enqueue breakdowns error: ${text}`);
+        if (context.token !== this.bdToken) {
+            return;
+        }
+        this.failBreakdownJob("aiAnalysisFailed");
     }
 
     // ===== APP_MODE_PROMPT: suggested videos =====
@@ -1848,6 +2135,7 @@ class WatchApp extends React.Component {
                         <div id="watch_player"></div>
                     </div>
                     {this.renderSubtitles()}
+                    {this.renderAiAnalysis()}
                     <div className="flex flex-row justify-end">
                         {/* Translations live inside the grammar cards, so the toggler
                             would do nothing visible while grammar is off. */}
@@ -1987,7 +2275,7 @@ class WatchApp extends React.Component {
         }
         const sub = subtitles[idx];
         const cardClass = upcoming
-            ? "my-2 p-3 rounded bg-gray-50"
+            ? "my-2 p-3 rounded bg-gray-100"
             : "my-2 p-3 rounded bg-blue-50";
         const stampClass = upcoming
             ? "font-mono text-sm text-gray-400 mr-2"
@@ -2036,6 +2324,121 @@ class WatchApp extends React.Component {
                         </React.Fragment>
                     ))}
                 </span>
+            </div>
+        );
+    }
+
+    // Sits under the cue, the same width, and follows the playhead: cached
+    // sentences appear as their time comes, and whatever region has nothing
+    // loaded falls back to the panel that starts a generation for it.
+    renderAiAnalysis() {
+        const cue = this.displayedCue();
+        if (cue == null || this.transcriptionId == null) {
+            return null;
+        }
+        if (this.state.bdLangUnsupported) {
+            return this.renderAiAnalysisNotice(this.i18n("aiAnalysisLangUnsupported"), true);
+        }
+        if (this.state.bdUnavailable) {
+            return this.renderAiAnalysisNotice(this.i18n("aiAnalysisNoSentences"), false);
+        }
+        const sentences = sentencesForRange(this.state.bdBatches || {}, cue.start_ms, cue.end_ms);
+        if (sentences.length > 0) {
+            return this.renderAiAnalysisSentences(sentences);
+        }
+        const active = this.state.bdActive;
+        // Before the first response the batch bounds are unknown, so the job is
+        // only recognized as this cue's while the playhead is still on the cue it
+        // was started from.
+        const activeHere = active != null && (active.startMs != null
+            ? spanContains(active, cue.start_ms)
+            : active.requestMs === cue.start_ms);
+        if (activeHere) {
+            return this.renderAiAnalysisProgress(Date.now() - active.startedAt);
+        }
+        const notice = this.state.bdNotice;
+        if (notice != null && spanContains(notice, cue.start_ms)) {
+            return this.renderAiAnalysisNotice(notice.message, true);
+        }
+        // The batch covering this cue is loaded, it just carries no sentence for
+        // it (the API returns partial coverage as-is). Offering the panel here
+        // would only re-fetch what we already have.
+        if (findBatch(this.state.bdBatches || {}, cue.start_ms) != null) {
+            return null;
+        }
+        return (
+            <div
+                onClick={this.onAiAnalysisClick}
+                className="ai-analysis-panel my-2 p-3 rounded text-center text-white text-xl font-medium cursor-pointer select-none">
+                {this.i18n("aiAnalysis")}
+            </div>
+        );
+    }
+
+    renderAiAnalysisProgress(elapsedMs) {
+        return (
+            <div className="my-2 p-3 rounded bg-gray-100 flex flex-col items-center">
+                <div className="flex flex-row items-center">
+                    {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200 mr-2")}
+                    <span className="text-gray-700">{this.i18n("aiAnalysisPreparing")}</span>
+                </div>
+                {elapsedMs >= BREAKDOWN_SLOW_MS && (
+                    <div className="mt-1 text-sm text-gray-500">{this.i18n("aiAnalysisSlow")}</div>
+                )}
+            </div>
+        );
+    }
+
+    renderAiAnalysisNotice(message, closable) {
+        return (
+            <div className="my-2 p-3 rounded bg-gray-100 flex flex-row items-start">
+                <div className="flex-1 text-gray-700">{message}</div>
+                {closable && (
+                    <button
+                        type="button"
+                        onClick={this.onAiAnalysisNoticeClose}
+                        className="ml-2 px-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
+                        ×
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    renderAiAnalysisSentences(sentences) {
+        return (
+            <div className="my-2 p-3 rounded bg-gray-100">
+                {sentences.map((sentence) => (
+                    <div key={sentence.seq} className="mb-3">
+                        <div className="text-gray-800 text-xl">{sentence.text}</div>
+                        {(sentence.translations || []).map((translation, i) => (
+                            <div key={i} className="text-gray-600 text-lg">{translation}</div>
+                        ))}
+                        <div className="mt-2 flex flex-row flex-wrap">
+                            {(sentence.words || []).map((word, i) => this.renderAiAnalysisWord(word, i))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    renderAiAnalysisWord(word, key) {
+        return (
+            <div key={key} className="m-1 p-2 rounded bg-white border border-gray-200">
+                <div className="font-medium text-gray-800">{word.word}</div>
+                {word.word_translation && (
+                    <div className="text-sm text-gray-700">{word.word_translation}</div>
+                )}
+                {word.base && word.base !== word.word && (
+                    <div className="text-sm text-gray-500">{word.base} - {word.base_translation}</div>
+                )}
+                {word.pos && (
+                    <div className="text-xs text-gray-400 italic">{word.pos}</div>
+                )}
+                {word.comment && (
+                    <div className="mt-1 text-xs text-gray-500">{word.comment}</div>
+                )}
             </div>
         );
     }

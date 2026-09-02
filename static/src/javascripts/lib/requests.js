@@ -140,6 +140,17 @@ function loadSubtitles(transcriptionId, query, successCallback, errorCallback, c
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function loadBreakdowns(transcriptionId, query, successCallback, errorCallback, context) {
+    const queryStr = encodeQueryData(query);
+    const url = `/qarauapi/v1/breakdowns/${transcriptionId}?${queryStr}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
+function enqueueBreakdowns(params, successCallback, errorCallback, context) {
+    const url = `/qarauapi/v1/breakdowns/enqueue`;
+    makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
+}
+
 function loadSuggestedVideos(successCallback, errorCallback) {
     const url = `/qarauapi/v1/suggested_videos`;
     makeGetApiRequest(url, successCallback, errorCallback, null, "lala", true);
@@ -173,6 +184,8 @@ export {
     probeVideo,
     fetchVideo,
     loadSubtitles,
+    loadBreakdowns,
+    enqueueBreakdowns,
     loadSuggestedVideos,
     loadSuggestedPlaylists,
     loadPlaylistPage,
