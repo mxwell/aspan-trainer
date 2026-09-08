@@ -2626,17 +2626,37 @@ class WatchApp extends React.Component {
         }
     }
 
+    // The title itself already links to the prompt page; this puts the way back
+    // to it in plain sight while a video is open. On the prompt page it would
+    // lead nowhere new, so it is left out there.
+    renderNewVideoButton() {
+        if (this.state.appMode === APP_MODE_PROMPT) {
+            return null;
+        }
+        return (
+            <a
+                href={buildWatchUrl([], this.props.lang)}
+                className="ml-3 flex-shrink-0 flex flex-row items-center whitespace-nowrap bg-blue-500 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded focus:outline-none">
+                <img className="h-5 mr-1" src="/create.svg" alt="" />
+                {this.i18n("newVideo")}
+            </a>
+        );
+    }
+
     render() {
         const titleClass = this.state.appMode === APP_MODE_WATCH
             ? "text-center text-lg lg:text-base italic text-gray-600"
             : "text-center text-2xl italic text-gray-600";
         return (
             <div className="flex flex-col w-full">
-                <h1 className={titleClass}>
-                    <a href={buildWatchUrl([], this.props.lang)}>
-                        {this.i18n("titleSubtitlesForYt")}
-                    </a>
-                </h1>
+                <div className="flex flex-row items-center justify-center">
+                    <h1 className={titleClass}>
+                        <a href={buildWatchUrl([], this.props.lang)}>
+                            {this.i18n("titleSubtitlesForYt")}
+                        </a>
+                    </h1>
+                    {this.renderNewVideoButton()}
+                </div>
                 {this.routeMode(this.state.appMode)}
             </div>
         );

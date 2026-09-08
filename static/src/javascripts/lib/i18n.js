@@ -1684,6 +1684,10 @@ function prepareWatchOnlyTranslations(map) {
         "Subtitles for YouTube",
         "Субтитры для YouTube",
     );
+    setEnRu(map, "newVideo",
+        "New video",
+        "Новое видео",
+    );
     setEnRu(map, "hintPasteYtUrl",
         "Paste YouTube video URL",
         "Вставьте ссылку на YouTube-видео",
