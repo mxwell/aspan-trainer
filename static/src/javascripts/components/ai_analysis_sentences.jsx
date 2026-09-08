@@ -27,6 +27,17 @@ function AiAnalysisWord({ word }) {
     );
 }
 
+// The first line of a sentence. Shared with the panel that shows the preview of
+// a sentence whose breakdown is still being generated, so the text sits in the
+// same place before and after the analysis arrives.
+function AiAnalysisSentenceText({ text }) {
+    return (
+        <span className="text-gray-800 text-xl">
+            • <span className="font-bold">{text}</span>
+        </span>
+    );
+}
+
 /**
  * props:
  * - sentences: breakdown sentences covering the displayed cue
@@ -39,7 +50,7 @@ function AiAnalysisSentences({ sentences }) {
                 return (
                     <div key={sentence.seq} className="mb-12">
                         <div className="text-gray-800 text-xl">
-                            • <span className="font-bold">{sentence.text}</span>
+                            <AiAnalysisSentenceText text={sentence.text} />
                             {translations.length === 1 && ` = ${translations[0]}`}
                         </div>
                         {translations.length > 1 && (
@@ -63,4 +74,5 @@ function AiAnalysisSentences({ sentences }) {
 
 export {
     AiAnalysisSentences,
+    AiAnalysisSentenceText,
 };

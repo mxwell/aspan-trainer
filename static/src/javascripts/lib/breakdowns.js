@@ -4,6 +4,10 @@ const BREAKDOWN_LANG = "ru";
 // Status strings the GET carries in the body of a 200 when `ok` is false.
 const BREAKDOWN_MISSING = "breakdowns missing";
 const BREAKDOWN_PENDING = "breakdowns pending";
+// The job for this batch is producing sentences right now: the response carries
+// a `preview` of the sentence at the requested position, and rows start landing
+// on the following polls.
+const BREAKDOWN_RUNNING = "breakdowns running";
 const BREAKDOWN_DONE = "breakdowns done";
 const BREAKDOWN_NO_SENTENCES = "sentences not found";
 
@@ -54,14 +58,34 @@ function sentencesForRange(batches, startMs, endMs) {
     return result;
 }
 
-function putBatch(batches, entry) {
-    return Object.assign({}, batches, { [entry.batchStart]: entry });
+// A batch that is still being generated reports its rows in installments, so an
+// entry is merged into whatever we already hold for that batch - by sentence
+// seq, newest wins - instead of replacing it.
+function mergeBatch(batches, entry) {
+    const prev = batches[entry.batchStart];
+    if (prev == null) {
+        return Object.assign({}, batches, { [entry.batchStart]: entry });
+    }
+    const bySeq = new Map();
+    for (const sentence of prev.breakdowns) {
+        bySeq.set(sentence.seq, sentence);
+    }
+    for (const sentence of entry.breakdowns) {
+        bySeq.set(sentence.seq, sentence);
+    }
+    const merged = Object.assign({}, entry, {
+        startMs: Math.min(prev.startMs, entry.startMs),
+        endMs: Math.max(prev.endMs, entry.endMs),
+        breakdowns: Array.from(bySeq.values()).sort((a, b) => a.seq - b.seq),
+    });
+    return Object.assign({}, batches, { [entry.batchStart]: merged });
 }
 
 export {
     BREAKDOWN_LANG,
     BREAKDOWN_MISSING,
     BREAKDOWN_PENDING,
+    BREAKDOWN_RUNNING,
     BREAKDOWN_DONE,
     BREAKDOWN_NO_SENTENCES,
     ENQUEUE_NO_SENTENCES,
@@ -71,5 +95,5 @@ export {
     spanContains,
     findBatch,
     sentencesForRange,
-    putBatch,
+    mergeBatch,
 };

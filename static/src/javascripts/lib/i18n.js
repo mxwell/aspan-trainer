@@ -1800,6 +1800,10 @@ function prepareWatchOnlyTranslations(map) {
         "Preparing the analysis…",
         "Готовим анализ…",
     );
+    setEnRu(map, "aiAnalysisMoreComing",
+        "More sentences are being prepared…",
+        "Готовим остальные предложения…",
+    );
     setEnRu(map, "aiAnalysisSlow",
         "Processing takes longer than usual",
         "Обработка занимает больше времени, чем обычно",

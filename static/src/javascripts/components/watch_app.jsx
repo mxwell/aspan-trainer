@@ -3,15 +3,16 @@ import { buildWatchUrl, parseParams } from "../lib/url";
 import { i18n, I18N_LANG_RU } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import {
-    BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_DONE, BREAKDOWN_NO_SENTENCES,
+    BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
+    BREAKDOWN_NO_SENTENCES,
     ENQUEUE_NO_SENTENCES, ENQUEUE_NO_QUOTA, ENQUEUE_QUEUE_FULL,
-    batchSpan, spanContains, findBatch, sentencesForRange, putBatch,
+    batchSpan, spanContains, findBatch, sentencesForRange, mergeBatch,
 } from "../lib/breakdowns";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
-import { AiAnalysisSentences } from "./ai_analysis_sentences";
+import { AiAnalysisSentences, AiAnalysisSentenceText } from "./ai_analysis_sentences";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -35,7 +36,12 @@ const PROCESSING_POLL_MS = 10000;
 const HISTORY_SAVE_INTERVAL_MS = 45000;
 
 const BREAKDOWN_POLL_MS = 3000;
+// Once a batch has started returning rows, a poll only picks up the sentences
+// finished since the last one, so it can be less eager.
+const BREAKDOWN_STREAM_POLL_MS = 5000;
 const BREAKDOWN_SLOW_MS = 60000;
+// Bounds the wait for the next piece of progress, not the job as a whole: a
+// batch that keeps delivering sentences keeps getting more time.
 const BREAKDOWN_TIMEOUT_MS = 120000;
 // "queue full" means the server declined to take the batch, so it doesn't count
 // against the cap - only enqueues that actually started (or restarted) a job do.
@@ -1443,12 +1449,31 @@ class WatchApp extends React.Component {
     startBreakdownJob(requestMs) {
         this.stopBreakdownJob();
         const token = this.bdToken;
-        this.bdTimeoutTimer = setTimeout(() => this.onBreakdownTimeout(token), BREAKDOWN_TIMEOUT_MS);
+        this.restartBreakdownTimeout(token);
         this.setState({
             bdNotice: null,
-            bdActive: { requestMs, startMs: null, endMs: null, startedAt: Date.now(), enqueues: 0 },
+            bdActive: {
+                requestMs, startMs: null, endMs: null, startedAt: Date.now(),
+                enqueues: 0, preview: "", streaming: false,
+            },
         });
         this.requestBreakdowns(token, requestMs);
+    }
+
+    // Restarted on every response that carries new sentences, so the timeout
+    // measures the gap between installments of a streaming batch.
+    restartBreakdownTimeout(token) {
+        if (this.bdTimeoutTimer) {
+            clearTimeout(this.bdTimeoutTimer);
+        }
+        this.bdTimeoutTimer = setTimeout(() => this.onBreakdownTimeout(token), BREAKDOWN_TIMEOUT_MS);
+    }
+
+    // Whether the batch already has sentences on hand: a job that delivered some
+    // has nothing to fail about and nothing to re-enqueue.
+    batchHasRows(batchStart) {
+        const entry = (this.state.bdBatches || {})[batchStart];
+        return entry != null && entry.breakdowns.length > 0;
     }
 
     requestBreakdowns(token, requestMs) {
@@ -1461,6 +1486,20 @@ class WatchApp extends React.Component {
         );
     }
 
+    // The position the next poll asks about: the live playhead while it is still
+    // inside the batch being generated, so the `preview` that comes back is the
+    // sentence the viewer is on. Before the batch bounds are known - or once the
+    // playhead has left them - the position the job started from is kept, since
+    // that is the one the batch was resolved from.
+    pollPositionMs(fallbackMs) {
+        const active = this.state.bdActive;
+        const positionMs = this.lastPositionMs;
+        if (active != null && positionMs != null && spanContains(active, positionMs)) {
+            return positionMs;
+        }
+        return fallbackMs;
+    }
+
     scheduleBreakdownPoll(token, requestMs, delayMs) {
         this.bdPollTimer = setTimeout(() => {
             // Only clear the handle when it is still ours: a job started after
@@ -1469,7 +1508,7 @@ class WatchApp extends React.Component {
                 return;
             }
             this.bdPollTimer = null;
-            this.requestBreakdowns(token, requestMs);
+            this.requestBreakdowns(token, this.pollPositionMs(requestMs));
         }, delayMs);
     }
 
@@ -1494,6 +1533,14 @@ class WatchApp extends React.Component {
 
     onBreakdownTimeout(token) {
         if (token !== this.bdToken) {
+            return;
+        }
+        const active = this.state.bdActive;
+        // A streaming batch that stalls has already put sentences on screen, so
+        // it ends quietly instead of replacing them with an error.
+        if (active != null && this.batchHasRows(active.batchStart)) {
+            this.stopBreakdownJob();
+            this.setState({ bdActive: null });
             return;
         }
         this.failBreakdownJob("aiAnalysisTimeout");
@@ -1538,7 +1585,13 @@ class WatchApp extends React.Component {
             return;
         }
         const batchStart = resp.batch_start || 0;
-        const active = Object.assign({}, this.state.bdActive, span, { batchStart });
+        const knownEntry = (this.state.bdBatches || {})[batchStart];
+        const prevRows = knownEntry != null ? knownEntry.breakdowns : [];
+        // A response without a preview (or one for a position we did not ask
+        // about yet) leaves the last one standing rather than blanking the panel.
+        const prevPreview = this.state.bdActive != null ? this.state.bdActive.preview : "";
+        const preview = resp.preview || prevPreview || "";
+        const active = Object.assign({}, this.state.bdActive, span, { batchStart, preview });
 
         if (resp.ok) {
             const breakdowns = resp.breakdowns || [];
@@ -1549,25 +1602,56 @@ class WatchApp extends React.Component {
                 this.setState({ bdActive: active }, () => this.failBreakdownJob("aiAnalysisFailed"));
                 return;
             }
-            this.stopBreakdownJob();
             const entry = { batchStart, startMs: span.startMs, endMs: span.endMs, breakdowns };
+            // The rest of the batch is still being generated: cache what arrived,
+            // keep the job (and its token) alive, and poll for the next
+            // installment. The sentences already show wherever they overlap the
+            // displayed cue.
+            if (resp.batch_running) {
+                // Only sentences we didn't have count as progress: a stream that
+                // keeps repeating what it already sent still has to time out.
+                const knownSeqs = new Set(prevRows.map((sentence) => sentence.seq));
+                if (breakdowns.some((sentence) => !knownSeqs.has(sentence.seq))) {
+                    this.restartBreakdownTimeout(context.token);
+                }
+                this.setState((prevState) => ({
+                    bdBatches: mergeBatch(prevState.bdBatches, entry),
+                    bdActive: Object.assign({}, active, { streaming: true }),
+                    bdNotice: null,
+                }));
+                this.scheduleBreakdownPoll(context.token, context.requestMs, BREAKDOWN_STREAM_POLL_MS);
+                return;
+            }
+            this.stopBreakdownJob();
             this.setState((prevState) => ({
-                bdBatches: putBatch(prevState.bdBatches, entry),
+                bdBatches: mergeBatch(prevState.bdBatches, entry),
                 bdActive: null,
                 bdNotice: null,
             }));
             return;
         }
 
-        if (message === BREAKDOWN_PENDING) {
+        // "running" is "pending" with a job actually working on the batch; both
+        // mean the answer is on its way, and both carry the preview shown while
+        // the user waits.
+        if (message === BREAKDOWN_PENDING || message === BREAKDOWN_RUNNING) {
             this.setState({ bdActive: active });
-            this.scheduleBreakdownPoll(context.token, context.requestMs, BREAKDOWN_POLL_MS);
+            const delayMs = active.streaming ? BREAKDOWN_STREAM_POLL_MS : BREAKDOWN_POLL_MS;
+            this.scheduleBreakdownPoll(context.token, context.requestMs, delayMs);
             return;
         }
         // "done" without rows behaves like "missing": a POST retries either one.
         // Flipping back to "missing" after we enqueued means the job failed, which
         // is why the attempts are capped.
         if (message === BREAKDOWN_MISSING || message === BREAKDOWN_DONE) {
+            // A batch that already delivered sentences has just stopped
+            // streaming; enqueueing it again would pay for the same generation
+            // twice.
+            if (this.batchHasRows(batchStart)) {
+                this.stopBreakdownJob();
+                this.setState({ bdActive: null });
+                return;
+            }
             if (active.enqueues >= BREAKDOWN_MAX_ENQUEUES) {
                 console.log(`breakdowns: giving up on batch ${batchStart} after ${active.enqueues} enqueues`);
                 this.setState({ bdActive: active }, () => this.failBreakdownJob("aiAnalysisFailed"));
@@ -2344,9 +2428,6 @@ class WatchApp extends React.Component {
             return this.renderAiAnalysisNotice(this.i18n("aiAnalysisNoSentences"), false);
         }
         const sentences = sentencesForRange(this.state.bdBatches || {}, cue.start_ms, cue.end_ms);
-        if (sentences.length > 0) {
-            return <AiAnalysisSentences sentences={sentences} />;
-        }
         const active = this.state.bdActive;
         // Before the first response the batch bounds are unknown, so the job is
         // only recognized as this cue's while the playhead is still on the cue it
@@ -2354,8 +2435,18 @@ class WatchApp extends React.Component {
         const activeHere = active != null && (active.startMs != null
             ? spanContains(active, cue.start_ms)
             : active.requestMs === cue.start_ms);
+        if (sentences.length > 0) {
+            // A job still running over this cue's batch has more sentences to
+            // deliver, so the analysis says so instead of looking finished.
+            return (
+                <React.Fragment>
+                    <AiAnalysisSentences sentences={sentences} />
+                    {activeHere && this.renderAiAnalysisMoreComing()}
+                </React.Fragment>
+            );
+        }
         if (activeHere) {
-            return this.renderAiAnalysisProgress(Date.now() - active.startedAt);
+            return this.renderAiAnalysisProgress(Date.now() - active.startedAt, active.preview);
         }
         const notice = this.state.bdNotice;
         if (notice != null && spanContains(notice, cue.start_ms)) {
@@ -2376,16 +2467,43 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderAiAnalysisProgress(elapsedMs) {
+    // `preview` is the sentence the analysis is being prepared for, as the server
+    // resolved it from the position we asked about. With one, the panel is laid
+    // out like a finished breakdown - the sentence first, the spinner a caption
+    // under it - so the text doesn't move when the analysis replaces it.
+    renderAiAnalysisProgress(elapsedMs, preview) {
+        if (!preview) {
+            return (
+                <div className="my-2 p-3 rounded bg-gray-100 flex flex-col items-center">
+                    <div className="flex flex-row items-center">
+                        {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200 mr-2")}
+                        <span className="text-gray-700">{this.i18n("aiAnalysisPreparing")}</span>
+                    </div>
+                    {elapsedMs >= BREAKDOWN_SLOW_MS && (
+                        <div className="mt-1 text-sm text-gray-500">{this.i18n("aiAnalysisSlow")}</div>
+                    )}
+                </div>
+            );
+        }
         return (
-            <div className="my-2 p-3 rounded bg-gray-100 flex flex-col items-center">
-                <div className="flex flex-row items-center">
-                    {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200 mr-2")}
-                    <span className="text-gray-700">{this.i18n("aiAnalysisPreparing")}</span>
+            <div className="my-2 p-3 rounded bg-gray-100 flex flex-col items-start">
+                <AiAnalysisSentenceText text={preview} />
+                <div className="mt-2 flex flex-row items-center">
+                    {this.renderSpinner("animate-spin rounded-full h-4 w-4 border-2 border-gray-200 mr-2")}
+                    <span className="text-sm text-gray-500">{this.i18n("aiAnalysisPreparing")}</span>
                 </div>
                 {elapsedMs >= BREAKDOWN_SLOW_MS && (
                     <div className="mt-1 text-sm text-gray-500">{this.i18n("aiAnalysisSlow")}</div>
                 )}
+            </div>
+        );
+    }
+
+    renderAiAnalysisMoreComing() {
+        return (
+            <div className="my-2 flex flex-row items-center justify-center">
+                {this.renderSpinner("animate-spin rounded-full h-4 w-4 border-2 border-gray-200 mr-2")}
+                <span className="text-sm text-gray-500">{this.i18n("aiAnalysisMoreComing")}</span>
             </div>
         );
     }
