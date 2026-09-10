@@ -188,7 +188,7 @@ function computeActivePartIndex(positionMs, breakdown) {
 }
 
 function wordClass(active) {
-    const base = "rounded px-0.5 cursor-pointer transition-colors duration-150";
+    const base = "inline-block rounded px-1 py-1 cursor-pointer transition-colors duration-150";
     return active ? `${base} bg-yellow-300` : `${base} hover:bg-yellow-100`;
 }
 
@@ -1803,18 +1803,18 @@ class WatchApp extends React.Component {
                             size="44"
                             maxLength="100"
                             placeholder={this.i18n("hintPasteYtUrl")}
-                            className="shadow appearance-none border rounded w-full p-2 text-4xl lg:text-2xl text-gray-700 focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none border rounded w-full p-3 text-base lg:text-lg text-gray-700 focus:outline-none focus:shadow-outline"
                             onChange={this.onInputChange}
                             autoFocus />
                         <button
                             type="button"
                             onClick={this.onSubmit}
-                            className="bg-blue-500 hover:bg-blue-700 text-white text-4xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
+                            className="ml-2 bg-blue-500 hover:bg-blue-700 text-white text-xl font-bold px-4 rounded focus:outline-none focus:shadow-outline">
                             →
                         </button>
                     </div>
                     {this.state.promptError && (
-                        <div className="mt-2 text-red-600 text-2xl lg:text-xl">{this.state.promptError}</div>
+                        <div className="mt-2 text-red-600 text-base">{this.state.promptError}</div>
                     )}
                 </form>
                 {this.renderIntro()}
@@ -1832,21 +1832,21 @@ class WatchApp extends React.Component {
             { titleKey: "watchStep4Title", bodyKey: "watchStep4Body" },
         ];
         return (
-            <div className="mt-8 mb-12 px-3 max-w-3xl mx-auto text-gray-700 text-2xl lg:text-lg">
-                <h2 className="text-3xl lg:text-2xl font-bold text-gray-800">
+            <div className="mt-8 mb-12 px-3 max-w-3xl mx-auto text-gray-700 text-base lg:text-lg">
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-800">
                     {this.i18n("watchAboutHeading")}
                 </h2>
                 <p className="mt-3">{this.i18n("watchAboutIntro")}</p>
                 <p className="mt-3">{this.i18n("watchAboutFlow")}</p>
                 <p className="mt-3">{this.i18n("watchAboutNoSetup")}</p>
 
-                <h2 className="mt-8 text-3xl lg:text-2xl font-bold text-gray-800">
+                <h2 className="mt-8 text-xl lg:text-2xl font-bold text-gray-800">
                     {this.i18n("watchHowToHeading")}
                 </h2>
                 <ol className="mt-3 list-decimal list-outside pl-8">
                     {steps.map((step) => (
                         <li key={step.titleKey} className="mt-4">
-                            <h3 className="text-2xl lg:text-xl font-medium text-gray-800">
+                            <h3 className="text-lg font-medium text-gray-800">
                                 {this.i18n(step.titleKey)}
                             </h3>
                             <p className="mt-1">{this.i18n(step.bodyKey)}</p>
@@ -1865,12 +1865,12 @@ class WatchApp extends React.Component {
         ];
         const activeTab = this.state.promptTab;
         return (
-            <div className="mt-4 px-3 flex flex-row justify-center gap-4">
+            <div className="mt-4 px-3 flex flex-row justify-center gap-2 sm:gap-4">
                 {tabs.map((tab) => {
                     const active = tab.key === activeTab;
                     const className = active
-                        ? "px-8 py-3 rounded-full text-lg font-medium bg-blue-500 text-white focus:outline-none"
-                        : "px-8 py-3 rounded-full text-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none";
+                        ? "px-4 sm:px-8 py-3 rounded-full text-base sm:text-lg font-medium bg-blue-500 text-white focus:outline-none"
+                        : "px-4 sm:px-8 py-3 rounded-full text-base sm:text-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 focus:outline-none";
                     return (
                         <button
                             key={tab.key}
@@ -1966,8 +1966,8 @@ class WatchApp extends React.Component {
                                 {item.positionMs != null && this.renderWatchProgress(item.positionMs, item.durationSecs)}
                             </div>
                             <div className="p-2">
-                                <div className="text-sm font-medium text-gray-800 truncate" title={item.title}>{item.title}</div>
-                                <div className="text-xs text-gray-500 mt-1">{item.channelTitle}</div>
+                                <div className="text-base font-medium text-gray-800 truncate" title={item.title}>{item.title}</div>
+                                <div className="text-sm text-gray-500 mt-1">{item.channelTitle}</div>
                             </div>
                         </div>
                     ))}
@@ -2036,7 +2036,7 @@ class WatchApp extends React.Component {
                                 </span>
                             </div>
                             <div className="p-2">
-                                <div className="text-sm font-medium text-gray-800 truncate" title={p.title}>{p.title}</div>
+                                <div className="text-base font-medium text-gray-800 truncate" title={p.title}>{p.title}</div>
                             </div>
                         </div>
                     ))}
@@ -2047,7 +2047,7 @@ class WatchApp extends React.Component {
                             type="button"
                             onClick={this.onLoadMorePlaylistsClick}
                             disabled={this.state.playlistsLoadingMore}
-                            className="flex flex-row items-center bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-medium py-2 px-4 rounded focus:outline-none">
+                            className="flex flex-row items-center bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 text-base font-medium py-3 px-4 rounded focus:outline-none">
                             {this.state.playlistsLoadingMore && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
                             {this.i18n("loadMorePlaylists")}
                         </button>
@@ -2065,10 +2065,10 @@ class WatchApp extends React.Component {
                     alt={info.title}
                     width={info.thumbnail_width}
                     height={info.thumbnail_height}
-                    className="rounded" />
-                <div className="mt-2 text-xl font-medium text-gray-800">{info.title}</div>
-                <div className="text-gray-600">{info.channel_title}</div>
-                <div className="text-gray-500">{formatDuration(info.duration_secs)}</div>
+                    className="rounded max-w-full h-auto" />
+                <div className="mt-2 text-lg font-medium text-gray-800 text-center">{info.title}</div>
+                <div className="text-sm text-gray-600">{info.channel_title}</div>
+                <div className="text-sm text-gray-500">{formatDuration(info.duration_secs)}</div>
             </div>
         );
     }
@@ -2084,10 +2084,10 @@ class WatchApp extends React.Component {
                     ? <button
                         type="button"
                         onClick={this.onGenerateClick}
-                        className="mt-3 bg-blue-500 hover:bg-blue-700 text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        className="mt-3 bg-blue-500 hover:bg-blue-700 text-white text-base font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline">
                         {this.i18n("generateSubtitles")}
                     </button>
-                    : <div className="mt-3 text-red-600">
+                    : <div className="mt-3 text-base text-red-600">
                         {this.i18n("cantGenerateSubtitles")}:&nbsp;{obstacle}
                     </div>
                 }
@@ -2099,7 +2099,7 @@ class WatchApp extends React.Component {
     renderProbingForm() {
         return (
             <div className="flex justify-center py-4">
-                <div className="text-2xl text-gray-500">{this.i18n("isLoading")}</div>
+                <div className="text-base text-gray-500">{this.i18n("isLoading")}</div>
             </div>
         );
     }
@@ -2127,7 +2127,7 @@ class WatchApp extends React.Component {
                             style={{ borderTopColor: "#3b82f6", borderRightColor: "#3b82f6" }}>
                         </div>
                     )}
-                    <div className="text-xl text-gray-700">
+                    <div className="text-lg text-gray-700">
                         {process ? this.i18n(processStatusKey(process.state)) : this.i18n("isLoading")}
                     </div>
                 </div>
@@ -2142,10 +2142,10 @@ class WatchApp extends React.Component {
                     </div>
                 )}
                 {process && process.state === "failed" && process.error_message && (
-                    <div className="mt-1 text-red-600">{process.error_message}</div>
+                    <div className="mt-1 text-base text-red-600">{process.error_message}</div>
                 )}
                 {queue.length > 0 && (
-                    <div className="mt-3 text-gray-700">
+                    <div className="mt-3 text-base text-gray-700">
                         {this.i18n("queuePositionTempl")(queue.length + 1)}
                     </div>
                 )}
@@ -2156,7 +2156,7 @@ class WatchApp extends React.Component {
                             type="button"
                             onClick={this.onRefreshClick}
                             disabled={refreshDisabled}
-                            className="bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            className="bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline">
                             {this.i18n("refreshButton")}
                         </button>
                     )}
@@ -2165,7 +2165,7 @@ class WatchApp extends React.Component {
                             type="button"
                             onClick={this.onProceedClick}
                             disabled={!!this.state.proceeding}
-                            className="bg-green-500 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            className="bg-green-500 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline">
                             {this.i18n("watchButton")}
                         </button>
                     )}
@@ -2180,8 +2180,8 @@ class WatchApp extends React.Component {
         const barColor = pct >= 90 ? "bg-red-500" : "bg-blue-500";
         return (
             <div className="mt-3 w-full max-w-md text-left">
-                <div className="text-gray-600">{this.i18n("asrQuota")}</div>
-                <div className="mt-1 text-gray-700">{quota.day}</div>
+                <div className="text-sm text-gray-600">{this.i18n("asrQuota")}</div>
+                <div className="mt-1 text-sm text-gray-700">{quota.day}</div>
                 <div className="mt-2 h-4 w-full rounded bg-gray-300 overflow-hidden">
                     <div
                         className={`h-4 ${barColor}`}
@@ -2196,7 +2196,7 @@ class WatchApp extends React.Component {
     renderErrorForm() {
         return (
             <div className="flex justify-center py-4">
-                <div className="text-xl text-red-600">{this.state.errorMessage}</div>
+                <div className="text-base text-red-600">{this.state.errorMessage}</div>
             </div>
         );
     }
@@ -2210,7 +2210,7 @@ class WatchApp extends React.Component {
                     {info && (
                         <div className="flex flex-row items-start justify-between py-1">
                             <div className="min-w-0 flex-1 text-left">
-                                <div className="text-lg lg:text-base font-medium text-gray-800 truncate" title={info.title}>{info.title}</div>
+                                <div className="text-base lg:text-lg font-medium text-gray-800 truncate" title={info.title}>{info.title}</div>
                                 <div className="text-sm text-gray-500 truncate">{info.channel_title}</div>
                             </div>
                             {this.renderVideoMenu()}
@@ -2240,7 +2240,7 @@ class WatchApp extends React.Component {
     // `opts.listClass`, which lets the overview drop the height cap and let the
     // page itself scroll.
     renderPlaylistPanel(opts) {
-        const listClass = (opts && opts.listClass) || "max-h-96 overflow-y-auto border border-gray-200 rounded-lg";
+        const listClass = (opts && opts.listClass) || "max-h-72 lg:max-h-96 overflow-y-auto border border-gray-200 rounded-lg";
         const items = this.state.playlistItems || [];
         if (items.length === 0) {
             return null;
@@ -2250,7 +2250,7 @@ class WatchApp extends React.Component {
         const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
         return (
             <div className="w-full max-w-2xl px-4 py-2">
-                <div className="text-lg font-medium text-gray-800 mb-2">{this.i18n("watchPlaylistHeading")}</div>
+                <div className="text-base lg:text-lg font-medium text-gray-800 mb-2">{this.i18n("watchPlaylistHeading")}</div>
                 <div className={listClass}>
                     {this.state.playlistPrevPageToken != null && (
                         <div className="flex justify-center py-2 border-b border-gray-100">
@@ -2258,7 +2258,7 @@ class WatchApp extends React.Component {
                                 type="button"
                                 onClick={this.onPlaylistPrevPageClick}
                                 disabled={this.state.playlistLoadingPrev}
-                                className="flex flex-row items-center text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
+                                className="flex flex-row items-center py-2 px-3 text-base text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
                                 {this.state.playlistLoadingPrev && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
                                 {this.i18n("watchPlaylistLoadPrevious")}
                             </button>
@@ -2267,11 +2267,11 @@ class WatchApp extends React.Component {
                     {items.map((item, i) => {
                         const active = item.online_video_id === currentVideoId;
                         const rowClass = active
-                            ? "flex flex-row items-center gap-2 p-2 cursor-pointer bg-blue-50"
-                            : "flex flex-row items-center gap-2 p-2 cursor-pointer hover:bg-gray-50";
+                            ? "flex flex-row items-center gap-3 p-3 cursor-pointer bg-blue-50"
+                            : "flex flex-row items-center gap-3 p-3 cursor-pointer hover:bg-gray-50";
                         const titleClass = active
-                            ? "text-sm font-semibold text-blue-700 truncate"
-                            : "text-sm text-gray-800 truncate";
+                            ? "text-base font-semibold text-blue-700 truncate"
+                            : "text-base text-gray-800 truncate";
                         return (
                             <div
                                 key={`${item.online_video_id}-${i}`}
@@ -2283,7 +2283,7 @@ class WatchApp extends React.Component {
                                     className="w-24 h-16 object-cover rounded flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
                                     <div className={titleClass} title={item.title}>{item.title}</div>
-                                    <div className="text-xs text-gray-500 truncate">{item.channel_title}</div>
+                                    <div className="text-sm text-gray-500 truncate">{item.channel_title}</div>
                                 </div>
                             </div>
                         );
@@ -2294,7 +2294,7 @@ class WatchApp extends React.Component {
                                 type="button"
                                 onClick={this.onPlaylistNextPageClick}
                                 disabled={this.state.playlistLoadingNext}
-                                className="flex flex-row items-center text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
+                                className="flex flex-row items-center py-2 px-3 text-base text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none">
                                 {this.state.playlistLoadingNext && this.renderSpinner("animate-spin rounded-full h-4 w-4 border-4 border-gray-300 mr-2")}
                                 {this.i18n("watchPlaylistLoadMore")}
                             </button>
@@ -2347,12 +2347,12 @@ class WatchApp extends React.Component {
 
         if (this.state.subtitlesLoading && subtitles.length === 0) {
             return (
-                <div className="text-center text-gray-500">{this.i18n("isLoading")}</div>
+                <div className="text-center text-base text-gray-500">{this.i18n("isLoading")}</div>
             );
         }
         if (subtitles.length === 0) {
             return (
-                <div className="text-center text-gray-500">{this.i18n("noSubtitles")}</div>
+                <div className="text-center text-base text-gray-500">{this.i18n("noSubtitles")}</div>
             );
         }
         if (idx == null || idx < 0 || idx >= subtitles.length) {
@@ -2366,8 +2366,8 @@ class WatchApp extends React.Component {
             ? "font-mono text-sm text-gray-400 mr-2"
             : "font-mono text-sm text-blue-500 mr-2";
         const textClass = upcoming
-            ? "text-gray-500 text-xl"
-            : "text-gray-800 text-xl";
+            ? "text-gray-500 text-2xl lg:text-xl"
+            : "text-gray-800 text-2xl lg:text-xl";
 
         let gapProgressPct = 100;
 
@@ -2461,7 +2461,7 @@ class WatchApp extends React.Component {
         return (
             <div
                 onClick={this.onAiAnalysisClick}
-                className="ai-analysis-panel my-2 p-3 rounded text-center text-white text-xl font-medium cursor-pointer select-none">
+                className="ai-analysis-panel my-2 p-4 rounded text-center text-white text-lg font-medium cursor-pointer select-none">
                 {this.i18n("aiAnalysis")}
             </div>
         );
@@ -2477,7 +2477,7 @@ class WatchApp extends React.Component {
                 <div className="my-2 p-3 rounded bg-gray-100 flex flex-col items-center">
                     <div className="flex flex-row items-center">
                         {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200 mr-2")}
-                        <span className="text-gray-700">{this.i18n("aiAnalysisPreparing")}</span>
+                        <span className="text-base text-gray-700">{this.i18n("aiAnalysisPreparing")}</span>
                     </div>
                     {elapsedMs >= BREAKDOWN_SLOW_MS && (
                         <div className="mt-1 text-sm text-gray-500">{this.i18n("aiAnalysisSlow")}</div>
@@ -2511,12 +2511,12 @@ class WatchApp extends React.Component {
     renderAiAnalysisNotice(message, closable) {
         return (
             <div className="my-2 p-3 rounded bg-gray-100 flex flex-row items-start">
-                <div className="flex-1 text-gray-700">{message}</div>
+                <div className="flex-1 text-base text-gray-700">{message}</div>
                 {closable && (
                     <button
                         type="button"
                         onClick={this.onAiAnalysisNoticeClose}
-                        className="ml-2 px-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
+                        className="ml-2 p-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
                         ×
                     </button>
                 )}
@@ -2534,7 +2534,7 @@ class WatchApp extends React.Component {
                     type="button"
                     onClick={this.onMenuToggle}
                     aria-label={this.i18n("videoMenu")}
-                    className="px-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
+                    className="p-2 text-xl leading-none text-gray-500 hover:text-gray-800 focus:outline-none">
                     ···
                 </button>
                 {this.state.menuOpen && (
@@ -2542,7 +2542,7 @@ class WatchApp extends React.Component {
                         <a
                             href={`/qarauapi/v1/export/${this.transcriptionId}`}
                             onClick={this.closeMenu}
-                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 whitespace-nowrap">
+                            className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-100 whitespace-nowrap">
                             {this.i18n("downloadSubtitles")}
                         </a>
                     </div>
@@ -2554,13 +2554,13 @@ class WatchApp extends React.Component {
     renderToggler(on, handler, labelKey) {
         return (
             <div
-                className="mx-2 rounded flex flex-row items-center cursor-pointer select-none"
+                className="mx-2 py-2 rounded flex flex-row items-center cursor-pointer select-none"
                 onClick={handler}>
                 <img
                     className="mx-2 h-6"
                     src={on ? "/toggle_on.svg" : "/toggle_off.svg"}
                 />
-                <span className="text-lg lg:text-base">{this.i18n(labelKey)}</span>
+                <span className="text-base">{this.i18n(labelKey)}</span>
             </div>
         );
     }
@@ -2574,7 +2574,7 @@ class WatchApp extends React.Component {
         // stale one never lingers under a cue it doesn't describe.
         if (breakdown.length === 0 || this.state.breakdownCueIndex !== this.state.currentCueIndex) {
             return this.state.analyzing
-                ? (<div className="m-4 text-center text-gray-500">{this.i18n("analyzing")}</div>)
+                ? (<div className="m-4 text-center text-base text-gray-500">{this.i18n("analyzing")}</div>)
                 : null;
         }
 
@@ -2636,7 +2636,7 @@ class WatchApp extends React.Component {
         return (
             <a
                 href={buildWatchUrl([], this.props.lang)}
-                className="ml-3 flex-shrink-0 flex flex-row items-center whitespace-nowrap bg-blue-500 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded focus:outline-none">
+                className="ml-3 flex-shrink-0 flex flex-row items-center whitespace-nowrap bg-blue-500 hover:bg-blue-700 text-white text-sm sm:text-base font-medium py-2 px-3 rounded focus:outline-none">
                 <img className="h-5 mr-1" src="/create.svg" alt="" />
                 {this.i18n("newVideo")}
             </a>
@@ -2645,8 +2645,8 @@ class WatchApp extends React.Component {
 
     render() {
         const titleClass = this.state.appMode === APP_MODE_WATCH
-            ? "text-center text-lg lg:text-base italic text-gray-600"
-            : "text-center text-2xl italic text-gray-600";
+            ? "text-center text-base italic text-gray-600"
+            : "text-center text-xl italic text-gray-600";
         return (
             <div className="flex flex-col w-full">
                 <div className="flex flex-row items-center justify-center">

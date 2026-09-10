@@ -1,0 +1,107 @@
+mixin a_viewer_page_v2(l10n, js_path)
+    doctype html
+    html(lang= l10n.langCode)
+        head
+            meta(charset="utf8")
+            meta(name="viewport", content="width=device-width, initial-scale=1")
+            meta(property="og:title", content= l10n.title)
+            meta(property="og:description", content= l10n.description)
+            meta(property="og:site_name", content= l10n.title)
+            meta(name="referrer", content="no-referrer-when-downgrade")
+            meta(name="Cross-Origin-Opener-Policy", content="same-origin-allow-popups")
+            title= l10n.title
+            link(rel="stylesheet", href="../css/page.pcss")
+            link(rel="icon", href="../images/favicon.png", type="image/png")
+        body
+            div.page-grid
+                header(class="bg-blue-800 text-white p-1 flex justify-between")
+                    div(class="ml-2 md:mx-8 my-1 flex")
+                        div(class="pr-2")
+                            button(id="ham_btn", class="flex focus:outline-none")
+                                img(class="w-12", src="../images/menu.svg")
+                            div(id="ham_menu_content", class="absolute z-50 hidden flex flex-col")
+                                a(href= l10n.linkConjugation)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/feather.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleConjugation
+                                a(href= l10n.linkDeclension)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/beaker.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleDeclension
+                                a(href= l10n.linkTextAnalyzer)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/academic.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleTextAnalyzer
+                                a(href= l10n.linkYtSubtitles)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/yt.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleYtSubtitles
+                                a(href= l10n.linkTop100Verbs)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/arrowup.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleTop100Verbs
+                                a(href= l10n.linkGym)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/gym.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleGym
+                                a(href= l10n.linkPosts)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full")
+                                        = l10n.titlePosts
+                                a(href= l10n.linkDict)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full")
+                                        = l10n.titleDict
+                                a(href= l10n.linkGooglePlay)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/google_play.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleGooglePlay
+                                a(href= l10n.linkAppStore)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/apple.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleAppStore
+                                a(href= l10n.linkTgBot)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full flex flex-row items-center")
+                                        img(class="h-6", src="../images/telegram.svg")
+                                        span(class="mx-2")
+                                            = l10n.titleTgBot
+                                a(href= l10n.linkAbout)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base text-left py-3 px-3 w-full")
+                                        = l10n.titleAbout
+                        div
+                            a(class="text-xl lg:text-2xl text-bold", href= l10n.firstRoot)
+                                = l10n.title
+                                <sup class="text-red-400">β</sup>
+                            p(class="hidden lg:block text-sm text-yellow-300")
+                                = l10n.description
+                    div(class="flex flex-row")
+                        div(class="relative mr-2 md:mx-8 my-1 py-1")
+                            button(id="lang_switcher_btn", class="bg-blue-800 border-2 border-yellow-300 text-base py-2 px-3")
+                                = l10n.firstLang
+                            div(id="lang_switcher_content", class="absolute hidden z-50")
+                                a(href= l10n.secondRoot)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base py-2 px-3 w-full")
+                                        = l10n.secondLang
+                                a(href= l10n.thirdRoot)
+                                    button(class="bg-blue-800 border-2 border-gray-300 text-base py-2 px-3 w-full")
+                                        = l10n.thirdLang
+                article
+                    block
+                footer(class="bg-blue-800 text-white flex flex-wrap justify-between text-xs sm:text-sm")
+                    span © 2023-2024 Murat Khairulin
+                    div(class="flex")
+                        span
+                            = l10n.contactUs
+                        a(class="mx-2 text-red-200 underline", href="https://www.youtube.com/@KazakhVerb", target="_blank")
+                            = l10n.ytChannel
+                        span |
+                        a(class="mx-2 text-red-200 underline", href="https://t.me/kazakhverb_arna", target="_blank")
+                            = l10n.tgChannel
+            script(src= js_path)
+            noscript() The web page requires Javascript enabled in the browser to work

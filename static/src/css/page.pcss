@@ -13,7 +13,11 @@
 .page-grid {
     display: grid;
     grid-gap: 0.2rem;
-    height: 100vh;
+    /* min-height, not height: content taller than the viewport has to grow the
+       grid instead of spilling out over the footer. dvh keeps the mobile URL
+       bar from covering the last row; browsers without it ignore the line. */
+    min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
 }
 

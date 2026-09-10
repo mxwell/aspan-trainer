@@ -5,8 +5,8 @@ function AiAnalysisWord({ word }) {
         word.base !== word.word || word.base_translation !== word.word_translation
     );
     return (
-        <div className="m-1 p-2 rounded bg-white border border-gray-200 max-w-xs">
-            <div className="text-gray-800">
+        <div className="m-1 p-2 rounded bg-white border border-gray-200 w-full sm:w-auto sm:max-w-xs">
+            <div className="text-base text-gray-800">
                 <span className="font-bold">{word.word}</span>
                 {word.word_translation && ` = ${word.word_translation}`}
             </div>
@@ -18,10 +18,10 @@ function AiAnalysisWord({ word }) {
                 </div>
             )}
             {word.pos && (
-                <div className="text-xs text-gray-700 italic">{word.pos}</div>
+                <div className="text-sm text-gray-700 italic">{word.pos}</div>
             )}
             {word.comment && (
-                <div className="mt-1 max-w-xs text-xs text-gray-700">{word.comment}</div>
+                <div className="mt-1 text-sm text-gray-700">{word.comment}</div>
             )}
         </div>
     );
@@ -32,7 +32,7 @@ function AiAnalysisWord({ word }) {
 // same place before and after the analysis arrives.
 function AiAnalysisSentenceText({ text }) {
     return (
-        <span className="text-gray-800 text-xl">
+        <span className="text-gray-800 text-lg lg:text-xl">
             • <span className="font-bold">{text}</span>
         </span>
     );
@@ -48,13 +48,13 @@ function AiAnalysisSentences({ sentences }) {
             {sentences.map((sentence) => {
                 const translations = sentence.translations || [];
                 return (
-                    <div key={sentence.seq} className="mb-12">
-                        <div className="text-gray-800 text-xl">
+                    <div key={sentence.seq} className="mb-8 lg:mb-12">
+                        <div className="text-gray-800 text-lg lg:text-xl">
                             <AiAnalysisSentenceText text={sentence.text} />
                             {translations.length === 1 && ` = ${translations[0]}`}
                         </div>
                         {translations.length > 1 && (
-                            <ol className="ml-6 list-decimal text-gray-600 text-lg">
+                            <ol className="ml-6 list-decimal text-gray-600 text-base">
                                 {translations.map((translation, i) => (
                                     <li key={i}>{translation}</li>
                                 ))}

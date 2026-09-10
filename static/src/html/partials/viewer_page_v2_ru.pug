@@ -1,0 +1,43 @@
+include viewer_page_v2
+mixin a_viewer_page_v2_ru(react_app_path)
+    -
+      var l10n = {
+        langCode: "ru",
+        title: "Kazakh Verb",
+        description: "Инструменты казахского языка",
+        contactUs: "Наши контакты:",
+        ytChannel: "Канал Youtube",
+        tgChannel: "Канал Telegram",
+        firstLang: "РУС",
+        secondLang: "ENG",
+        thirdLang: "ҚАЗ",
+        firstRoot: "/",
+        secondRoot: "/en",
+        thirdRoot: "/kk",
+        titleConjugation: "Спряжение",
+        linkConjugation: "/",
+        titleDeclension: "Склонение",
+        linkDeclension: "./declension_ru.pug",
+        titleTextAnalyzer: "Анализатор текста",
+        linkTextAnalyzer: "./text_analyzer_ru.pug",
+        titleYtSubtitles: "Субтитры для YouTube",
+        linkYtSubtitles: "./watch_ru.pug",
+        titleTop100Verbs: "Топ-100 глаголов",
+        linkTop100Verbs: "./present_top_ru.pug",
+        titleGym: "Тренажёрка",
+        linkGym: "./verb_gym_ru.pug",
+        titlePosts: "Posts",
+        linkPosts: "/en/posts/",
+        titleDict: "Добавление переводов",
+        linkDict: "/gc_landing_ru.pug",
+        titleGooglePlay: "Приложение в Google Play",
+        linkGooglePlay: "https://play.google.com/store/apps/details?id=com.khairulin.kazakhverb",
+        titleAppStore: "Приложение в App Store",
+        linkAppStore: "https://apps.apple.com/ru/app/kazakh-verb/id6739760483",
+        titleTgBot: "Бот в Telegram",
+        linkTgBot: "https://t.me/KazakhVerbBot",
+        titleAbout: "О сайте",
+        linkAbout: "./about_ru.pug",
+      }
+    +a_viewer_page_v2(l10n, react_app_path)
+        block
