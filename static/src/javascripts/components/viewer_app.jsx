@@ -18,6 +18,7 @@ import {
     buildParticipleDeclensionUrl,
     buildVerbFormAudioUrl,
     buildViewerUrl2,
+    buildWatchUrl,
     parseParams
 } from "../lib/url";
 import {
@@ -1283,8 +1284,27 @@ class ViewerApp extends React.Component {
         const lang = this.props.lang;
         const conjugationLink = buildViewerUrl2("келу", SENTENCE_TYPES[0], false, null, lang, null, false);
         const declensionLink = buildDeclensionUrl("алма", false, lang);
+        /* Only the English and Russian watch pages are built. */
+        const watchLang = (lang == I18N_LANG_KK) ? I18N_LANG_EN : lang;
+        const watchLink = buildWatchUrl([], watchLang);
         return (
             <div className="flex flex-col justify-center">
+                <a href={watchLink} className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
+                    <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
+                        <img src="/yt.svg" />
+                        <span className="mx-2">{this.i18n("titleSubtitlesForYt")}</span>
+                    </h1>
+
+                    <p className="my-2">{this.i18n("landingYtIntro")}</p>
+                    <p>{this.i18n("landingYtGenerate")}</p>
+                    <p>{this.i18n("landingYtHighlight")}</p>
+                    <p>{this.i18n("landingYtAi")}</p>
+
+                    <h2 className="mt-4 text-right underline">
+                        {this.i18n("tryOut")}&nbsp;→
+                    </h2>
+                </a>
+
                 <a href={conjugationLink} className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
                     <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
                         <img src="/feather.svg" />
@@ -1317,21 +1337,6 @@ class ViewerApp extends React.Component {
                     <p>{this.i18n("landingDeclensionHighlight")}</p>
                     <p>{this.i18n("landingDeclensionException")}</p>
                     <p>{this.i18n("landingDeclensionInput")}</p>
-
-                    <h2 className="mt-4 text-right underline">
-                        {this.i18n("tryOut")}&nbsp;→
-                    </h2>
-                </a>
-
-                <a href="https://t.me/KazakhVerbBot" className="p-4 mt-10 bg-blue-700 hover:bg-blue-500 rounded-2xl text-white text-2xl lg:text-base">
-                    <h1 className="my-4 text-center text-4xl lg:text-3xl font-bold flex flex-row">
-                        <img src="/telegram.svg" />
-                        <span className="mx-2">{this.i18n("titleTgBot")}</span>
-                    </h1>
-
-                    <p className="my-2">{this.i18n("landingTgBotIntro")}</p>
-                    <p>{this.i18n("landingTgBotTts")}</p>
-                    <p>{this.i18n("landingTgBotGym")}</p>
 
                     <h2 className="mt-4 text-right underline">
                         {this.i18n("tryOut")}&nbsp;→
