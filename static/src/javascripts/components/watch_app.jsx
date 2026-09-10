@@ -6,7 +6,7 @@ import {
     BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
     BREAKDOWN_NO_SENTENCES,
     ENQUEUE_NO_SENTENCES, ENQUEUE_NO_QUOTA, ENQUEUE_QUEUE_FULL,
-    batchSpan, spanContains, findBatch, sentencesForRange, mergeBatch,
+    batchSpan, spanContains, findBatch, sentencesForRange, activeSentenceIndex, visibleSentences, mergeBatch,
 } from "../lib/breakdowns";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import { PlaylistRef } from "../lib/playlist";
@@ -49,6 +49,9 @@ const BREAKDOWN_QUEUE_FULL_RETRY_MS = 15000;
 // The GET can't tell "never generated" from "generation failed", so a failing
 // batch would otherwise be re-enqueued forever.
 const BREAKDOWN_MAX_ENQUEUES = 2;
+// Sentences before the one being played are dropped, except for a run of short
+// ones whose words together stay under this limit.
+const PRECEDING_WORDS_LIMIT = 3;
 
 function isValidYouTubeVideoId(id) {
     return /^[a-zA-Z0-9_-]{11}$/.test(id);
@@ -2436,11 +2439,18 @@ class WatchApp extends React.Component {
             ? spanContains(active, cue.start_ms)
             : active.requestMs === cue.start_ms);
         if (sentences.length > 0) {
+            // In a silent gap the playhead sits before the cue, where the last
+            // started sentence is one the viewer has already heard, so the cue
+            // itself anchors the choice instead.
+            const anchorMs = this.state.currentCueUpcoming ? cue.start_ms : this.state.positionMs;
+            const shown = visibleSentences(sentences, anchorMs, PRECEDING_WORDS_LIMIT);
+            const currentIndex = activeSentenceIndex(shown, anchorMs);
+            const currentSeq = currentIndex === -1 ? null : shown[currentIndex].seq;
             // A job still running over this cue's batch has more sentences to
             // deliver, so the analysis says so instead of looking finished.
             return (
                 <React.Fragment>
-                    <AiAnalysisSentences sentences={sentences} />
+                    <AiAnalysisSentences sentences={shown} currentSeq={currentSeq} />
                     {activeHere && this.renderAiAnalysisMoreComing()}
                 </React.Fragment>
             );

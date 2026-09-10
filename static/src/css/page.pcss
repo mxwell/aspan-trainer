@@ -92,6 +92,22 @@ footer > span {
     opacity: 0.9;
 }
 
+/* yellow-300, the colour the cue above already uses for the active word. */
+@keyframes ai-sentence-arrive {
+    from { background-color: rgba(250, 204, 21, 0.35); }
+    to { background-color: transparent; }
+}
+
+.ai-sentence-current {
+    animation: ai-sentence-arrive 600ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ai-sentence-current {
+        animation: none;
+    }
+}
+
 /**
  * The YouTube player in the watch app: a 16:9 box that follows the column
  * width, but never grows so tall that the subtitles under it need scrolling.

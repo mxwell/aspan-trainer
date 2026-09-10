@@ -17,6 +17,11 @@ module.exports = {
                 "72": "18rem",
                 "96": "24rem",
             },
+            // Tailwind 1.x steps opacity by 25, too coarse to dim a sentence
+            // without making its text hard to read.
+            opacity: {
+                "60": "0.6",
+            },
         },
     },
     variants: {},

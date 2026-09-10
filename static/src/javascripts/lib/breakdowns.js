@@ -58,6 +58,46 @@ function sentencesForRange(batches, startMs, endMs) {
     return result;
 }
 
+function countWords(text) {
+    if (!text) {
+        return 0;
+    }
+    const trimmed = text.trim();
+    return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
+}
+
+// The sentence being played at `anchorMs`: the last one to have started, so the
+// choice survives the gaps between sentences. -1 before the first one starts.
+function activeSentenceIndex(sentences, anchorMs) {
+    let active = -1;
+    for (let i = 0; i < sentences.length; ++i) {
+        if (sentences[i].start_ms > anchorMs) break;
+        active = i;
+    }
+    return active;
+}
+
+// Drops the sentences the viewer has already heard, so the one being played sits
+// at the top instead of below a screenful of scrolling. The run of short
+// sentences immediately before it stays as long as their words together come to
+// less than `wordLimit`: it is the lead-in to the current sentence and costs
+// almost no height. The run has to be contiguous, so the first sentence that
+// doesn't fit ends it rather than being skipped over.
+function visibleSentences(sentences, anchorMs, wordLimit) {
+    const active = activeSentenceIndex(sentences, anchorMs);
+    if (active <= 0) {
+        return sentences;
+    }
+    let keepFrom = active;
+    let words = 0;
+    for (let i = active - 1; i >= 0; --i) {
+        words += countWords(sentences[i].text);
+        if (words >= wordLimit) break;
+        keepFrom = i;
+    }
+    return sentences.slice(keepFrom);
+}
+
 // A batch that is still being generated reports its rows in installments, so an
 // entry is merged into whatever we already hold for that batch - by sentence
 // seq, newest wins - instead of replacing it.
@@ -95,5 +135,7 @@ export {
     spanContains,
     findBatch,
     sentencesForRange,
+    activeSentenceIndex,
+    visibleSentences,
     mergeBatch,
 };

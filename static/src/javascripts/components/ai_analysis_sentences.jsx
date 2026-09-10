@@ -38,17 +38,32 @@ function AiAnalysisSentenceText({ text }) {
     );
 }
 
+// The sentence being played carries the accent and a one-shot arrival flash;
+// the ones before it are dimmed, so the handoff reads in place before the
+// trimming drops them.
+function sentenceClass(current, hasCurrent) {
+    const base = "mb-8 lg:mb-12 pl-3 border-l-4 transition duration-200";
+    if (current) {
+        return `${base} border-indigo-500 ai-sentence-current`;
+    }
+    // Before the first sentence starts nothing is being played, so dimming every
+    // one of them would just make the whole block look inactive.
+    return hasCurrent ? `${base} border-transparent opacity-60` : `${base} border-transparent`;
+}
+
 /**
  * props:
- * - sentences: breakdown sentences covering the displayed cue
+ * - sentences: breakdown sentences to show, starting at the earliest one kept
+ * - currentSeq: seq of the sentence being played, or null before the first one
  */
-function AiAnalysisSentences({ sentences }) {
+function AiAnalysisSentences({ sentences, currentSeq }) {
+    const hasCurrent = currentSeq != null;
     return (
         <div className="my-2 p-3 rounded bg-gray-100">
             {sentences.map((sentence) => {
                 const translations = sentence.translations || [];
                 return (
-                    <div key={sentence.seq} className="mb-8 lg:mb-12">
+                    <div key={sentence.seq} className={sentenceClass(sentence.seq === currentSeq, hasCurrent)}>
                         <div className="text-gray-800 text-lg lg:text-xl">
                             <AiAnalysisSentenceText text={sentence.text} />
                             {translations.length === 1 && ` = ${translations[0]}`}
