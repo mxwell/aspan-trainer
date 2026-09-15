@@ -25,6 +25,14 @@ function buildUrl(path, params) {
     return `${path}?${params.join("&")}`;
 }
 
+// A `t` parameter: whole seconds, parsed and converted to millis.
+function parseTimeParamMs(value) {
+    if (typeof value !== "string" || !/^\d+$/.test(value)) {
+        return null;
+    }
+    return Number(value) * 1000;
+}
+
 function buildDeclensionUrl(subject, forceAlternative, lang) {
     const path = `/declension_${lang}.html`;
     if (subject == null || subject.length == 0) {
@@ -273,6 +281,7 @@ export {
     buildGcReviewsUrl,
     buildWatchUrl,
     parseParams,
+    parseTimeParamMs,
     buildGlosbeUrl,
     buildLugatUrl,
     buildSozdikUrl,

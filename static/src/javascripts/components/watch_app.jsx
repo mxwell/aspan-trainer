@@ -1,5 +1,5 @@
 import React from "react";
-import { buildWatchUrl, parseParams } from "../lib/url";
+import { buildWatchUrl, parseParams, parseTimeParamMs } from "../lib/url";
 import { i18n, I18N_LANG_RU } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import {
@@ -22,7 +22,9 @@ const APP_MODE_PREVIEW = 5;
 const APP_MODE_PROBING = 6;
 const APP_MODE_PLAYLIST = 7;
 
+const VIDEO_UNSTARTED = -1;
 const VIDEO_PLAYING = 1;
+const VIDEO_CUED = 5;
 
 const PROMPT_TAB_RANDOM = "random";
 const PROMPT_TAB_PLAYLISTS = "playlists";
@@ -33,7 +35,7 @@ const SUBTITLE_WORD_COUNT = 150;
 const TICK_MS = 500;
 const MIN_TICK_MS = 50;
 const PROCESSING_POLL_MS = 10000;
-const HISTORY_SAVE_INTERVAL_MS = 45000;
+const HISTORY_SAVE_INTERVAL_MS = 10000;
 
 const BREAKDOWN_POLL_MS = 3000;
 // Once a batch has started returning rows, a poll only picks up the sentences
@@ -91,6 +93,21 @@ function parseYouTubeWatchUrl(url) {
     } catch (e) {
         return empty;
     }
+}
+
+function resumePositionMs(positionMs, durationSecs) {
+    if (positionMs == null || positionMs < 0) {
+        return null;
+    }
+    if (durationSecs == null) {
+        return null;
+    }
+    const durationMs = durationSecs * 1000;
+    // ignore if too close to the end
+    if (positionMs >= durationMs - 10000) {
+        return null;
+    }
+    return positionMs;
 }
 
 function formatDuration(totalSecs) {
@@ -258,6 +275,10 @@ class WatchApp extends React.Component {
     constructor(props) {
         super(props);
 
+        // for YT player
+        this.pendingStartMs = null;
+        this.startMs = 0;
+
         const state = this.readUrlState();
 
         this.state = state;
@@ -413,10 +434,13 @@ class WatchApp extends React.Component {
         window.addEventListener("popstate", this.onPopState);
         document.addEventListener("click", this.onDocumentClick);
         if (this.state.videoId) {
+            // `t` only means something alongside a video, and watch mode may be
+            // several modes away yet (preview, processing): the probe carries it.
+            const startMs = parseTimeParamMs(parseParams().t);
             if (this.state.playlist) {
-                this.probePlaylist(this.state.videoId, this.state.playlist);
+                this.probePlaylist(this.state.videoId, this.state.playlist, startMs);
             } else {
-                this.probeById(this.state.videoId);
+                this.probeById(this.state.videoId, startMs);
             }
         } else if (this.state.playlist) {
             this.requestPlaylistOverview(this.state.playlist);
@@ -511,6 +535,7 @@ class WatchApp extends React.Component {
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
         this.lastPositionMs = 0;
+        this.startMs = 0;
         this.analysisToken = 0;
         this.analysisCueIndex = -1;
         this.historyInitialSaved = false;
@@ -546,13 +571,16 @@ class WatchApp extends React.Component {
         }
     }
 
-    probeById(id) {
+    // `startMs` is where playback should begin - from the URL's `t`, or a history
+    // entry's stored position. Omitted everywhere else, which starts from 0.
+    probeById(id, startMs) {
         if (!isValidYouTubeVideoId(id)) {
             console.warn("not a valid YouTube video id:", id);
             return;
         }
 
         this.teardownPlayer();
+        this.pendingStartMs = startMs != null ? startMs : null;
         this.setState({
             appMode: APP_MODE_PROBING,
             playlist: null,
@@ -573,13 +601,14 @@ class WatchApp extends React.Component {
     // page token pins the request to the same window an item was loaded under
     // - e.g. when navigating to it from a playlist item further down the
     // loaded list.
-    probePlaylist(videoId, playlist) {
+    probePlaylist(videoId, playlist, startMs) {
         if (!isValidYouTubeVideoId(videoId)) {
             console.warn("not a valid YouTube video id:", videoId);
             return;
         }
 
         this.teardownPlayer();
+        this.pendingStartMs = startMs != null ? startMs : null;
         this.setState({
             appMode: APP_MODE_PROBING,
             playlist,
@@ -664,10 +693,12 @@ class WatchApp extends React.Component {
         if (videoId && isValidYouTubeVideoId(videoId)) {
             const currentVideoId = this.state.probe && this.state.probe.info && this.state.probe.info.online_video_id;
             if (videoId !== currentVideoId || !PlaylistRef.same(playlist, this.state.playlist)) {
+                // The popped URL's `t` applies just as it would on a fresh load.
+                const startMs = parseTimeParamMs(params.t);
                 if (playlist) {
-                    this.probePlaylist(videoId, playlist);
+                    this.probePlaylist(videoId, playlist, startMs);
                 } else {
-                    this.probeById(videoId);
+                    this.probeById(videoId, startMs);
                 }
             }
         } else if (playlist) {
@@ -992,31 +1023,52 @@ class WatchApp extends React.Component {
         const probe = this.state.probe;
         const transcriptions = probe && probe.transcriptions;
         this.transcriptionId = (transcriptions && transcriptions.length > 0) ? transcriptions[0].id : null;
+        // One-shot: the next video in a playlist, or a plain navigation, starts at 0.
+        const startMs = this.clampStartMs(this.pendingStartMs);
+        this.pendingStartMs = null;
+        this.startMs = startMs;
         this.player = null;
         this.playerReady = false;
         this.tickTimer = null;
         this.subtitlesEndMs = null;
         this.subLoadToken = 0;
-        this.lastPositionMs = 0;
+        // Seeded with the start position, not 0: the first tick would otherwise
+        // find itself far outside the loaded subtitle window and re-request it.
+        this.lastPositionMs = startMs;
         this.analysisToken = 0;
         this.analysisCueIndex = -1;
         this.historyInitialSaved = false;
         this.lastHistorySaveMs = 0;
         this.stopBreakdownJob();
         this.setState({
-            subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: 0,
+            subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: startMs,
             breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
             bdBatches: {}, bdActive: null, bdNotice: null, bdUnavailable: false, bdLangUnsupported: false,
         });
 
         if (this.transcriptionId != null) {
-            // Initial load: a page of words from the start (covers roughly the first minute).
-            this.requestSubtitlesJump(0);
+            // Initial load: a page of words from where playback starts (covers
+            // roughly a minute from there).
+            this.requestSubtitlesJump(startMs);
         } else {
             this.setState({ subtitlesLoading: false });
         }
 
         this.bootYouTubePlayer();
+    }
+
+    // A requested start position, reduced to something playable: null/garbage and
+    // anything at or past the end of the video become 0.
+    clampStartMs(startMs) {
+        if (startMs == null || startMs <= 0) {
+            return 0;
+        }
+        const info = this.state.probe && this.state.probe.info;
+        const durationMs = (info && info.duration_secs) ? info.duration_secs * 1000 : null;
+        if (durationMs != null && startMs >= durationMs) {
+            return 0;
+        }
+        return startMs;
     }
 
     bootYouTubePlayer() {
@@ -1047,9 +1099,14 @@ class WatchApp extends React.Component {
         if (!videoId) {
             return;
         }
-        console.log(`Creating YT player for ${videoId}`);
+        // The `start` cue parameter rather than a seekTo() once ready: seeking a
+        // player that hasn't started yet also starts playback, and nothing else
+        // here autoplays. Its resolution is whole seconds.
+        const startSecs = Math.floor(this.startMs / 1000);
+        console.log(`Creating YT player for ${videoId} at ${startSecs}s`);
         this.player = new window.YT.Player("watch_player", {
             videoId: videoId,
+            playerVars: startSecs > 0 ? { start: startSecs } : {},
             events: {
                 onReady: this.onPlayerReady,
                 onStateChange: this.onPlayerStateChange,
@@ -1084,7 +1141,7 @@ class WatchApp extends React.Component {
         if (!this.player || !this.playerReady) {
             return;
         }
-        const positionMs = Math.floor(this.player.getCurrentTime() * 1000);
+        const positionMs = this.currentPositionMs();
         const { index, upcoming, activeWordIndex } = this.updateCurrentCue(positionMs);
         this.loadSubtitlesIfNeeded(positionMs);
         if (this.player.getPlayerState() === VIDEO_PLAYING) {
@@ -1094,6 +1151,24 @@ class WatchApp extends React.Component {
             );
             this.tickTimer = setTimeout(() => this.tick(), delay);
         }
+    }
+
+    // The playhead as the rest of the app should see it. The `start` cue parameter
+    // positions the player, but one that hasn't begun playing can still report 0
+    // for a moment; taking that at face value would reset the subtitle window to
+    // the beginning of the video, so until playback starts the requested start
+    // position wins. Inert once the player leaves the unstarted/cued states, so a
+    // user seeking back before `start` is still reported honestly.
+    currentPositionMs() {
+        const reportedMs = Math.floor(this.player.getCurrentTime() * 1000);
+        if (this.startMs <= 0 || reportedMs >= this.startMs) {
+            return reportedMs;
+        }
+        const state = this.player.getPlayerState();
+        if (state === VIDEO_UNSTARTED || state === VIDEO_CUED) {
+            return this.startMs;
+        }
+        return reportedMs;
     }
 
     // ===== Watch history: local-storage-backed, most-recent-10 list =====
@@ -1741,8 +1816,8 @@ class WatchApp extends React.Component {
         console.log("suggested videos error:", text);
     }
 
-    onVideoCardClick(videoId) {
-        this.probeById(videoId);
+    onVideoCardClick(videoId, startMs) {
+        this.probeById(videoId, startMs);
     }
 
     onPromptTabClick(tab) {
@@ -1939,14 +2014,17 @@ class WatchApp extends React.Component {
             thumbnailHeight: h.thumbnailHeight,
             durationSecs: h.durationSecs,
             positionMs: h.positionMs,
+            startMs: resumePositionMs(h.positionMs, h.durationSecs),
         }));
         return this.renderVideoGrid(items);
     }
 
     // Shared grid for any list of {id, title, channelTitle, thumbnailUrl,
-    // thumbnailWidth, thumbnailHeight, durationSecs, positionMs?} items.
+    // thumbnailWidth, thumbnailHeight, durationSecs, positionMs?, startMs?} items.
     // positionMs is optional - when present, a YouTube-style watched-progress
     // strip is drawn along the bottom edge of the thumbnail.
+    //
+    // startMs is optional, where playback should resume from.
     renderVideoGrid(items) {
         return (
             <div className="mt-4 px-3">
@@ -1954,7 +2032,7 @@ class WatchApp extends React.Component {
                     {items.map((item) => (
                         <div
                             key={item.id}
-                            onClick={() => this.onVideoCardClick(item.id)}
+                            onClick={() => this.onVideoCardClick(item.id, item.startMs)}
                             className="cursor-pointer flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
                             <div className="relative" style={{ paddingBottom: "75%" }}>
                                 <img
