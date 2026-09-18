@@ -151,9 +151,15 @@ function enqueueBreakdowns(params, successCallback, errorCallback, context) {
     makeJsonApiRequest(url, params, successCallback, errorCallback, context, "lala", true);
 }
 
-function loadSuggestedVideos(successCallback, errorCallback) {
-    const url = `/qarauapi/v1/suggested_videos`;
-    makeGetApiRequest(url, successCallback, errorCallback, null, "lala", true);
+function loadTopics(successCallback, errorCallback, context) {
+    const url = `/qarauapi/v1/topics`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
+function loadVideosOnTopics(topics, successCallback, errorCallback, context) {
+    const query = encodeQueryData({ topics: topics.join(",") });
+    const url = `/qarauapi/v1/videos_on_topics?${query}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
 function loadSuggestedPlaylists(cursor, successCallback, errorCallback, context) {
@@ -186,7 +192,8 @@ export {
     loadSubtitles,
     loadBreakdowns,
     enqueueBreakdowns,
-    loadSuggestedVideos,
+    loadTopics,
+    loadVideosOnTopics,
     loadSuggestedPlaylists,
     loadPlaylistPage,
 };

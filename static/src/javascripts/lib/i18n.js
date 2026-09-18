@@ -1760,9 +1760,9 @@ function prepareWatchOnlyTranslations(map) {
         "No subtitles available",
         "Субтитры отсутствуют",
     );
-    setEnRu(map, "tabRandomClips",
-        "Random clips",
-        "Случайные ролики",
+    setEnRu(map, "tabRecommendations",
+        "Recommendations",
+        "Рекомендации",
     );
     setEnRu(map, "tabPlaylists",
         "Playlists",
@@ -1779,6 +1779,78 @@ function prepareWatchOnlyTranslations(map) {
     setEnRu(map, "playlistsLoadError",
         "Failed to load playlists",
         "Не удалось загрузить плейлисты",
+    );
+    setEnRu(map, "pickTopicsPrompt",
+        "Pick 3 or more topics to setup recommendations",
+        "Выберите 3 или больше тем, чтобы настроить рекомендации",
+    );
+    setEnRu(map, "showRecommendations",
+        "Show recommendations",
+        "Показать рекомендации",
+    );
+    setEnRu(map, "configureTopics",
+        "Configure topics",
+        "Настроить темы",
+    );
+    setEnRu(map, "topicsLoadError",
+        "Failed to load topics",
+        "Не удалось загрузить темы",
+    );
+    setEnRu(map, "recommendationsLoadError",
+        "Failed to load recommendations",
+        "Не удалось загрузить рекомендации",
+    );
+    setEnRu(map, "recommendationsEmpty",
+        "No videos on the selected topics yet",
+        "Пока нет видео по выбранным темам",
+    );
+    setEnRu(map, "retryButton",
+        "Try again",
+        "Повторить",
+    );
+    setEnRu(map, "topic_cars",
+        "Cars",
+        "Автомобили",
+    );
+    setEnRu(map, "topic_comedy",
+        "Comedy",
+        "Юмор",
+    );
+    setEnRu(map, "topic_food",
+        "Food",
+        "Еда",
+    );
+    setEnRu(map, "topic_history",
+        "History",
+        "История",
+    );
+    setEnRu(map, "topic_kids",
+        "Kids",
+        "Детям",
+    );
+    setEnRu(map, "topic_news",
+        "News",
+        "Новости",
+    );
+    setEnRu(map, "topic_podcast",
+        "Podcasts",
+        "Подкасты",
+    );
+    setEnRu(map, "topic_science",
+        "Science",
+        "Наука",
+    );
+    setEnRu(map, "topic_travel",
+        "Travel",
+        "Путешествия",
+    );
+    setEnRu(map, "topic_tv_series",
+        "TV series",
+        "Сериалы",
+    );
+    setEnRu(map, "topic_vlogs",
+        "Vlogs",
+        "Влоги",
     );
     setEnRu(map, "playlistItemCountTempl",
         (n) => `${n} videos`,
@@ -1943,6 +2015,16 @@ function i18n(key, language) {
     return `<TRANSLATION_NOT_FOUND: ${key}>`;
 }
 
+// The backend can add a topic before its translation lands here, so an unknown
+// slug falls back to its own prettified spelling.
+function topicLabel(slug, language) {
+    const key = `topic_${slug}`;
+    if (getTextTranslations().has(key)) {
+        return i18n(key, language);
+    }
+    return slug.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
+
 function checkLang(lang) {
     return lang == I18N_LANG_EN || lang == I18N_LANG_RU;
 }
@@ -2014,6 +2096,7 @@ export {
     I18N_LANG_RU,
     I18N_LANG_KK,
     i18n,
+    topicLabel,
     storeUiLang,
     retrieveUiLang,
     clearUiLang,

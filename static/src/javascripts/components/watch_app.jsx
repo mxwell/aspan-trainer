@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams, parseTimeParamMs } from "../lib/url";
 import { i18n, I18N_LANG_RU } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedVideos, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
+import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import {
     BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
     BREAKDOWN_NO_SENTENCES,
@@ -13,6 +13,9 @@ import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { AiAnalysisSentences, AiAnalysisSentenceText } from "./ai_analysis_sentences";
+import { RecommendationsTab } from "./recommendations_tab";
+import { Spinner } from "./spinner";
+import { VideoGrid, formatDuration } from "./video_grid";
 
 const APP_MODE_PROMPT = 1;
 const APP_MODE_PROCESSING = 2;
@@ -26,7 +29,7 @@ const VIDEO_UNSTARTED = -1;
 const VIDEO_PLAYING = 1;
 const VIDEO_CUED = 5;
 
-const PROMPT_TAB_RANDOM = "random";
+const PROMPT_TAB_RECS = "recs";
 const PROMPT_TAB_PLAYLISTS = "playlists";
 const PROMPT_TAB_HISTORY = "history";
 
@@ -108,17 +111,6 @@ function resumePositionMs(positionMs, durationSecs) {
         return null;
     }
     return positionMs;
-}
-
-function formatDuration(totalSecs) {
-    const secs = totalSecs % 60;
-    const mins = Math.floor(totalSecs / 60) % 60;
-    const hours = Math.floor(totalSecs / 3600);
-    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-    if (hours > 0) {
-        return `${hours}:${pad(mins)}:${pad(secs)}`;
-    }
-    return `${mins}:${pad(secs)}`;
 }
 
 function formatElapsedDuration(totalMs) {
@@ -329,8 +321,6 @@ class WatchApp extends React.Component {
         this.requestSubtitlesPage = this.requestSubtitlesPage.bind(this);
         this.handleSubtitlesResponse = this.handleSubtitlesResponse.bind(this);
         this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
-        this.handleSuggestedVideosSuccess = this.handleSuggestedVideosSuccess.bind(this);
-        this.handleSuggestedVideosError = this.handleSuggestedVideosError.bind(this);
         this.onVideoCardClick = this.onVideoCardClick.bind(this);
         this.onPromptTabClick = this.onPromptTabClick.bind(this);
         this.handleSuggestedPlaylistsSuccess = this.handleSuggestedPlaylistsSuccess.bind(this);
@@ -381,8 +371,7 @@ class WatchApp extends React.Component {
         return {
             appMode: appMode,
             videoId: videoId || null,
-            promptTab: PROMPT_TAB_RANDOM,
-            suggestedVideos: [],
+            promptTab: PROMPT_TAB_RECS,
             playlists: [],
             playlistsLoading: false,
             playlistsLoadingMore: false,
@@ -444,8 +433,6 @@ class WatchApp extends React.Component {
             }
         } else if (this.state.playlist) {
             this.requestPlaylistOverview(this.state.playlist);
-        } else {
-            loadSuggestedVideos(this.handleSuggestedVideosSuccess, this.handleSuggestedVideosError);
         }
     }
 
@@ -1803,18 +1790,7 @@ class WatchApp extends React.Component {
         this.failBreakdownJob("aiAnalysisFailed");
     }
 
-    // ===== APP_MODE_PROMPT: suggested videos =====
-
-    async handleSuggestedVideosSuccess(context, responseJsonPromise) {
-        const resp = await responseJsonPromise;
-        const videos = (resp && resp.videos) || [];
-        this.setState({ suggestedVideos: videos });
-    }
-
-    async handleSuggestedVideosError(context, responseTextPromise) {
-        const text = await responseTextPromise;
-        console.log("suggested videos error:", text);
-    }
+    // ===== APP_MODE_PROMPT =====
 
     onVideoCardClick(videoId, startMs) {
         this.probeById(videoId, startMs);
@@ -1937,7 +1913,7 @@ class WatchApp extends React.Component {
 
     renderPromptTabs() {
         const tabs = [
-            { key: PROMPT_TAB_RANDOM, labelKey: "tabRandomClips" },
+            { key: PROMPT_TAB_RECS, labelKey: "tabRecommendations" },
             { key: PROMPT_TAB_PLAYLISTS, labelKey: "tabPlaylists" },
             { key: PROMPT_TAB_HISTORY, labelKey: "tabHistory" },
         ];
@@ -1963,16 +1939,19 @@ class WatchApp extends React.Component {
         );
     }
 
+    // The recommendations tab stays mounted, hidden, so switching tabs and back
+    // doesn't drop its loaded topics and videos.
     renderPromptTabContent() {
-        switch (this.state.promptTab) {
-            case PROMPT_TAB_PLAYLISTS:
-                return this.renderPlaylists();
-            case PROMPT_TAB_HISTORY:
-                return this.renderHistory();
-            case PROMPT_TAB_RANDOM:
-            default:
-                return this.renderSuggestedVideos();
-        }
+        const tab = this.state.promptTab;
+        return (
+            <div>
+                <div className={tab === PROMPT_TAB_RECS ? "" : "hidden"}>
+                    <RecommendationsTab lang={this.props.lang} onVideoClick={this.onVideoCardClick} />
+                </div>
+                {tab === PROMPT_TAB_PLAYLISTS && this.renderPlaylists()}
+                {tab === PROMPT_TAB_HISTORY && this.renderHistory()}
+            </div>
+        );
     }
 
     renderComingSoon(labelKey) {
@@ -1981,23 +1960,6 @@ class WatchApp extends React.Component {
                 {this.i18n(labelKey)}
             </div>
         );
-    }
-
-    renderSuggestedVideos() {
-        const videos = this.state.suggestedVideos || [];
-        if (videos.length === 0) {
-            return null;
-        }
-        const items = videos.map((v) => ({
-            id: v.online_video_id,
-            title: v.title,
-            channelTitle: v.channel_title,
-            thumbnailUrl: v.thumbnail_url,
-            thumbnailWidth: v.thumbnail_width,
-            thumbnailHeight: v.thumbnail_height,
-            durationSecs: v.duration_secs,
-        }));
-        return this.renderVideoGrid(items);
     }
 
     renderHistory() {
@@ -2016,69 +1978,11 @@ class WatchApp extends React.Component {
             positionMs: h.positionMs,
             startMs: resumePositionMs(h.positionMs, h.durationSecs),
         }));
-        return this.renderVideoGrid(items);
-    }
-
-    // Shared grid for any list of {id, title, channelTitle, thumbnailUrl,
-    // thumbnailWidth, thumbnailHeight, durationSecs, positionMs?, startMs?} items.
-    // positionMs is optional - when present, a YouTube-style watched-progress
-    // strip is drawn along the bottom edge of the thumbnail.
-    //
-    // startMs is optional, where playback should resume from.
-    renderVideoGrid(items) {
-        return (
-            <div className="mt-4 px-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {items.map((item) => (
-                        <div
-                            key={item.id}
-                            onClick={() => this.onVideoCardClick(item.id, item.startMs)}
-                            className="cursor-pointer flex flex-col rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
-                            <div className="relative" style={{ paddingBottom: "75%" }}>
-                                <img
-                                    src={item.thumbnailUrl}
-                                    alt={item.title}
-                                    width={item.thumbnailWidth}
-                                    height={item.thumbnailHeight}
-                                    className="absolute inset-0 w-full h-full object-cover" />
-                                <span className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-sm px-1 rounded">
-                                    {formatDuration(item.durationSecs)}
-                                </span>
-                                {item.positionMs != null && this.renderWatchProgress(item.positionMs, item.durationSecs)}
-                            </div>
-                            <div className="p-2">
-                                <div className="text-base font-medium text-gray-800 truncate" title={item.title}>{item.title}</div>
-                                <div className="text-sm text-gray-500 mt-1">{item.channelTitle}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    renderWatchProgress(positionMs, durationSecs) {
-        const durationMs = durationSecs * 1000;
-        const pct = durationMs > 0 ? Math.min(100, Math.round((positionMs / durationMs) * 100)) : 0;
-        // Floor the visible width so even a few seconds into a long video shows
-        // as a sliver rather than disappearing under rounding - both as a percent
-        // (pct itself can round to 0 for small-but-real progress) and in pixels
-        // (1% of a narrow card can round below a device pixel).
-        const displayPct = positionMs > 0 ? Math.max(1, pct) : 0;
-        return (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300 bg-opacity-75">
-                <div className="h-1 bg-red-600" style={{ width: displayPct + "%", minWidth: displayPct > 0 ? "2px" : 0 }}></div>
-            </div>
-        );
+        return <VideoGrid items={items} onVideoClick={this.onVideoCardClick} />;
     }
 
     renderSpinner(className) {
-        return (
-            <div
-                className={className}
-                style={{ borderTopColor: "#3b82f6", borderRightColor: "#3b82f6" }}>
-            </div>
-        );
+        return <Spinner className={className} />;
     }
 
     renderPlaylists() {
