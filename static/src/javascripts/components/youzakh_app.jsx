@@ -3,6 +3,13 @@ import { i18n } from "../lib/i18n";
 import { searchTranscriptions, searchInTranscription } from "../lib/requests";
 import { Keyboard, backspaceTextInput, insertIntoTextInput } from "./keyboard";
 import { buildYouzakhUrl } from "../lib/url";
+import {
+    computeDisplayedCue, computeActiveWordIndex,
+    computeSeekTargetMs, computeNextTickDelayMs,
+} from "../lib/subtitles";
+import { SubtitleWindow } from "../lib/subtitle_window";
+import { VIDEO_UNSTARTED, VIDEO_PLAYING, VIDEO_CUED } from "../lib/yt_player";
+import { SubtitleCue } from "./subtitle_cue";
 import { Spinner } from "./spinner";
 
 const MODE_SEARCH_FORM = 1;
@@ -46,12 +53,20 @@ class YouzakhApp extends React.Component {
         this.bootYouTubePlayer = this.bootYouTubePlayer.bind(this);
         this.loadVideo = this.loadVideo.bind(this);
         this.onPlayerReady = this.onPlayerReady.bind(this);
+        this.onPlayerStateChange = this.onPlayerStateChange.bind(this);
+        this.onPlayerRateChange = this.onPlayerRateChange.bind(this);
+        this.tick = this.tick.bind(this);
+        this.onSubtitlesUpdate = this.onSubtitlesUpdate.bind(this);
+        this.onWordClick = this.onWordClick.bind(this);
 
         this.inputRef = React.createRef();
         this.player = null;
         this.playerReady = false;
         this.loadedVideoId = null;
         this.startMs = 0;
+        this.tickTimer = null;
+        this.lastPositionMs = 0;
+        this.subtitleWindow = new SubtitleWindow(this.onSubtitlesUpdate);
         // Guards against responses of superseded requests: a second search, or a
         // video switched away from before its matches arrived.
         this.searchGen = 0;
@@ -70,6 +85,11 @@ class YouzakhApp extends React.Component {
             notFound: false,
             error: null,
             keyboard: false,
+            subtitles: [],
+            subtitlesLoading: false,
+            currentCueIndex: -1,
+            currentCueUpcoming: false,
+            positionMs: 0,
         };
     }
 
@@ -97,6 +117,10 @@ class YouzakhApp extends React.Component {
     // IFrame API replaces that div's content outside React's knowledge, and React
     // removing a child it never rendered throws.
     teardownPlayer() {
+        if (this.tickTimer) {
+            clearTimeout(this.tickTimer);
+            this.tickTimer = null;
+        }
         if (this.player) {
             try {
                 this.player.destroy();
@@ -107,6 +131,8 @@ class YouzakhApp extends React.Component {
         }
         this.playerReady = false;
         this.loadedVideoId = null;
+        this.lastPositionMs = 0;
+        this.subtitleWindow.reset(null);
     }
 
     onPopState() {
@@ -194,6 +220,11 @@ class YouzakhApp extends React.Component {
             matchesLoading: false,
             notFound: false,
             error: null,
+            subtitles: [],
+            subtitlesLoading: false,
+            currentCueIndex: -1,
+            currentCueUpcoming: false,
+            positionMs: 0,
         });
     }
 
@@ -218,6 +249,11 @@ class YouzakhApp extends React.Component {
             matchesLoading: false,
             notFound: false,
             error: null,
+            subtitles: [],
+            subtitlesLoading: false,
+            currentCueIndex: -1,
+            currentCueUpcoming: false,
+            positionMs: 0,
         });
         searchTranscriptions(query, this.handleSearchResponse, this.handleSearchError, { token });
     }
@@ -246,7 +282,11 @@ class YouzakhApp extends React.Component {
             matchesById,
             videoIndex: 0,
             matchIndex: 0,
-        }, this.bootYouTubePlayer);
+            subtitlesLoading: true,
+        }, () => {
+            this.startTranscript(transcription.transcription_id, this.startMs);
+            this.bootYouTubePlayer();
+        });
     }
 
     async handleSearchError(context, responseTextPromise) {
@@ -311,6 +351,8 @@ class YouzakhApp extends React.Component {
             playerVars: { autoplay: 1, start: startSecs },
             events: {
                 onReady: this.onPlayerReady,
+                onStateChange: this.onPlayerStateChange,
+                onPlaybackRateChange: this.onPlayerRateChange,
             },
         });
     }
@@ -324,6 +366,132 @@ class YouzakhApp extends React.Component {
         if (this.loadedVideoId != null && videoData && videoData.video_id !== this.loadedVideoId) {
             this.player.loadVideoById({ videoId: this.loadedVideoId, startSeconds: this.startMs / 1000 });
         }
+        this.tick();
+    }
+
+    onPlayerStateChange(event) {
+        this.tick();
+    }
+
+    // A speed change invalidates the delay the pending timer was scheduled with
+    // (it was computed against the old rate), so re-tick immediately rather than
+    // waiting for it to fire late/early.
+    onPlayerRateChange(event) {
+        this.tick();
+    }
+
+    // ===== Subtitles: cues under the matching sentence, following the playhead =====
+
+    // Points the subtitle window at a transcript - or at none, with a null id,
+    // while the matches of the next video are still on their way - and loads the
+    // cues around where playback is about to start.
+    startTranscript(transcriptionId, startMs) {
+        this.lastPositionMs = startMs;
+        this.subtitleWindow.reset(transcriptionId);
+        this.setState({
+            subtitles: [],
+            // The jump below starts a load right away; saying so here keeps the
+            // empty window from rendering as "no subtitles" in between.
+            subtitlesLoading: transcriptionId != null,
+            currentCueIndex: -1,
+            currentCueUpcoming: false,
+            positionMs: startMs,
+        });
+        if (transcriptionId != null) {
+            this.subtitleWindow.jumpTo(startMs);
+        }
+    }
+
+    // The subtitle window started or finished a request, or delivered cues.
+    onSubtitlesUpdate(update) {
+        if (update.items == null) {
+            this.setState({ subtitlesLoading: update.loading });
+            return;
+        }
+        const subtitles = update.items;
+        const cue = computeDisplayedCue(this.lastPositionMs, subtitles);
+        this.setState({
+            subtitles,
+            subtitlesLoading: false,
+            currentCueIndex: cue.index,
+            currentCueUpcoming: cue.upcoming,
+            positionMs: this.lastPositionMs,
+        });
+    }
+
+    tick() {
+        // Clear any pending tick so rapid onStateChange events can't stack timers.
+        if (this.tickTimer) {
+            clearTimeout(this.tickTimer);
+            this.tickTimer = null;
+        }
+        if (!this.player || !this.playerReady) {
+            return;
+        }
+        const positionMs = this.currentPositionMs();
+        const { index, upcoming, activeWordIndex } = this.updateCurrentCue(positionMs);
+        this.subtitleWindow.syncTo(positionMs);
+        if (this.player.getPlayerState() === VIDEO_PLAYING) {
+            const delay = computeNextTickDelayMs(
+                positionMs, this.player.getPlaybackRate(), this.state.subtitles || [], index, upcoming, activeWordIndex
+            );
+            this.tickTimer = setTimeout(() => this.tick(), delay);
+        }
+    }
+
+    // The playhead as the rest of the app should see it. The `start` cue
+    // parameter positions the player, but one that hasn't begun playing can
+    // still report 0 for a moment; taking that at face value would load the cues
+    // of the video's opening instead of the ones around the match. Inert once
+    // the player leaves the unstarted/cued states.
+    currentPositionMs() {
+        const reportedMs = Math.floor(this.player.getCurrentTime() * 1000);
+        if (this.startMs <= 0 || reportedMs >= this.startMs) {
+            return reportedMs;
+        }
+        const state = this.player.getPlayerState();
+        if (state === VIDEO_UNSTARTED || state === VIDEO_CUED) {
+            return this.startMs;
+        }
+        return reportedMs;
+    }
+
+    updateCurrentCue(positionMs) {
+        this.lastPositionMs = positionMs;
+        const subtitles = this.state.subtitles || [];
+        const { index, upcoming } = computeDisplayedCue(positionMs, subtitles);
+        const activeWordIndex = (!upcoming && index !== -1)
+            ? computeActiveWordIndex(positionMs, subtitles[index].words)
+            : -1;
+        this.setState({ currentCueIndex: index, currentCueUpcoming: upcoming, positionMs });
+        return { index, upcoming, activeWordIndex };
+    }
+
+    // Jumps playback to a word of the cue on screen, leaving the player playing
+    // or paused as it was. The matching sentence above stays put: it is where
+    // the search landed, not where playback is.
+    onWordClick(wordIndex) {
+        if (!this.player || !this.playerReady) {
+            return;
+        }
+        const subtitles = this.state.subtitles || [];
+        const cueIndex = this.state.currentCueIndex;
+        if (cueIndex < 0 || cueIndex >= subtitles.length) {
+            return;
+        }
+        const words = subtitles[cueIndex].words || [];
+        if (wordIndex < 0 || wordIndex >= words.length) {
+            return;
+        }
+        // Falls back to 0 when the preceding cue isn't loaded (right after a
+        // jump) or doesn't exist - then the lead is capped by the video start.
+        const prevBoundaryMs = cueIndex > 0 ? subtitles[cueIndex - 1].end_ms : 0;
+        const targetMs = computeSeekTargetMs(words, wordIndex, prevBoundaryMs);
+        this.player.seekTo(targetMs / 1000, true);
+        // getCurrentTime() can still report the pre-seek position for a moment,
+        // so drive the UI from the target we asked for; the tick corrects drift.
+        this.updateCurrentCue(targetMs);
+        this.tick();
     }
 
     // Moves the playhead to a match, loading another video first when the jump
@@ -343,6 +511,10 @@ class YouzakhApp extends React.Component {
         }
         this.player.seekTo(startMs / 1000, true);
         this.player.playVideo();
+        // getCurrentTime() can still report the pre-seek position for a moment,
+        // so drive the UI from the target we asked for; the tick corrects drift.
+        this.updateCurrentCue(startMs);
+        this.tick();
     }
 
     // A video without matches is still worth showing, but there is nothing to
@@ -403,6 +575,7 @@ class YouzakhApp extends React.Component {
             } else {
                 this.cueVideo(transcription.online_video_id);
             }
+            this.startTranscript(transcription.transcription_id, this.startMs);
             return;
         }
 
@@ -414,6 +587,9 @@ class YouzakhApp extends React.Component {
             this.player.pauseVideo();
         }
         this.setState({ videoIndex, matchIndex: 0, matchesLoading: true, error: null });
+        // The cues of the video left behind would otherwise stay under a
+        // sentence that no longer belongs to them.
+        this.startTranscript(null, 0);
         searchInTranscription(
             transcription.transcription_id,
             this.state.submittedQuery,
@@ -436,12 +612,13 @@ class YouzakhApp extends React.Component {
         const results = (resp && resp.results) ? resp.results : [];
         let matchesById = Object.assign({}, this.state.matchesById);
         matchesById[context.transcriptionId] = results;
-        this.setState({ matchesById, matchIndex: 0, matchesLoading: false });
+        this.setState({ matchesById, matchIndex: 0, matchesLoading: false, subtitlesLoading: true });
         if (results.length > 0) {
             this.jumpTo(results[0].start_ms, context.videoId);
         } else {
             this.cueVideo(context.videoId);
         }
+        this.startTranscript(context.transcriptionId, this.startMs);
     }
 
     async handleMatchesError(context, responseTextPromise) {
@@ -588,7 +765,30 @@ class YouzakhApp extends React.Component {
                     {`${this.i18n("youzakhMatchCounter")} ${this.state.matchIndex + 1}/${matches.length}`}
                 </div>
                 <div className="mt-1 text-base lg:text-lg text-gray-800">{match.text}</div>
+                {this.renderSubtitles()}
             </div>
+        );
+    }
+
+    // Follows the playhead under the static matching sentence: cues are swapped
+    // as playback moves on, and more are loaded when it nears the end of what is
+    // in the window.
+    renderSubtitles() {
+        const subtitles = this.state.subtitles || [];
+        const idx = this.state.currentCueIndex;
+
+        if (subtitles.length === 0) {
+            const key = this.state.subtitlesLoading ? "isLoading" : "noSubtitles";
+            return <SubtitleCue notice={this.i18n(key)} />;
+        }
+        const inRange = idx != null && idx >= 0 && idx < subtitles.length;
+        return (
+            <SubtitleCue
+                cue={inRange ? subtitles[idx] : null}
+                upcoming={!!this.state.currentCueUpcoming}
+                positionMs={this.state.positionMs || 0}
+                prevCueEndMs={inRange && idx > 0 ? subtitles[idx - 1].end_ms : 0}
+                onWordClick={this.onWordClick} />
         );
     }
 

@@ -14,6 +14,7 @@ import {
     computeSeekTargetMs, computeNextTickDelayMs,
 } from "../lib/subtitles";
 import { SubtitleWindow } from "../lib/subtitle_window";
+import { VIDEO_UNSTARTED, VIDEO_PLAYING, VIDEO_CUED } from "../lib/yt_player";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
@@ -30,10 +31,6 @@ const APP_MODE_ERROR = 4;
 const APP_MODE_PREVIEW = 5;
 const APP_MODE_PROBING = 6;
 const APP_MODE_PLAYLIST = 7;
-
-const VIDEO_UNSTARTED = -1;
-const VIDEO_PLAYING = 1;
-const VIDEO_CUED = 5;
 
 const PROMPT_TAB_RECS = "recs";
 const PROMPT_TAB_PLAYLISTS = "playlists";
