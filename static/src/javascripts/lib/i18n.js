@@ -1974,6 +1974,65 @@ function prepareWatchOnlyTranslations(map) {
     );
 }
 
+function prepareYouzakhOnlyTranslations(map) {
+    setEnRu(map, "titleYouzakh",
+        "YouZakh",
+        "YouZakh",
+    );
+    setEnRu(map, "youzakhIntro",
+        "Find how a Kazakh word or phrase is used in real YouTube videos.",
+        "Узнайте, как казахское слово или фраза звучит в настоящих YouTube-видео.",
+    );
+    setEnRu(map, "youzakhHintQuery",
+        "Enter a word or a phrase in Kazakh",
+        "Введите слово или фразу на казахском",
+    );
+    setEnRu(map, "youzakhSearchButton",
+        "Search YouTube",
+        "Искать на YouTube",
+    );
+    setEnRu(map, "youzakhNothingFound",
+        "Nothing found",
+        "Ничего не найдено",
+    );
+    setEnRu(map, "youzakhSearchFailed",
+        "Search failed, please try again",
+        "Не удалось выполнить поиск, попробуйте ещё раз",
+    );
+    setEnRu(map, "youzakhNewSearch",
+        "New search",
+        "Новый поиск",
+    );
+    setEnRu(map, "youzakhPrevVideo",
+        "Prev video",
+        "Пред. видео",
+    );
+    setEnRu(map, "youzakhPrevMatch",
+        "Prev match",
+        "Пред. совпадение",
+    );
+    setEnRu(map, "youzakhNextMatch",
+        "Next match",
+        "След. совпадение",
+    );
+    setEnRu(map, "youzakhNextVideo",
+        "Next video",
+        "След. видео",
+    );
+    setEnRu(map, "youzakhVideoCounter",
+        "Video",
+        "Видео",
+    );
+    setEnRu(map, "youzakhMatchCounter",
+        "Match",
+        "Совпадение",
+    );
+    setEnRu(map, "youzakhNoMatchesInVideo",
+        "No matches in this video",
+        "В этом видео совпадений нет",
+    );
+}
+
 function prepareTranslations() {
     const map = new Map();
 
@@ -1990,6 +2049,7 @@ function prepareTranslations() {
     prepareGymOnlyTranslations(map);
     prepareGcOnlyTranslations(map);
     prepareWatchOnlyTranslations(map);
+    prepareYouzakhOnlyTranslations(map);
 
     return map;
 }

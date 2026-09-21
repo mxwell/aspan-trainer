@@ -237,6 +237,14 @@ function buildWatchUrl(params, lang) {
     return buildUrl(path, params);
 }
 
+function buildYouzakhUrl(params, lang) {
+    const path = `/youzakh_${lang}.html`;
+    if (params.length == 0) {
+        return path;
+    }
+    return buildUrl(path, params);
+}
+
 function buildGlosbeUrl(verb, lang) {
     return `https://glosbe.com/kk/${lang}/${encodeURI(verb)}`;
 }
@@ -280,6 +288,7 @@ export {
     buildGcCreatePrefilledUrl,
     buildGcReviewsUrl,
     buildWatchUrl,
+    buildYouzakhUrl,
     parseParams,
     parseTimeParamMs,
     buildGlosbeUrl,

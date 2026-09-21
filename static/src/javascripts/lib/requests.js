@@ -162,6 +162,18 @@ function loadVideosOnTopics(topics, successCallback, errorCallback, context) {
     makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
 }
 
+function searchTranscriptions(query, successCallback, errorCallback, context) {
+    const queryStr = encodeQueryData({ q: query });
+    const url = `/qarauapi/v1/transcriptions/search?${queryStr}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
+function searchInTranscription(transcriptionId, query, successCallback, errorCallback, context) {
+    const queryStr = encodeQueryData({ q: query });
+    const url = `/qarauapi/v1/transcription/${transcriptionId}/search?${queryStr}`;
+    makeGetApiRequest(url, successCallback, errorCallback, context, "lala", true);
+}
+
 function loadSuggestedPlaylists(cursor, successCallback, errorCallback, context) {
     const query = cursor === "" ? "" : `?${encodeQueryData({ cursor })}`;
     const url = `/qarauapi/v1/suggested_playlists${query}`;
@@ -196,4 +208,6 @@ export {
     loadVideosOnTopics,
     loadSuggestedPlaylists,
     loadPlaylistPage,
+    searchTranscriptions,
+    searchInTranscription,
 };
