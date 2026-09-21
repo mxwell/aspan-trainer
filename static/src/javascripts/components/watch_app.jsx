@@ -9,12 +9,18 @@ import {
     batchSpan, spanContains, findBatch, sentencesForRange, activeSentenceIndex, visibleSentences, mergeBatch,
 } from "../lib/breakdowns";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
+import {
+    SUBTITLE_BUFFER_MS, SUBTITLE_WORD_COUNT,
+    computeDisplayedCue, computeActiveIndex, computeActiveWordIndex,
+    computeSeekTargetMs, computeNextTickDelayMs,
+} from "../lib/subtitles";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
 import { AiAnalysisSentences, AiAnalysisSentenceText } from "./ai_analysis_sentences";
 import { RecommendationsTab } from "./recommendations_tab";
 import { Spinner } from "./spinner";
+import { SubtitleCue } from "./subtitle_cue";
 import { VideoGrid, formatDuration } from "./video_grid";
 
 const APP_MODE_PROMPT = 1;
@@ -33,10 +39,6 @@ const PROMPT_TAB_RECS = "recs";
 const PROMPT_TAB_PLAYLISTS = "playlists";
 const PROMPT_TAB_HISTORY = "history";
 
-const SUBTITLE_BUFFER_MS = 10000;
-const SUBTITLE_WORD_COUNT = 150;
-const TICK_MS = 500;
-const MIN_TICK_MS = 50;
 const PROCESSING_POLL_MS = 10000;
 const HISTORY_SAVE_INTERVAL_MS = 10000;
 
@@ -127,42 +129,6 @@ function formatElapsedDuration(totalMs) {
     return `${secs}s`;
 }
 
-function formatCueTimestamp(ms) {
-    const totalSec = Math.floor(ms / 1000);
-    const millis = ms % 1000;
-    const secs = totalSec % 60;
-    const mins = Math.floor(totalSec / 60) % 60;
-    const hours = Math.floor(totalSec / 3600);
-    const pad2 = (n) => (n < 10 ? `0${n}` : `${n}`);
-    const pad3 = (n) => (n < 10 ? `00${n}` : (n < 100 ? `0${n}` : `${n}`));
-    const base = hours > 0
-        ? `${pad2(hours)}:${pad2(mins)}:${pad2(secs)}`
-        : `${pad2(mins)}:${pad2(secs)}`;
-    return `${base}.${pad3(millis)}`;
-}
-
-// Returns the single cue to display at `positionMs`: the cue that contains the
-// position when one is playing, otherwise the next upcoming cue (during a silent
-// gap). `upcoming` is true in the gap case so the view can de-emphasize it.
-function computeDisplayedCue(positionMs, subtitles) {
-    let containing = -1;
-    let nextIdx = -1;
-    for (let i = 0; i < subtitles.length; ++i) {
-        const sub = subtitles[i];
-        if (sub.start_ms > positionMs) {
-            nextIdx = i; // first cue starting after us → upcoming
-            break;
-        }
-        if (positionMs <= sub.end_ms) {
-            containing = i; // position is within [start_ms, end_ms] → playing
-            break;
-        }
-    }
-    if (containing !== -1) return { index: containing, upcoming: false };
-    if (nextIdx !== -1) return { index: nextIdx, upcoming: true };
-    return { index: -1, upcoming: false };
-}
-
 // Letters (Kazakh Cyrillic and Latin) or digits - the character classes that make
 // a token worth a breakdown card.
 const BREAKDOWN_CONTENT_RE = /[A-Za-zА-Яа-яЁӘІҢҒҮҰҚӨҺёәіңғүұқөһ0-9]/;
@@ -174,75 +140,9 @@ function isBreakdownWorthy(token) {
     return BREAKDOWN_CONTENT_RE.test(token);
 }
 
-// Returns the index of the currently active item - the last one whose start has
-// passed - so the highlight persists through any micro-gap until the next item
-// begins. Returns -1 if before the first item. `startOf` returns an item's start
-// in ms, or null for items that carry no timing (never active, and skipped over
-// so a timed item's highlight survives them).
-function computeActiveIndex(positionMs, items, startOf) {
-    let active = -1;
-    for (let i = 0; i < items.length; ++i) {
-        const start = startOf(items[i]);
-        if (start == null) continue;
-        if (start > positionMs) break;
-        active = i;
-    }
-    return active;
-}
-
-function computeActiveWordIndex(positionMs, words) {
-    return computeActiveIndex(positionMs, words, (w) => w.start_ms);
-}
-
 // Breakdown parts synthesized from unrecognized content carry null timings.
 function computeActivePartIndex(positionMs, breakdown) {
     return computeActiveIndex(positionMs, breakdown, (p) => p.startTime);
-}
-
-function wordClass(active) {
-    const base = "inline-block rounded px-1 py-1 cursor-pointer transition-colors duration-150";
-    return active ? `${base} bg-yellow-300` : `${base} hover:bg-yellow-100`;
-}
-
-const CLICK_SEEK_LEAD_MS = 500;
-
-// Where to jump when a word is clicked. Seeking exactly to a word's start tends
-// to clip its first phoneme, so back up a little - but never past the
-// predecessor, or the click would replay the word before the one asked for.
-// `prevBoundaryMs` is where the predecessor of the cue's first word ends.
-function computeSeekTargetMs(words, wordIndex, prevBoundaryMs) {
-    const word = words[wordIndex];
-    const prevEnd = wordIndex > 0 ? words[wordIndex - 1].end_ms : prevBoundaryMs;
-    // Timings can touch or overlap, so the gap needs a floor of zero.
-    const gap = Math.max(0, word.start_ms - prevEnd);
-    return Math.max(0, word.start_ms - Math.min(CLICK_SEEK_LEAD_MS, gap));
-}
-
-// Computes how long to wait before the next tick so it lands as close as
-// possible to the next event that could change what's displayed: the next
-// word's start (for word highlighting), the next cue's start (during a
-// silent gap), or a bounded fallback poll otherwise. Clamped to
-// [MIN_TICK_MS, TICK_MS] so a seek that doesn't produce a player state-change
-// event (a known YouTube IFrame API quirk) is still caught within TICK_MS.
-function computeNextTickDelayMs(positionMs, playbackRate, subtitles, cueIndex, upcoming, activeWordIndex) {
-    const rate = playbackRate > 0 ? playbackRate : 1;
-
-    if (cueIndex === -1 || cueIndex >= subtitles.length) {
-        return TICK_MS;
-    }
-
-    const cue = subtitles[cueIndex];
-    let targetMs;
-    if (upcoming) {
-        targetMs = cue.start_ms;
-    } else {
-        const words = cue.words || [];
-        const nextWord = words[activeWordIndex + 1];
-        targetMs = nextWord ? nextWord.start_ms : cue.end_ms;
-    }
-
-    const delay = (targetMs - positionMs) / rate;
-    return Math.min(TICK_MS, Math.max(MIN_TICK_MS, delay));
 }
 
 function isProcessingState(state) {
@@ -2327,74 +2227,21 @@ class WatchApp extends React.Component {
     renderSubtitles() {
         const subtitles = this.state.subtitles || [];
         const idx = this.state.currentCueIndex;
-        const upcoming = !!this.state.currentCueUpcoming;
-        const positionMs = this.state.positionMs || 0;
 
-        if (this.state.subtitlesLoading && subtitles.length === 0) {
-            return (
-                <div className="text-center text-base text-gray-500">{this.i18n("isLoading")}</div>
-            );
-        }
         if (subtitles.length === 0) {
-            return (
-                <div className="text-center text-base text-gray-500">{this.i18n("noSubtitles")}</div>
-            );
+            const key = this.state.subtitlesLoading ? "isLoading" : "noSubtitles";
+            return <SubtitleCue notice={this.i18n(key)} />;
         }
-        if (idx == null || idx < 0 || idx >= subtitles.length) {
-            return null; // gap after the last loaded cue: nothing to show
-        }
-        const sub = subtitles[idx];
-        const cardClass = upcoming
-            ? "my-2 p-3 rounded bg-gray-100"
-            : "my-2 p-3 rounded bg-blue-50";
-        const stampClass = upcoming
-            ? "font-mono text-sm text-gray-400 mr-2"
-            : "font-mono text-sm text-blue-500 mr-2";
-        const textClass = upcoming
-            ? "text-gray-500 text-2xl lg:text-xl"
-            : "text-gray-800 text-2xl lg:text-xl";
-
-        let gapProgressPct = 100;
-
-        if (upcoming) {
-            // Fill across the silent gap: from the previous cue's end to this cue's start.
-            const gapStart = idx > 0 ? subtitles[idx - 1].end_ms : 0;
-            const gapEnd = sub.start_ms;
-            const total = Math.max(1, gapEnd - gapStart);
-            const elapsed = Math.min(Math.max(positionMs - gapStart, 0), total);
-            gapProgressPct = Math.round((elapsed / total) * 100);
-            //console.log(`upcoming: positionMs ${positionMs}, gapStart ${gapStart}, gapEnd ${gapEnd}, pct ${pct}`)
-        }
-        let progressBar = (
-            <div className="mt-2 h-4 w-20 rounded bg-yellow-300 overflow-hidden">
-                <div
-                    className="h-4 bg-white"
-                    style={{ width: gapProgressPct + "%", transition: "width 0.5s linear" }}>
-                </div>
-            </div>
-        );
-
-        const activeWordIndex = upcoming ? -1 : computeActiveWordIndex(positionMs, sub.words);
-
+        // Outside the loaded range - the gap after the last loaded cue - the
+        // card renders nothing rather than a notice.
+        const inRange = idx != null && idx >= 0 && idx < subtitles.length;
         return (
-            <div className={cardClass}>
-                {progressBar}
-                <span className={stampClass}>{formatCueTimestamp(sub.start_ms)}</span>
-                <span className={textClass}>
-                    {sub.words.map((w, i) => (
-                        // The separating space stays outside the span so only the
-                        // word itself is a click target.
-                        <React.Fragment key={i}>
-                            <span
-                                className={wordClass(i === activeWordIndex)}
-                                onClick={() => this.onWordClick(i)}>
-                                {w.word}
-                            </span>
-                            {" "}
-                        </React.Fragment>
-                    ))}
-                </span>
-            </div>
+            <SubtitleCue
+                cue={inRange ? subtitles[idx] : null}
+                upcoming={!!this.state.currentCueUpcoming}
+                positionMs={this.state.positionMs || 0}
+                prevCueEndMs={inRange && idx > 0 ? subtitles[idx - 1].end_ms : 0}
+                onWordClick={this.onWordClick} />
         );
     }
 
