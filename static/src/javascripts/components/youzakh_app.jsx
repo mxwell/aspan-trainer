@@ -1,6 +1,7 @@
 import React from "react";
 import { i18n } from "../lib/i18n";
 import { searchTranscriptions, searchInTranscription } from "../lib/requests";
+import { Keyboard, backspaceTextInput, insertIntoTextInput } from "./keyboard";
 import { buildYouzakhUrl } from "../lib/url";
 import { Spinner } from "./spinner";
 
@@ -29,6 +30,9 @@ class YouzakhApp extends React.Component {
 
         this.onInputChange = this.onInputChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.onKeyboardClick = this.onKeyboardClick.bind(this);
+        this.onInsert = this.onInsert.bind(this);
+        this.onBackspace = this.onBackspace.bind(this);
         this.onPopState = this.onPopState.bind(this);
         this.onNewSearchClick = this.onNewSearchClick.bind(this);
         this.handleSearchResponse = this.handleSearchResponse.bind(this);
@@ -43,6 +47,7 @@ class YouzakhApp extends React.Component {
         this.loadVideo = this.loadVideo.bind(this);
         this.onPlayerReady = this.onPlayerReady.bind(this);
 
+        this.inputRef = React.createRef();
         this.player = null;
         this.playerReady = false;
         this.loadedVideoId = null;
@@ -64,6 +69,7 @@ class YouzakhApp extends React.Component {
             matchesLoading: false,
             notFound: false,
             error: null,
+            keyboard: false,
         };
     }
 
@@ -116,6 +122,43 @@ class YouzakhApp extends React.Component {
 
     onInputChange(event) {
         this.setState({ query: event.target.value, notFound: false, error: null });
+    }
+
+    onKeyboardClick(event) {
+        event.preventDefault();
+        const keyboard = !this.state.keyboard;
+        this.setState({ keyboard });
+    }
+
+    updateText(change) {
+        this.setState(
+            { query: change.newText, notFound: false, error: null },
+            () => {
+                const input = this.inputRef.current;
+                if (input == null) {
+                    return;
+                }
+                input.selectionStart = change.newSelectionStart;
+                input.selectionEnd = change.newSelectionStart;
+                input.focus();
+            }
+        );
+    }
+
+    onInsert(fragment) {
+        const input = this.inputRef.current;
+        if (input == null) {
+            return;
+        }
+        this.updateText(insertIntoTextInput(input, fragment));
+    }
+
+    onBackspace() {
+        const input = this.inputRef.current;
+        if (input == null) {
+            return;
+        }
+        this.updateText(backspaceTextInput(input));
     }
 
     onSubmit(event) {
@@ -415,28 +458,58 @@ class YouzakhApp extends React.Component {
         return <Spinner className={className} />;
     }
 
+    renderKeyboard() {
+        if (!this.state.keyboard) {
+            return null;
+        }
+        return (
+            <div className="mx-6 py-2 bg-gray-200">
+                <Keyboard
+                    insertCallback={this.onInsert}
+                    backspaceCallback={this.onBackspace}
+                    enterCallback={this.onSubmit}
+                    lat={false} />
+            </div>
+        );
+    }
+
     renderSearchForm() {
+        const keyboardClass = (
+            this.state.keyboard
+            ? "ml-2 flex-shrink-0 px-2 bg-blue-600 hover:bg-blue-700 rounded focus:outline-none"
+            : "ml-2 flex-shrink-0 px-2 bg-gray-400 hover:bg-gray-600 rounded focus:outline-none"
+        );
+        const searching = this.state.searching;
         return (
             <div>
                 <form onSubmit={this.onSubmit} className="px-3 py-2 flex flex-col">
                     <div className="flex flex-row">
                         <input
+                            ref={this.inputRef}
                             type="text"
                             size="44"
                             maxLength={MAX_QUERY_LENGTH}
                             value={this.state.query}
                             placeholder={this.i18n("youzakhHintQuery")}
-                            className="shadow appearance-none border rounded w-full p-3 text-base lg:text-lg text-gray-700 focus:outline-none focus:shadow-outline"
+                            className="shadow appearance-none border rounded flex-1 min-w-0 p-3 text-base lg:text-lg text-gray-700 focus:outline-none focus:shadow-outline"
                             onChange={this.onInputChange}
                             autoFocus />
                         <button
+                            type="button"
+                            onClick={this.onKeyboardClick}
+                            className={keyboardClass}>
+                            <img src="/keyboard.svg" alt="keyboard show or hide" className="h-10" />
+                        </button>
+                        <button
                             type="submit"
-                            disabled={this.state.searching}
-                            className={`ml-2 flex-shrink-0 ${this.state.searching ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-700"} text-white text-base lg:text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline`}>
-                            {this.i18n("youzakhSearchButton")}
+                            disabled={searching}
+                            className={`ml-2 flex-shrink-0 flex flex-row items-center ${searching ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-700"} text-white text-base lg:text-lg font-bold px-4 rounded focus:outline-none focus:shadow-outline`}>
+                            <span className="hidden sm:inline">{this.i18n("youzakhSearchButton")}</span>
+                            <img src="/search.svg" alt="search" className="h-8 sm:hidden" />
                         </button>
                     </div>
                 </form>
+                {this.renderKeyboard()}
                 {this.state.searching && (
                     <div className="flex flex-row justify-center py-4">
                         {this.renderSpinner("animate-spin rounded-full h-6 w-6 border-4 border-gray-200")}
