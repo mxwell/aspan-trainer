@@ -1,7 +1,7 @@
 import React from "react";
 import { buildWatchUrl, parseParams, parseTimeParamMs } from "../lib/url";
 import { i18n, I18N_LANG_RU } from "../lib/i18n";
-import { probeVideo, fetchVideo, loadSubtitles, loadBreakdowns, enqueueBreakdowns, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
+import { probeVideo, fetchVideo, loadBreakdowns, enqueueBreakdowns, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import {
     BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
     BREAKDOWN_NO_SENTENCES,
@@ -10,10 +10,10 @@ import {
 } from "../lib/breakdowns";
 import { saveWatchHistoryEntry, loadWatchHistory } from "../lib/history";
 import {
-    SUBTITLE_BUFFER_MS, SUBTITLE_WORD_COUNT,
     computeDisplayedCue, computeActiveIndex, computeActiveWordIndex,
     computeSeekTargetMs, computeNextTickDelayMs,
 } from "../lib/subtitles";
+import { SubtitleWindow } from "../lib/subtitle_window";
 import { PlaylistRef } from "../lib/playlist";
 import { AnalyzedPart, parseAnalyzeResponse } from "../lib/analyzer";
 import { AnalyzedPartView } from "./analyzed_part_view";
@@ -216,11 +216,7 @@ class WatchApp extends React.Component {
         this.onPlayerRateChange = this.onPlayerRateChange.bind(this);
         this.tick = this.tick.bind(this);
         this.updateCurrentCue = this.updateCurrentCue.bind(this);
-        this.loadSubtitlesIfNeeded = this.loadSubtitlesIfNeeded.bind(this);
-        this.requestSubtitlesJump = this.requestSubtitlesJump.bind(this);
-        this.requestSubtitlesPage = this.requestSubtitlesPage.bind(this);
-        this.handleSubtitlesResponse = this.handleSubtitlesResponse.bind(this);
-        this.handleSubtitlesError = this.handleSubtitlesError.bind(this);
+        this.onSubtitlesUpdate = this.onSubtitlesUpdate.bind(this);
         this.onVideoCardClick = this.onVideoCardClick.bind(this);
         this.onPromptTabClick = this.onPromptTabClick.bind(this);
         this.handleSuggestedPlaylistsSuccess = this.handleSuggestedPlaylistsSuccess.bind(this);
@@ -248,8 +244,7 @@ class WatchApp extends React.Component {
         this.processPollTimer = null;
         this.processTickTimer = null;
         this.transcriptionId = null;
-        this.subtitlesEndMs = null;
-        this.subLoadToken = 0;
+        this.subtitleWindow = new SubtitleWindow(this.onSubtitlesUpdate);
         this.lastPositionMs = 0;
         this.analysisToken = 0;
         // Cue index the in-flight (or last issued) analysis request was for. Kept
@@ -419,8 +414,7 @@ class WatchApp extends React.Component {
         }
         this.playerReady = false;
         this.transcriptionId = null;
-        this.subtitlesEndMs = null;
-        this.subLoadToken = 0;
+        this.subtitleWindow.reset(null);
         this.lastPositionMs = 0;
         this.startMs = 0;
         this.analysisToken = 0;
@@ -625,12 +619,10 @@ class WatchApp extends React.Component {
             playlistLoading: false,
             playlistError: false,
             subtitles: [],
-            next: null,
             currentCueIndex: -1,
             currentCueUpcoming: false,
             positionMs: 0,
             subtitlesLoading: false,
-            subtitlesRequestStartMs: null,
             breakdown: [],
             breakdownCueIndex: -1,
             analyzing: false,
@@ -917,8 +909,7 @@ class WatchApp extends React.Component {
         this.player = null;
         this.playerReady = false;
         this.tickTimer = null;
-        this.subtitlesEndMs = null;
-        this.subLoadToken = 0;
+        this.subtitleWindow.reset(this.transcriptionId);
         // Seeded with the start position, not 0: the first tick would otherwise
         // find itself far outside the loaded subtitle window and re-request it.
         this.lastPositionMs = startMs;
@@ -928,7 +919,7 @@ class WatchApp extends React.Component {
         this.lastHistorySaveMs = 0;
         this.stopBreakdownJob();
         this.setState({
-            subtitles: [], next: null, currentCueIndex: -1, currentCueUpcoming: false, positionMs: startMs,
+            subtitles: [], currentCueIndex: -1, currentCueUpcoming: false, positionMs: startMs,
             breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
             bdBatches: {}, bdActive: null, bdNotice: null, bdUnavailable: false, bdLangUnsupported: false,
         });
@@ -936,7 +927,7 @@ class WatchApp extends React.Component {
         if (this.transcriptionId != null) {
             // Initial load: a page of words from where playback starts (covers
             // roughly a minute from there).
-            this.requestSubtitlesJump(startMs);
+            this.subtitleWindow.jumpTo(startMs);
         } else {
             this.setState({ subtitlesLoading: false });
         }
@@ -1030,7 +1021,7 @@ class WatchApp extends React.Component {
         }
         const positionMs = this.currentPositionMs();
         const { index, upcoming, activeWordIndex } = this.updateCurrentCue(positionMs);
-        this.loadSubtitlesIfNeeded(positionMs);
+        this.subtitleWindow.syncTo(positionMs);
         if (this.player.getPlayerState() === VIDEO_PLAYING) {
             this.maybeSaveHistoryProgress(positionMs);
             const delay = computeNextTickDelayMs(
@@ -1158,122 +1149,30 @@ class WatchApp extends React.Component {
         return { index, upcoming, activeWordIndex };
     }
 
-    loadSubtitlesIfNeeded(positionMs) {
-        if (this.state.subtitlesLoading || this.transcriptionId == null) {
+    // The subtitle window started or finished a request, or delivered cues.
+    onSubtitlesUpdate(update) {
+        if (update.items == null) {
+            this.setState({ subtitlesLoading: update.loading });
             return;
         }
-        if (this.subtitlesEndMs != null && positionMs >= this.subtitlesEndMs) {
-            return; // past the known end of the transcript
-        }
-        const subtitles = this.state.subtitles || [];
-        if (subtitles.length === 0) {
-            this.requestSubtitlesJump(positionMs);
-            return;
-        }
-        const loadedStart = this.state.subtitlesRequestStartMs != null
-            ? this.state.subtitlesRequestStartMs
-            : subtitles[0].start_ms;
-        const loadedEnd = subtitles[subtitles.length - 1].end_ms;
-        const next = this.state.next;
-        if (positionMs < loadedStart - SUBTITLE_BUFFER_MS || positionMs > loadedEnd + SUBTITLE_BUFFER_MS) {
-            // Outside the loaded window by more than the buffer → treat as a user jump.
-            this.requestSubtitlesJump(positionMs);
-        } else if (positionMs >= loadedEnd - SUBTITLE_BUFFER_MS && next != null && next !== -1) {
-            // Close to the end of the loaded batch → page forward by word index.
-            this.requestSubtitlesPage(next);
-        }
-    }
-
-    requestSubtitlesJump(positionMs) {
-        if (this.transcriptionId == null) {
-            return;
-        }
-        this.subLoadToken += 1;
-        const token = this.subLoadToken;
-        const seekMs = Math.max(0, positionMs);
-        this.setState({ subtitlesLoading: true });
-        loadSubtitles(
-            this.transcriptionId,
-            { start_ms: seekMs, word_count: SUBTITLE_WORD_COUNT },
-            this.handleSubtitlesResponse,
-            this.handleSubtitlesError,
-            { mode: "jump", token, seekMs },
-        );
-    }
-
-    requestSubtitlesPage(seq) {
-        if (this.transcriptionId == null) {
-            return;
-        }
-        this.subLoadToken += 1;
-        const token = this.subLoadToken;
-        const subtitles = this.state.subtitles || [];
-        const existingEndMs = subtitles.length > 0 ? subtitles[subtitles.length - 1].end_ms : null;
-        this.setState({ subtitlesLoading: true });
-        loadSubtitles(
-            this.transcriptionId,
-            { seq, word_count: SUBTITLE_WORD_COUNT },
-            this.handleSubtitlesResponse,
-            this.handleSubtitlesError,
-            { mode: "page", token, existingEndMs },
-        );
-    }
-
-    async handleSubtitlesResponse(context, responseJsonPromise) {
-        const resp = await responseJsonPromise;
-        if (context.token !== this.subLoadToken) {
-            console.log("ignore stale subtitles response");
-            return;
-        }
-        const items = (resp.items && resp.items.length > 0) ? resp.items : [];
-        const next = (typeof resp.next === "number") ? resp.next : -1;
-
-        if (context.mode === "jump") {
-            const endMs = items.length > 0 ? items[items.length - 1].end_ms : context.seekMs;
-            if (next === -1) {
-                this.subtitlesEndMs = endMs;
-            }
-            const cue = computeDisplayedCue(this.lastPositionMs, items);
-            // A jump replaces the array wholesale, so cue indices from the previous
-            // batch - including any we analyzed - no longer refer to the same cues.
+        const subtitles = update.items;
+        const cue = computeDisplayedCue(this.lastPositionMs, subtitles);
+        const state = {
+            subtitles,
+            subtitlesLoading: false,
+            currentCueIndex: cue.index,
+            currentCueUpcoming: cue.upcoming,
+            positionMs: this.lastPositionMs,
+        };
+        if (update.mode === "jump") {
+            // A jump replaces the window wholesale, so cue indices from the
+            // previous batch - including any we analyzed - no longer refer to
+            // the same cues.
             this.analysisCueIndex = -1;
-            this.setState({
-                subtitles: items,
-                subtitlesRequestStartMs: context.seekMs,
-                next,
-                subtitlesLoading: false,
-                currentCueIndex: cue.index,
-                currentCueUpcoming: cue.upcoming,
-                positionMs: this.lastPositionMs,
-                breakdown: [],
-                breakdownCueIndex: -1,
-            });
-            console.log(`Loaded ${items.length} cues from start_ms=${context.seekMs}, next=${next}, end=${endMs}`);
-        } else {
-            const combined = (this.state.subtitles || []).concat(items);
-            const endMs = combined.length > 0 ? combined[combined.length - 1].end_ms : context.existingEndMs;
-            if (next === -1) {
-                this.subtitlesEndMs = endMs;
-            }
-            const cue = computeDisplayedCue(this.lastPositionMs, combined);
-            this.setState({
-                subtitles: combined,
-                next,
-                subtitlesLoading: false,
-                currentCueIndex: cue.index,
-                currentCueUpcoming: cue.upcoming,
-                positionMs: this.lastPositionMs,
-            });
-            console.log(`Paged ${items.length} cues, total ${combined.length}, next=${next}, end=${endMs}`);
+            state.breakdown = [];
+            state.breakdownCueIndex = -1;
         }
-    }
-
-    async handleSubtitlesError(context, responseTextPromise) {
-        const text = await responseTextPromise;
-        console.log(`subtitles error: ${text}`);
-        if (context.token === this.subLoadToken) {
-            this.setState({ subtitlesLoading: false });
-        }
+        this.setState(state);
     }
 
     // ===== Grammar breakdown of the displayed cue =====
