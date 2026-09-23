@@ -1983,6 +1983,10 @@ function prepareYouzakhOnlyTranslations(map) {
         "Find how a Kazakh word or phrase is used in real YouTube videos.",
         "Узнайте, как казахское слово или фраза звучит в настоящих YouTube-видео.",
     );
+    setEnRu(map, "youzakhExamples",
+        "For example:",
+        "Например:",
+    );
     setEnRu(map, "youzakhHintQuery",
         "Enter a word or a phrase in Kazakh",
         "Введите слово или фразу на казахском",

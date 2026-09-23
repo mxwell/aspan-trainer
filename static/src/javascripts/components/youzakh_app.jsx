@@ -11,11 +11,33 @@ import { SubtitleWindow } from "../lib/subtitle_window";
 import { VIDEO_UNSTARTED, VIDEO_PLAYING, VIDEO_CUED } from "../lib/yt_player";
 import { SubtitleCue } from "./subtitle_cue";
 import { Spinner } from "./spinner";
+import { shuffleArray } from "../lib/random";
 
 const MODE_SEARCH_FORM = 1;
 const MODE_PLAYER = 2;
 
 const MAX_QUERY_LENGTH = 256;
+
+const EXAMPLE_QUERIES = [
+    "әрі қарай",
+    "қазір келемін",
+    "амал жоқ",
+    "тап-таза",
+    "не болды",
+    "бәрі жақсы",
+    "рахмет сізге",
+    "қайда барамыз",
+    "тағы да",
+    "ештеңе етпейді",
+    "танысқаныма қуаныштымын",
+    "Оқасы жоқ",
+];
+const EXAMPLE_COUNT = 3;
+
+function pickExamples() {
+    shuffleArray(EXAMPLE_QUERIES);
+    return EXAMPLE_QUERIES.slice(0, EXAMPLE_COUNT);
+}
 
 // parseParams() in lib/url splits on "=" and decodes with decodeURI, which
 // mangles a query carrying "&" or "=".
@@ -42,6 +64,7 @@ class YouzakhApp extends React.Component {
         this.onBackspace = this.onBackspace.bind(this);
         this.onPopState = this.onPopState.bind(this);
         this.onNewSearchClick = this.onNewSearchClick.bind(this);
+        this.onExampleClick = this.onExampleClick.bind(this);
         this.handleSearchResponse = this.handleSearchResponse.bind(this);
         this.handleSearchError = this.handleSearchError.bind(this);
         this.handleMatchesResponse = this.handleMatchesResponse.bind(this);
@@ -60,6 +83,7 @@ class YouzakhApp extends React.Component {
         this.onWordClick = this.onWordClick.bind(this);
 
         this.inputRef = React.createRef();
+        this.examples = pickExamples();
         this.player = null;
         this.playerReady = false;
         this.loadedVideoId = null;
@@ -202,10 +226,19 @@ class YouzakhApp extends React.Component {
         this.resetToForm(/* pushUrl */ true);
     }
 
+    onExampleClick(query, event) {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
+        this.runSearch(query, /* pushUrl */ true);
+    }
+
     resetToForm(pushUrl) {
         this.searchGen += 1;
         this.matchesGen += 1;
         this.teardownPlayer();
+        this.examples = pickExamples();
         if (pushUrl) {
             window.history.pushState(null, "", buildYouzakhUrl([], this.props.lang));
         }
@@ -650,6 +683,23 @@ class YouzakhApp extends React.Component {
         );
     }
 
+    renderExamples() {
+        return (
+            <div className="mt-2 flex flex-row flex-wrap items-baseline text-base lg:text-lg">
+                <span className="mr-2 text-gray-600">{this.i18n("youzakhExamples")}</span>
+                {this.examples.map((query) => (
+                    <a
+                        key={query}
+                        href={buildYouzakhUrl([`q=${encodeURIComponent(query)}`], this.props.lang)}
+                        onClick={(event) => this.onExampleClick(query, event)}
+                        className="mr-3 text-blue-600 hover:text-blue-800 underline">
+                        {query}
+                    </a>
+                ))}
+            </div>
+        );
+    }
+
     renderSearchForm() {
         const keyboardClass = (
             this.state.keyboard
@@ -702,6 +752,7 @@ class YouzakhApp extends React.Component {
                 )}
                 <div className="mt-6 px-3 max-w-3xl mx-auto text-gray-700 text-base lg:text-lg">
                     {this.i18n("youzakhIntro")}
+                    {this.renderExamples()}
                 </div>
             </div>
         );
