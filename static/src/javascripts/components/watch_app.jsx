@@ -338,41 +338,6 @@ class WatchApp extends React.Component {
         } else if (prevState.appMode === APP_MODE_PROCESSING && this.state.appMode !== APP_MODE_PROCESSING) {
             this.stopProcessingPoll();
         }
-        this.syncBreakdownScroll(prevState);
-    }
-
-    // Keeps the highlighted part of the horizontally scrolling breakdown in view.
-    // Only acts when the active part actually changes: scrolling on every render
-    // would restart the smooth-scroll animation each tick and make the row stutter.
-    syncBreakdownScroll(prevState) {
-        const container = this.breakdownRef.current;
-        if (container == null) {
-            return;
-        }
-        if (prevState.breakdownCueIndex !== this.state.breakdownCueIndex) {
-            // New cue, new parts - start from the left rather than inheriting the
-            // previous cue's scroll offset.
-            container.scrollLeft = 0;
-        }
-        const breakdown = this.state.breakdown || [];
-        const curPositionMs = this.state.positionMs;
-        const index = computeActivePartIndex(curPositionMs || 0, breakdown);
-        const prevIndex = computeActivePartIndex(prevState.positionMs || 0, prevState.breakdown || []);
-        // Toggling translations resizes every card, so the offset we scrolled to
-        // before no longer centers the active one - recompute it.
-        const resized = prevState.translations !== this.state.translations;
-        if (index === -1 || (!resized && index === prevIndex && prevState.breakdownCueIndex === this.state.breakdownCueIndex)) {
-            return;
-        }
-        const row = container.firstChild;
-        const el = row && row.children[index];
-        if (el == null) {
-            return;
-        }
-        // Center the active part; scrollLeft on the container alone, since
-        // scrollIntoView() would also scroll the page and yank the video out of view.
-        const left = el.offsetLeft - (container.clientWidth - el.offsetWidth) / 2;
-        container.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
     }
 
     componentWillUnmount() {
@@ -1991,8 +1956,8 @@ class WatchApp extends React.Component {
                     {info && (
                         <div className="flex flex-row items-start justify-between py-1">
                             <div className="min-w-0 flex-1 text-left">
-                                <div className="text-base lg:text-lg font-medium text-gray-800 truncate" title={info.title}>{info.title}</div>
-                                <div className="text-sm text-gray-500 truncate">{info.channel_title}</div>
+                                <div className="text-base lg:text-lg font-medium text-gray-800 max-w-2xl" title={info.title}>{info.title}</div>
+                                <div className="text-sm text-gray-500 max-w-2xl">{info.channel_title}</div>
                             </div>
                             {this.renderVideoMenu()}
                         </div>
@@ -2300,43 +2265,48 @@ class WatchApp extends React.Component {
         );
     }
 
-    renderBreakdown() {
-        if (!this.state.grammar) {
-            return null;
-        }
+    renderBreakdownContent() {
         const breakdown = this.state.breakdown || [];
         // Only show a breakdown that belongs to the cue currently on screen, so a
         // stale one never lingers under a cue it doesn't describe.
         if (breakdown.length === 0 || this.state.breakdownCueIndex !== this.state.currentCueIndex) {
             return this.state.analyzing
-                ? (<div className="m-4 text-center text-base text-gray-500">{this.i18n("analyzing")}</div>)
+                ? (<div className="m-4 text-center text-base text-gray-500 max-w-2xl">{this.i18n("analyzing")}</div>)
                 : null;
         }
 
         const positionMs = this.state.positionMs || 0;
         const activePartIndex = computeActivePartIndex(positionMs, breakdown);
-        // "relative" makes the scroll container the offsetParent of the parts, so
-        // their offsetLeft is measured from its content box, the same coordinate
-        // space as scrollLeft (see syncBreakdownScroll())
+
+        return (
+            <div className="flex flex-row flex-wrap items-start max-w-2xl">
+                {breakdown.map((part, i) => (
+                    // Flex children shrink by default, which would squeeze the cards
+                    // instead of overflowing the row - pin each one's width.
+                    <div key={i} className="flex-shrink-0">
+                        <AnalyzedPartView
+                            analyzedPart={part}
+                            grammar={true}
+                            translations={this.state.translations}
+                            highlight={i === activePartIndex}
+                            hintCallback={null}
+                            verbFormsCallback={null}
+                            lang={this.props.lang}
+                        />
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    renderBreakdown() {
+        if (!this.state.grammar) {
+            return null;
+        }
+
         return (
             <div ref={this.breakdownRef} className="relative my-4 overflow-x-auto">
-                <div className="flex flex-row flex-nowrap items-start">
-                    {breakdown.map((part, i) => (
-                        // Flex children shrink by default, which would squeeze the cards
-                        // instead of overflowing the row - pin each one's width.
-                        <div key={i} className="flex-shrink-0">
-                            <AnalyzedPartView
-                                analyzedPart={part}
-                                grammar={true}
-                                translations={this.state.translations}
-                                highlight={i === activePartIndex}
-                                hintCallback={null}
-                                verbFormsCallback={null}
-                                lang={this.props.lang}
-                            />
-                        </div>
-                    ))}
-                </div>
+                {this.renderBreakdownContent()}
             </div>
         );
     }
