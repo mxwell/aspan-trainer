@@ -1,5 +1,7 @@
 // Only "ru" is accepted by the API; English is planned.
 const BREAKDOWN_LANG = "ru";
+// Batches are aligned to sentence seq: 0-24, 25-49, and so on.
+const BREAKDOWN_BATCH_SIZE = 25;
 
 // Status strings the GET carries in the body of a 200 when `ok` is false.
 const BREAKDOWN_MISSING = "breakdowns missing";
@@ -123,6 +125,7 @@ function mergeBatch(batches, entry) {
 
 export {
     BREAKDOWN_LANG,
+    BREAKDOWN_BATCH_SIZE,
     BREAKDOWN_MISSING,
     BREAKDOWN_PENDING,
     BREAKDOWN_RUNNING,

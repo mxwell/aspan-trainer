@@ -3,7 +3,7 @@ import { buildWatchUrl, parseParams, parseTimeParamMs } from "../lib/url";
 import { i18n, I18N_LANG_RU } from "../lib/i18n";
 import { probeVideo, fetchVideo, loadBreakdowns, enqueueBreakdowns, loadSuggestedPlaylists, loadPlaylistPage, makeAnalyzeSubRequest } from "../lib/requests";
 import {
-    BREAKDOWN_LANG, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
+    BREAKDOWN_LANG, BREAKDOWN_BATCH_SIZE, BREAKDOWN_MISSING, BREAKDOWN_PENDING, BREAKDOWN_RUNNING, BREAKDOWN_DONE,
     BREAKDOWN_NO_SENTENCES,
     ENQUEUE_NO_SENTENCES, ENQUEUE_NO_QUOTA, ENQUEUE_QUEUE_FULL,
     batchSpan, spanContains, findBatch, sentencesForRange, activeSentenceIndex, visibleSentences, mergeBatch,
@@ -53,6 +53,9 @@ const BREAKDOWN_QUEUE_FULL_RETRY_MS = 15000;
 // The GET can't tell "never generated" from "generation failed", so a failing
 // batch would otherwise be re-enqueued forever.
 const BREAKDOWN_MAX_ENQUEUES = 2;
+// Once the user has asked for breakdowns, the next batch is enqueued when less
+// than this much of the current one is left to play.
+const BREAKDOWN_PREFETCH_RESERVE_MS = 90000;
 // Sentences before the one being played are dropped, except for a run of short
 // ones whose words together stay under this limit.
 const PRECEDING_WORDS_LIMIT = 3;
@@ -234,6 +237,8 @@ class WatchApp extends React.Component {
         this.handleBreakdownsError = this.handleBreakdownsError.bind(this);
         this.handleEnqueueResponse = this.handleEnqueueResponse.bind(this);
         this.handleEnqueueError = this.handleEnqueueError.bind(this);
+        this.handlePrefetchResponse = this.handlePrefetchResponse.bind(this);
+        this.handlePrefetchError = this.handlePrefetchError.bind(this);
 
         this.player = null;
         this.playerReady = false;
@@ -257,6 +262,13 @@ class WatchApp extends React.Component {
         this.bdToken = 0;
         this.bdPollTimer = null;
         this.bdTimeoutTimer = null;
+        // Set by the first click on the analysis panel: from then on, regions
+        // without breakdowns load on their own and the next batch is enqueued
+        // ahead of the playhead. bdPrefetched maps the batch_start of every batch
+        // enqueued ahead to { retryAt }, non-null when it should be tried again.
+        this.bdAuto = false;
+        this.bdPrefetched = new Map();
+        this.bdPrefetchToken = 0;
     }
 
     makeState(appMode, videoId) {
@@ -362,6 +374,7 @@ class WatchApp extends React.Component {
         }
         this.stopProcessingPoll();
         this.stopBreakdownJob();
+        this.resetBreakdownAuto();
         if (this.tickTimer) {
             clearTimeout(this.tickTimer);
             this.tickTimer = null;
@@ -880,6 +893,7 @@ class WatchApp extends React.Component {
         this.historyInitialSaved = false;
         this.lastHistorySaveMs = 0;
         this.stopBreakdownJob();
+        this.resetBreakdownAuto();
         this.setState({
             subtitles: [], currentCueIndex: -1, currentCueUpcoming: false, positionMs: startMs,
             breakdown: [], breakdownCueIndex: -1, analyzing: false, menuOpen: false,
@@ -986,6 +1000,7 @@ class WatchApp extends React.Component {
         this.subtitleWindow.syncTo(positionMs);
         if (this.player.getPlayerState() === VIDEO_PLAYING) {
             this.maybeSaveHistoryProgress(positionMs);
+            this.maybePrefetchNextBatch(positionMs);
             const delay = computeNextTickDelayMs(
                 positionMs, this.player.getPlaybackRate(), this.state.subtitles || [], index, upcoming, activeWordIndex
             );
@@ -1108,6 +1123,7 @@ class WatchApp extends React.Component {
             this.startSubAnalysisIfNeeded(index, subtitles[index]);
         }
         this.maybeAbandonBreakdownJob(index !== -1 ? subtitles[index] : null);
+        this.maybeAutoStartBreakdownJob(index !== -1 ? subtitles[index] : null);
         return { index, upcoming, activeWordIndex };
     }
 
@@ -1262,7 +1278,16 @@ class WatchApp extends React.Component {
         if (cue == null || this.transcriptionId == null) {
             return;
         }
+        this.bdAuto = true;
         this.startBreakdownJob(cue.start_ms);
+    }
+
+    // Per-video: a new video starts with the panel again, and responses to
+    // enqueues sent for the previous one are ignored.
+    resetBreakdownAuto() {
+        this.bdAuto = false;
+        this.bdPrefetched = new Map();
+        this.bdPrefetchToken += 1;
     }
 
     onAiAnalysisNoticeClose() {
@@ -1385,6 +1410,60 @@ class WatchApp extends React.Component {
         }
         this.stopBreakdownJob();
         this.setState({ bdActive: null });
+    }
+
+    // Called every tick. Once the user has asked for breakdowns, a region with
+    // nothing loaded starts its job instead of offering the panel. A failed job
+    // leaves a notice over its region, which keeps this from retrying it.
+    maybeAutoStartBreakdownJob(cue) {
+        if (!this.bdAuto || cue == null || this.transcriptionId == null) {
+            return;
+        }
+        const state = this.state;
+        if (state.bdActive != null || state.bdUnavailable || state.bdLangUnsupported) {
+            return;
+        }
+        if (state.bdNotice != null && spanContains(state.bdNotice, cue.start_ms)) {
+            return;
+        }
+        if (findBatch(state.bdBatches || {}, cue.start_ms) != null) {
+            return;
+        }
+        this.startBreakdownJob(cue.start_ms);
+    }
+
+    // Called every tick while playing. Enqueues the batch after the one being
+    // played once less than BREAKDOWN_PREFETCH_RESERVE_MS of it is left, so its
+    // generation is under way by the time the playhead gets there. Nothing is
+    // polled: the job started on entering that batch picks the result up.
+    maybePrefetchNextBatch(positionMs) {
+        if (!this.bdAuto || this.transcriptionId == null) {
+            return;
+        }
+        const batches = this.state.bdBatches || {};
+        let batch = findBatch(batches, positionMs);
+        const active = this.state.bdActive;
+        if (batch == null && active != null && active.batchStart != null && spanContains(active, positionMs)) {
+            batch = active;
+        }
+        if (batch == null || batch.endMs - positionMs >= BREAKDOWN_PREFETCH_RESERVE_MS) {
+            return;
+        }
+        const nextSeq = batch.batchStart + BREAKDOWN_BATCH_SIZE;
+        if (batches[nextSeq] != null) {
+            return;
+        }
+        const prefetch = this.bdPrefetched.get(nextSeq);
+        if (prefetch != null && (prefetch.retryAt == null || Date.now() < prefetch.retryAt)) {
+            return;
+        }
+        this.bdPrefetched.set(nextSeq, { retryAt: null });
+        enqueueBreakdowns(
+            { transcription_id: this.transcriptionId, lang: BREAKDOWN_LANG, sent_seq: nextSeq },
+            this.handlePrefetchResponse,
+            this.handlePrefetchError,
+            { token: this.bdPrefetchToken, seq: nextSeq },
+        );
     }
 
     async handleBreakdownsResponse(context, responseJsonPromise) {
@@ -1523,6 +1602,7 @@ class WatchApp extends React.Component {
             return;
         }
         if (message === ENQUEUE_NO_QUOTA) {
+            this.bdAuto = false;
             this.failBreakdownJob("aiAnalysisNoQuota");
             return;
         }
@@ -1549,6 +1629,28 @@ class WatchApp extends React.Component {
             return;
         }
         this.failBreakdownJob("aiAnalysisFailed");
+    }
+
+    // A prefetch stays silent whatever happens: the job started on entering the
+    // batch reports the problem if it is still there. "no sentences found" means
+    // the video ends with the current batch; its entry stays, so it isn't sent
+    // again.
+    async handlePrefetchResponse(context, responseJsonPromise) {
+        const resp = await responseJsonPromise;
+        if (context.token !== this.bdPrefetchToken || resp.proceed_to_polling) {
+            return;
+        }
+        const message = resp.message || "";
+        if (message === ENQUEUE_QUEUE_FULL) {
+            this.bdPrefetched.set(context.seq, { retryAt: Date.now() + BREAKDOWN_QUEUE_FULL_RETRY_MS });
+            return;
+        }
+        console.log(`prefetch breakdowns for batch ${context.seq}: "${message}"`);
+    }
+
+    async handlePrefetchError(context, responseTextPromise) {
+        const text = await responseTextPromise;
+        console.log(`prefetch breakdowns error for batch ${context.seq}: ${text}`);
     }
 
     // ===== APP_MODE_PROMPT =====
